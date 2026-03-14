@@ -1,0 +1,337 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+
+\title{Classification Protocol: Mapping Fiscal Policy Measures\\to Transmission Channels (DI/CP/H)}
+\author{Working Document --- Aulis Pesenti}
+\date{February 2026}
+
+\begin{document}
+\maketitle
+
+\section{Classification Principle}
+
+The classification assigns each fiscal policy measure in the dataset to one of three
+transmission channel categories based on the theoretical framework developed in
+Section~2 of the paper. The categories correspond to structurally distinct channels
+through which fiscal interventions affect the state variables of the planner's problem:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Demand Injection (DI):} Measures that directly increase the flow of
+    disposable income to households or aggregate expenditure in the economy. These
+    transmit through the multiplier channel $\alpha_F^{DI}$ in Equation~(14), shifting
+    the output level by a constant amount per unit deployed.
+  \item \textbf{Capacity Preservation (CP):} Measures that preserve productive
+    structures---firm--worker matches, firm solvency, supply chain integrity---thereby
+    reducing the persistence of the output gap. These transmit through the parameter
+    $\eta$ in Equation~(14), counteracting lockdown-induced hysteresis ($\psi S_k$).
+  \item \textbf{Health (H):} Pandemic-specific health expenditures that are not a
+    policy instrument in the planner's fiscal composition problem but an endogenous
+    cost driven by the epidemiological state $\theta_k$. These enter the model through
+    $c_H \theta_k$ in the debt equation~(16).
+\end{itemize}
+
+\noindent The classification operates at the \texttt{PolicyCode} level (49 codes as defined
+in the Codebook, Table~2). This ensures reproducibility and eliminates subjective
+judgment at the individual measure level, with one exception: the residual category
+\texttt{other} (41 observations, all policy extensions with zero fiscal weight) is
+classified case-by-case based on the measure description.
+
+\section{Decision Rules}
+
+The following hierarchy governs classification decisions when a measure's transmission
+channel is not immediately apparent from its \texttt{PolicyCode} definition:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Primary criterion: transmission mechanism.} The decisive question
+    is \emph{how} the measure affects the economy, not \emph{who} receives the funds.
+    A wage subsidy paid to firms that maintains employment relationships is CP even
+    though it ultimately supports worker income. A direct cash transfer to households
+    is DI even if the household uses it to pay rent to a business.
+  \item \textbf{Recipient as tiebreaker.} When the transmission mechanism is ambiguous,
+    the recipient disambiguates: measures targeting firms, employers, or productive
+    structures default to CP; measures targeting households, individuals, or consumers
+    default to DI.
+  \item \textbf{Tax deferrals.} All tax deferrals (IMF Category~3) are classified as
+    CP regardless of whether the recipient is a business or individual. The
+    rationale: deferrals operate as zero-interest short-term government loans that
+    preserve liquidity and prevent insolvency cascades. They generate no permanent
+    change in disposable income (the deferred amount is repaid) and thus have no
+    sustained multiplier effect through $\alpha_F^{DI}$. Their primary transmission
+    is capacity preservation---preventing liquidity-constrained agents from defaulting
+    on obligations during the acute crisis phase.
+  \item \textbf{Health expenditures.} All measures classified under PolicyCategory~5
+    (Health expenditure measures) and 5.5 (Revenue measures to promote availability
+    of medical items) are assigned to H, regardless of whether they involve
+    expenditure or revenue instruments.
+  \item \textbf{Code-level homogeneity.} Classification is applied uniformly within
+    each \texttt{PolicyCode}. For codes with heterogeneous content (notably Code~39),
+    the dominant transmission mechanism determines the classification, and an
+    ambiguity flag is set for robustness checks.
+\end{enumerate}
+
+
+\section{Complete Classification Mapping}
+
+Table~\ref{tab:mapping} provides the exhaustive mapping from \texttt{PolicyCode} to
+transmission channel, organized by \texttt{PolicyCategory}.
+
+\begin{small}
+\begin{longtable}{p{0.6cm} p{5.8cm} p{1.2cm} p{5.5cm}}
+\caption{Classification of PolicyCodes to Transmission Channels}
+\label{tab:mapping} \\
+\toprule
+\textbf{Code} & \textbf{Description} & \textbf{Channel} & \textbf{Rationale} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Code} & \textbf{Description} & \textbf{Channel} & \textbf{Rationale} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\textit{Continued on next page}} \\
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{4}{l}{\textit{Category 1: Revenue Measures to Protect Businesses}} \\
+\midrule
+1  & Accelerated asset depreciation (CIT) & CP & Reduces firm tax burden; preserves cash flow for operations \\
+2  & Extend loss carry-forward (CIT) & CP & Allows firms to offset losses against prior profits; preserves solvency \\
+3  & Broaden tax deductibility & CP & Reduces effective tax rate on firms; preserves operating margin \\
+4  & Tax credits (business) & CP & Reduces firm tax liability; preserves cash flow \\
+5  & Deferral of tax filing (business) & CP & Liquidity preservation (Decision Rule~3) \\
+6  & Deferral of tax payments (business) & CP & Liquidity preservation (Decision Rule~3) \\
+7  & Tax rate reduction (business) & CP & Reduces structural cost burden on firms; preserves firm viability \\
+8  & Tax amnesty / incentives (business) & CP & Removes penalty-driven insolvency risk \\
+9  & Accelerating refunds (business) & CP & Injects liquidity to firms from already-owed government obligations \\
+10 & Lower advance payment & CP & Reduces prepayment burden; liquidity preservation \\
+11 & Suspend debt collection & CP & Prevents enforcement-driven firm failure \\
+12 & Suspend audit activities & CP & Administrative relief; reduces compliance burden during crisis \\
+13 & Tax exemption (business) & CP & Eliminates specific tax obligations; preserves firm cash flow \\
+14 & Tax waiver / suspension (business) & CP & Includes bankruptcy moratoriums; prevents firm exit \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 2: Revenue Measures to Protect Individuals}} \\
+\midrule
+15 & Deferral of tax filing (individual) & CP & Liquidity preservation (Decision Rule~3) \\
+16 & Deferral of tax payments (individual) & CP & Liquidity preservation (Decision Rule~3) \\
+17 & Tax rate reduction (individual) & DI & Permanent increase in disposable income; standard multiplier channel \\
+18 & Tax amnesty / incentives (individual) & DI & Increases disposable income of households \\
+19 & Broaden tax deductibility (individual) & DI & Increases disposable income via lower effective tax rate \\
+20 & Tax credits (individual) & DI & Direct increase in household disposable income \\
+21 & Tax exemption (individual) & DI & Eliminates tax obligation; raises disposable income \\
+22 & Tax waiver / suspension (individual) & DI & Reduces household tax burden; increases disposable income \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 3: Revenue Measures to Boost Consumption/Demand}} \\
+\midrule
+25 & Exemption of consumption tax rates & DI & Reduces consumer prices; stimulates aggregate expenditure \\
+26 & Lower consumption tax rates (VAT) & DI & Reduces consumer prices; transmits through spending channel \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 4: Expenditure Measures to Boost Consumption/Demand}} \\
+\midrule
+27 & Investment into infrastructure & DI & Government spending multiplier; direct demand injection \\
+28 & Green investments & DI & Government spending multiplier; direct demand injection \\
+29 & Reactivate local tourism & DI & Consumption stimulus targeting specific sectors \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 5: Health Expenditure Measures}} \\
+\midrule
+30 & Lower tax rates for medical items & H & Health system cost; calibrates $c_H$ \\
+31 & Supply of low-cost medical items & H & Health system cost; calibrates $c_H$ \\
+32 & Supply of high-cost medical items & H & Health system cost; calibrates $c_H$ \\
+33 & Targeted health infrastructure & H & Health system cost; calibrates $c_H$ \\
+34 & Expansion of human resources (health) & H & Health system cost; calibrates $c_H$ \\
+gen. & General health related spending & H & Health system cost; calibrates $c_H$ \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 6: Expenditure Measures to Individuals}} \\
+\midrule
+35 & Direct cash transfers for individuals & DI & Canonical demand injection; direct income flow to households \\
+36 & Expansion of unemployment benefits & DI & Increases disposable income of unemployed; multiplier channel \\
+37 & Temporary expansion of existing benefits & DI & Augments existing transfer programs; income flow to households \\
+38 & Supplementary ad hoc programs & DI & Pandemic-specific income support to individuals \\
+39 & Wage compensation / enhanced paid leave & CP & Dominant mechanism: preserves employer--employee matches (Kurzarbeit, CJRS, JobKeeper, Activit\'{e} Partielle, NOW). See Section~\ref{sec:code39}. \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 7: Credit and Equity Measures}} \\
+\midrule
+40 & Preferential loans to firms & CP & Preserves firm solvency through liquidity provision \\
+41 & Equity or quasi-equity investments & CP & Preserves firm capital structure; prevents insolvency \\
+42 & Preferential loans to households & DI & Provides liquidity to households; transmits through spending \\
+43 & Guarantees for loans for business & CP & Preserves firm access to credit; prevents insolvency cascade \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 8: Expenditure Measures for Businesses}} \\
+\midrule
+45 & Income support general (business) & CP & Preserves firm operations; prevents exit of viable businesses \\
+46 & Income support non-profit & CP & Preserves organizational capacity of non-profit sector \\
+47 & Income support specific (sectoral) & CP & Preserves sector-specific productive capacity \\
+48 & Income support education sector & CP & Preserves institutional capacity in education \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 9: Transfers to Local Governments}} \\
+\midrule
+49 & Income support for local governments & CP & Preserves public service delivery capacity; prevents layoffs \\
+
+\end{longtable}
+\end{small}
+
+
+\section{Treatment of Special Cases}
+
+\subsection{Code 39: Wage Compensation / Enhanced Paid Leave}
+\label{sec:code39}
+
+Code~39 is classified as CP at the code level. The empirical justification is as
+follows. Among the 140 measures coded as 39 across 37 countries, the overwhelming
+majority ($>$90\% by fiscal volume) are short-time work schemes (Kurzarbeit, CJRS,
+Activit\'{e} Partielle, NOW, JobKeeper) and apprenticeship wage subsidies---instruments
+whose defining feature is that the payment flows \emph{through} the employer to
+maintain the employment relationship. A small number of entries (e.g., parental
+income compensation for school closures in Germany, pandemic leave payments in
+Australia) are structurally closer to DI, as they compensate individual income loss
+without preserving a productive firm--worker match.
+
+Code-level classification is chosen over case-by-case assignment for three reasons.
+First, it ensures reproducibility: any researcher applying the protocol to the same
+dataset will obtain identical results. Second, the misclassification bias is bounded:
+the DI-like entries within Code~39 represent less than 10\% of the code's fiscal
+volume and are quantitatively small relative to the dominant short-time work programs.
+Third, the sensitivity of results to this decision can be tested by reclassifying
+the flagged entries (see Section~\ref{sec:flags}).
+
+\subsection{Code 45: Income Support General (Business)}
+
+Code~45 (324 observations, 0.64\% of GDP) contains predominantly firm-level grants
+and income support: German Soforthilfe, French Fonds de Solidarit\'{e}, and similar
+programs across OECD economies. A small number of US entries (notably CARES Act
+State \& Local Funding) involve intergovernmental transfers with mixed purpose. These
+are classified as CP at the code level, consistent with the code's definition
+(``income support general'' under Category~8: Expenditure Measures for Businesses).
+
+\subsection{Tax Deferrals (IMF Category 3)}
+
+All 154 tax deferral measures are classified as CP regardless of the recipient
+(business or individual). This reflects the economic nature of deferrals as
+temporary liquidity injections: the government provides an implicit zero-interest
+loan that must be repaid. The transmission mechanism is capacity preservation
+(preventing liquidity-driven default), not demand injection (no permanent increase
+in disposable income). The fiscal cost of deferrals is also structurally different
+from both DI and CP: the budgetary impact is limited to the time value of the
+deferred revenue and any non-repayment, not the face value of the deferral. This
+is reflected in the IMF's below-the-line treatment.
+
+Note that this classification decision implies that the effective $\kappa_F^{CP}$
+for the deferral component of CP is substantially below the weighted average
+$\kappa_F^{CP}$, since the realized fiscal cost of deferrals approaches zero for
+solvent taxpayers. Sensitivity analysis should examine results under exclusion of
+deferrals from CP.
+
+\subsection{Health Expenditures (Category H)}
+
+Health measures (Codes 30--34 and \texttt{general}; 235 observations, $\sim$0.43\% of
+GDP) are excluded from both DI and CP. In the model, these expenditures are not a
+choice variable in the planner's fiscal composition problem but an endogenous cost
+$c_H \theta_k$ driven by the epidemiological state. The classified H measures
+provide the empirical basis for calibrating~$c_H$.
+
+\subsection{Codes 23 and 24}
+
+Code~23 (1 observation: tax-free alcohol for disinfectant production, Germany) and
+Code~24 (5 observations: customs duty relief on medical goods) are health-adjacent
+measures. They are classified as H, consistent with their purpose of facilitating
+medical supply availability during the pandemic.
+
+\subsection{Policy Extensions (\texttt{broad\_fiscal} = 2)}
+
+Policy extensions (443 observations) carry \texttt{broad\_fiscal\_size} = 0 and
+document the temporal extension of existing programs without additional fiscal
+commitment. Each extension inherits the transmission channel of its base
+\texttt{PolicyCode}. Extensions are flagged (\texttt{is\_extension} = 1) so they can
+be excluded from volume calculations while preserving the timeline information.
+
+\subsection{EU-Level Measures (\texttt{broad\_fiscal} = 3)}
+
+The 29 NextGenerationEU/RRF entries are classified based on their
+\texttt{PolicyCode} (all coded as 32, Category~5) but carry a separate flag
+(\texttt{is\_eu} = 1). These supranational measures differ from national fiscal
+responses in timing (disbursement lagged), financing (EU-level debt), and
+conditionality (milestone-based). They should be analyzed separately or excluded
+from the baseline specification.
+
+\subsection{Code \texttt{other} (41 Observations)}
+\label{sec:other}
+
+The residual category \texttt{other} (41 observations, all policy extensions with
+zero fiscal weight) is classified case-by-case based on the measure description.
+Since all entries have \texttt{broad\_fiscal\_gdp} = 0, misclassification has no
+quantitative effect on the empirical analysis. The R implementation script assigns
+these based on keyword matching and manual verification of ambiguous cases. A
+complete listing of the case-by-case assignments is provided in the R script
+documentation.
+
+
+\section{Robustness Flags}
+\label{sec:flags}
+
+The classification adds the following binary flags for sensitivity analysis:
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{is\_extension}: 1 if \texttt{broad\_fiscal} = 2 (zero fiscal weight).
+  \item \texttt{is\_eu}: 1 if \texttt{broad\_fiscal} = 3 (supranational measure).
+  \item \texttt{is\_deferral}: 1 if IMF \texttt{category} = 3 (tax deferral).
+  \item \texttt{is\_blw}: 1 if IMF \texttt{category} = 2 (below-the-line: loans and
+    guarantees).
+\end{itemize}
+
+\noindent These flags enable the following robustness checks:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Exclude deferrals from CP}: reclassify \texttt{is\_deferral} = 1
+    measures as a separate category or exclude entirely, testing whether the CP
+    effectiveness parameter $\eta$ is sensitive to the inclusion of pure timing
+    measures.
+  \item \textbf{Exclude extensions}: restrict analysis to
+    \texttt{broad\_fiscal} = 1 (core fiscal measures with positive fiscal weight).
+  \item \textbf{Exclude EU measures}: restrict to national fiscal responses.
+  \item \textbf{Separate above- and below-the-line CP}: partition CP into direct
+    measures (grants, subsidies; \texttt{is\_blw} = 0) and contingent measures
+    (loans, guarantees; \texttt{is\_blw} = 1), testing whether $\eta$ and
+    $\kappa_F^{CP}$ differ across sub-categories.
+\end{enumerate}
+
+
+\section{Validation}
+
+The classification can be cross-validated against two external benchmarks:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{IMF fiscal accounting}: Above-the-line measures
+    (\texttt{category} = 1) should appear predominantly in both DI and CP;
+    below-the-line measures (\texttt{category} = 2) should be exclusively CP
+    (loans and guarantees preserve firm capacity). Tax deferrals
+    (\texttt{category} = 3) should be exclusively CP per the protocol.
+  \item \textbf{Aggregate consistency}: The country-level DI and CP aggregates
+    (as \% of GDP) should be broadly consistent with the IMF's decomposition of
+    above-the-line versus below-the-line spending, adjusted for the
+    transmission-based reclassification of certain above-the-line measures.
+\end{enumerate}
+
+
+
+
+
+\end{document}

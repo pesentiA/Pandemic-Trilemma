@@ -1,0 +1,45 @@
+% ========================================
+% USAGE GUIDELINES
+% ========================================
+\section{Usage Guidelines for Researchers}
+
+\subsection{Recommended Analysis Approaches}
+
+\textbf{Cross-Country Comparisons:} Use the \texttt{broad\_fiscal\_gdp} variable to normalize for economic size differences. Be mindful of differences in fiscal accounting practices and reporting standards across countries.
+
+\textbf{Temporal Analysis:} Combine \texttt{Year}, \texttt{Quarter}, and \texttt{Month} variables to capture timing and sequencing of policy responses. The highest policy concentration occurs in Q1--Q2 2020, reflecting initial pandemic response.
+
+\textbf{Policy Type Analysis:} Utilize both \texttt{PolicyCode} and \texttt{PolicyCategory} to understand the mix of instruments employed. For robust analysis, we recommend using broad \texttt{PolicyCategory} classifications rather than fine-grained \texttt{PolicyCode} distinctions.
+
+\textbf{Regional and Income Group Comparisons:} Leverage \texttt{region} and \texttt{income\_group} variables to identify patterns across economic development levels.
+
+\subsection{Aggregation Considerations}
+
+When calculating total fiscal commitments by country or period:
+
+\begin{itemize}
+\item Carefully consider how to handle observations with missing fiscal size values to avoid underestimation
+\item Understand the \texttt{broad\_fiscal} classification before aggregating, as different values represent different fiscal impacts (direct spending vs. guarantees vs. deferrals)
+\item Be aware that some policy measures may be recorded multiple times if announced in phases or modified over time
+\item For guarantees and loans, recognize that reported amounts represent announced ceilings rather than actual utilization
+\end{itemize}
+
+\subsection{Potential Applications}
+
+This dataset enables various research applications:
+
+\begin{itemize}
+\item Cross-country analysis of fiscal policy responses to the pandemic
+\item Investigation of relationships between fiscal response timing, magnitude, and economic/health outcomes
+\item Study of policy instrument choice across different institutional settings
+\item Analysis of fiscal response heterogeneity by income level, region, or political economy factors
+\item Examination of the composition of fiscal packages (direct spending vs. loans/guarantees vs. tax measures)
+\end{itemize}
+
+The dataset and documentation will be made publicly available upon publication. Researchers interested in early access should contact the author. The dataset is provided in Excel format (\texttt{.xlsx}) for maximum accessibility.
+
+Please cite this dataset as follows:
+
+\begin{quote}
+[Author Name] (2025). ``COVID-19 Fiscal Response Database: A Comprehensive Micro-Level Dataset of Fiscal Policy Measures Across OECD Countries, 2020--2021.'' Working Paper, University of Basel.
+\end{quote}
