@@ -1,0 +1,216 @@
+%% Optimal Social Planning in a Pandemic: LQR Solution
+% Aulis Pesenti, University of Basel
+% January 2026
+%
+% This script solves the discrete-time Linear-Quadratic Regulator (LQR)
+% problem for pandemic policy optimization following Bertsekas (2017).
+
+clear; clc; close all;
+
+%% STEP 1===== TIME HORIZON AND DISCOUNTING =====
+N = 12;           % Planning horizon (quarters, e.g., 5 years)
+beta = 0.99;      % Quarterly discount factor
+
+%% STEP 2===== STRUCTURAL PARAMETERS =====
+% NOTE: Illustrative calibration for model demonstration.
+% Final values will be derived from LP estimation (Section 5).
+
+% Output gap dynamics
+rho_y = 0.85;     % Standard quarterly persistence
+alpha_s = 0.20;   % Based on Deb et al. (2022): ~20% GDP impact at full lockdown
+alpha_F = 0.20;   % Conservative fiscal multiplier (Auerbach et al. 2022)-> HIER MULTIPLIKATOREN HINZUFÜGEN
+
+% Mortality dynamics  
+delta_theta = 0.01;  % ~1% IFR (WHO estimates)
+
+% Fiscal dynamics
+gamma_y = 0.50;   % OECD average budget semi-elasticity
+r = 0.005;        % ~2% annual real rate
+kappa_F = 1.00;   % Direct pass-through
+
+% Epidemiological dynamics
+rho_theta = 0.70; % Moderate persistence without intervention
+phi_s = 0.30;     % Flaxman et al. (2020): lockdowns reduce R by ~30-50%
+
+%% STEP 3===== SYSTEM MATRICES =====
+% State vector: x = [y; d; b; theta]
+% Control vector: u = [S; F]
+
+% State transition matrix A (4x4)
+A = [rho_y,    0,       0,       0;
+     0,        0,       0,       delta_theta;
+     -gamma_y, 0,       (1+r),   0;
+     0,        0,       0,       rho_theta];
+
+% Control matrix B (4x2)
+B = [-alpha_s,  alpha_F;
+     0,         0;
+     0,         kappa_F;
+     -phi_s,    0];
+
+% Disturbance matrix G (4x1)
+G = [0; 0; 0; 1];
+
+% Dimensions
+n_states = size(A, 1);    % 4
+n_controls = size(B, 2);  % 2
+
+
+%% STEP 4===== COST MATRICES =====
+% Running state cost weights
+w_y = 1.0;        % Weight on output gap
+w_d = 10.0;       % Weight on excess mortality (high priority)
+w_b = 0.5;        % Weight on debt deviation
+
+% Terminal state cost weight
+W_b = 5.0;        % Terminal weight on debt (post-pandemic legacy)
+
+% Control cost weights
+r_S = 0.1;        % Political cost of stringency measures
+r_F = 0.1;        % Political cost of fiscal intervention
+
+% Running state cost matrix Q_k = beta^k * Q_base
+Q_base = diag([w_y, w_d, w_b, 0]);
+
+% Terminal state cost matrix Q_N
+Q_N = (beta^N) * diag([0, 0, W_b, 0]);
+
+% Control cost matrix R
+R = diag([r_S, r_F]);
+
+%% STEP 5===== BACKWARD RICCATI RECURSION =====
+% Preallocate storage
+P = zeros(n_states, n_states, N+1);  % Value function matrices
+K = zeros(n_controls, n_states, N);   % Feedback gain matrices
+
+% Terminal condition
+P(:,:,N+1) = Q_N;
+
+% Backward recursion: k = N-1, N-2, ..., 0
+for k = N:-1:1
+    % Current Q_k with discounting
+    Q_k = (beta^(k-1)) * Q_base;
+    
+    % Feedback gain matrix (Eq. 14 in paper)
+    K(:,:,k) = (B' * P(:,:,k+1) * B + R) \ (B' * P(:,:,k+1) * A);
+    
+    % Riccati update (Eq. 15 in paper)
+    P(:,:,k) = A' * P(:,:,k+1) * A - A' * P(:,:,k+1) * B * K(:,:,k) + Q_k;
+end
+
+disp('Feedback gain K at k=2:');
+disp(K(:,:,1));
+
+
+%% STEP 6===== FORWARD SIMULATION =====
+% Initial state: pandemic shock
+x0 = [-0.05;    % y_0: -5% output gap
+      0;        % d_0: no excess mortality yet
+      0;        % b_0: debt at pre-pandemic level
+      0.02];    % theta_0: 2% initial infection rate
+
+% Preallocate trajectories
+X = zeros(n_states, N+1);    % State trajectory
+U = zeros(n_controls, N);     % Control trajectory
+
+% Set initial state
+X(:,1) = x0;
+
+% Stochastic shocks (set to zero for deterministic baseline)
+sigma_eps = 0.005;  % Std dev of infection shocks
+rng(42);            % For reproducibility
+epsilon = sigma_eps * randn(1, N);  % Or set to zeros(1,N) for deterministic
+
+% Forward simulation
+for k = 1:N
+    % Optimal control: u_k = -K_k * x_k
+    U(:,k) = -K(:,:,k) * X(:,k);
+    
+    % Enforce control bounds (optional but realistic)
+    U(1,k) = max(0, min(1, U(1,k)));    % Stringency in [0,1]
+    U(2,k) = max(0, U(2,k));            % Fiscal stimulus >= 0
+    
+    % State transition
+    X(:,k+1) = A * X(:,k) + B * U(:,k) + G * epsilon(k);
+end
+
+disp('Forward simulation completed.');
+
+%% STEP 7===== VISUALIZATION =====
+time = 0:N;
+time_ctrl = 1:N;
+
+figure('Position', [100, 100, 1200, 800]);
+
+% --- State Variables ---
+subplot(2,3,1);
+plot(time, X(1,:)*100, 'b-', 'LineWidth', 2);
+yline(0, 'k--');
+xlabel('Quarter'); ylabel('Percent');
+title('Output Gap (y)');
+grid on;
+
+subplot(2,3,2);
+plot(time, X(2,:)*1000, 'r-', 'LineWidth', 2);
+yline(0, 'k--');
+xlabel('Quarter'); ylabel('Per 1000 population');
+title('Excess Mortality (d)');
+grid on;
+
+subplot(2,3,3);
+plot(time, X(3,:)*100, 'm-', 'LineWidth', 2);
+yline(0, 'k--');
+xlabel('Quarter'); ylabel('Percentage points');
+title('Public Debt Deviation (b)');
+grid on;
+
+subplot(2,3,4);
+plot(time, X(4,:)*100, 'Color', [0.5 0 0.5], 'LineWidth', 2);
+yline(0, 'k--');
+xlabel('Quarter'); ylabel('Percent infected');
+title('Infection Rate (\theta)');
+grid on;
+
+% --- Control Variables ---
+subplot(2,3,5);
+plot(time_ctrl, U(1,:), 'k-', 'LineWidth', 2);
+xlabel('Quarter'); ylabel('Stringency Index');
+title('Social Distancing (S)');
+ylim([0, 1]);
+grid on;
+
+subplot(2,3,6);
+plot(time_ctrl, U(2,:)*100, 'g-', 'LineWidth', 2);
+xlabel('Quarter'); ylabel('% of GDP');
+title('Fiscal Stimulus (F)');
+grid on;
+
+sgtitle('Optimal Pandemic Policy Response (LQR Solution)', 'FontSize', 14);
+
+%% STEP 8===== COST CALCULATION =====
+% Calculate realized cost
+J_states = 0;
+J_controls = 0;
+
+for k = 1:N
+    Q_k = (beta^(k-1)) * Q_base;
+    J_states = J_states + X(:,k)' * Q_k * X(:,k);
+    J_controls = J_controls + U(:,k)' * R * U(:,k);
+end
+
+% Terminal cost
+J_terminal = X(:,N+1)' * Q_N * X(:,N+1);
+
+J_total = J_states + J_controls + J_terminal;
+
+fprintf('\n===== COST SUMMARY =====\n');
+fprintf('State costs:    %.4f\n', J_states);
+fprintf('Control costs:  %.4f\n', J_controls);
+fprintf('Terminal cost:  %.4f\n', J_terminal);
+fprintf('TOTAL COST:     %.4f\n', J_total);
+
+%% LAST STEP===== SAVE RESULTS =====
+save('LQR_pandemic_results.mat', 'X', 'U', 'K', 'P', 'A', 'B', 'Q_base', 'Q_N', 'R');
+saveas(gcf, 'LQR_pandemic_trajectories.png');
+
+disp('Results saved.');

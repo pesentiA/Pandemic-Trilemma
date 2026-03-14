@@ -1,0 +1,591 @@
+%% ========================================================================
+%  PANDEMIC SOCIAL PLANNER — SEQUENTIAL BUILD
+%  Step-by-step validation before optimization
+% =========================================================================
+%  Run each section (%%) individually with Ctrl+Enter.
+%  Do NOT proceed to the next section until the current one validates.
+% =========================================================================
+
+clear; clc; close all;
+
+%% ========================================================================
+%  STEP 0: PARAMETER DEFINITION
+% =========================================================================
+
+% --- Time Horizon ---
+N    = 12;          % Quarters
+beta = 0.99;        % Quarterly discount factor
+
+% --- Output Dynamics ---
+rho_y   = 0.6;     % Baseline persistence (Cerra et al., 2023) (0.85-0.95)
+psi     = 0.1;     % Hysteresis sensitivity to lockdown (0.02-0.1)
+
+% --- Epidemiology ---
+rho_theta   = 2;  % Transmission rate (>1: explosive) (2.5-3)-> spätere Varaianten höher
+delta_theta = 0.02;  % Infection fatality rate (0.008-0.010)
+
+% --- Containment (S) ---
+alpha_S = 0.10;      % Contractionary effect on output (0.08-0.15)
+phi_S   = 0.7;      % Suppression effectiveness on infections (0.6-0.82)
+
+% --- Demand Injection (F_DI) ---
+alpha_F_DI = 0.6;   % Fiscal multiplier (0.3-1)->SELBER
+kappa_F_DI = 0.6;   % Budgetary cost per unit (0.7-0.9)->SELBER
+
+% --- Capacity Preservation (F_CP) ---
+eta        = 3;   % Effectiveness on persistence reduction (0.03-0.08)->SELBER
+kappa_F_CP = 0.3;   % Budgetary cost per unit (0.5-0.7)->SELBER
+
+% --- Debt Dynamics ---
+r       = 0.001;     % Quarterly real interest rate
+gamma_y = 0.55;      % Budget semi-elasticity (auto-stabilizers) (0.42-0.55)
+c_H     = 1;      % Pandemic health cost per unit infection (2-4)
+
+% --- Print summary ---
+fprintf('=== Parameters loaded ===\n');
+fprintf('  rho_y=%.2f, psi=%.2f, rho_theta=%.2f\n', rho_y, psi, rho_theta);
+fprintf('  alpha_S=%.2f, phi_S=%.2f, alpha_F_DI=%.2f, eta=%.2f\n', ...
+        alpha_S, phi_S, alpha_F_DI, eta);
+fprintf('  gamma_y=%.2f, c_H=%.2f, r=%.3f\n', gamma_y, c_H, r);
+
+
+%% ========================================================================
+%  STEP 1: DEFINE NON-LINEAR TRANSITION FUNCTION
+% =========================================================================
+%
+%  x = [y; d; b; theta],  u = [S; F_DI; F_CP]
+%
+%  y_{k+1}     = [rho_y + psi*S - eta*F_CP] * y  -  alpha_S*S  +  alpha_F_DI*F_DI
+%  d_{k+1}     = delta_theta * theta
+%  b_{k+1}     = (1+r)*b  -  gamma_y*y  +  kappa_DI*F_DI  +  kappa_CP*F_CP  +  c_H*theta
+%  theta_{k+1} = rho_theta*(1 - phi_S*S)*theta
+
+f = @(x, u) [
+    (rho_y + psi*u(1) - eta*u(3)) * x(1)  -  alpha_S*u(1)  +  alpha_F_DI*u(2);
+    delta_theta * x(4);
+    (1+r)*x(3)  -  gamma_y*x(1)  +  kappa_F_DI*u(2)  +  kappa_F_CP*u(3)  +  c_H*x(4);
+    rho_theta * (1 - phi_S*u(1)) * x(4)
+];
+
+% Quick sanity: f at steady state must return zero
+assert(norm(f([0;0;0;0], [0;0;0])) < 1e-15, 'FAIL: f(0,0) must be zero.');
+fprintf('\n=== Step 1 PASS: f(0,0) = 0 (steady state confirmed) ===\n');
+
+
+%% ========================================================================
+%  STEP 2: VALIDATE INFECTION DYNAMICS (theta only)
+% =========================================================================
+%  Expect: theta_k = theta_0 * rho_theta^k  (explosive growth)
+
+fprintf('\n--- Test: Infection dynamics (S=0) ---\n');
+theta_0 = 0.05;
+theta_test = zeros(1, N+1);
+theta_test(1) = theta_0;
+
+for k = 1:N
+    x_k = [0; 0; 0; theta_test(k)];
+    x_next = f(x_k, [0; 0; 0]);
+    theta_test(k+1) = x_next(4);
+end
+
+% Analytical prediction
+theta_exact = theta_0 * rho_theta.^(0:N);
+
+fprintf('  Simulated:  ');  fprintf('%.4f ', theta_test(1:6)); fprintf('...\n');
+fprintf('  Analytical: ');  fprintf('%.4f ', theta_exact(1:6)); fprintf('...\n');
+fprintf('  Max error: %.2e\n', max(abs(theta_test - theta_exact)));
+
+figure('Name', 'Step 2: Infection Dynamics', 'Color', 'w');
+plot(0:N, theta_test*100, 'ro-', 'LineWidth', 2, 'MarkerSize', 6); hold on;
+plot(0:N, theta_exact*100, 'b--', 'LineWidth', 1.5);
+legend('Simulated', 'Analytical: \theta_0 \cdot \rho_\theta^k');
+title('Step 2: Uncontrolled Infection Growth');
+ylabel('% population'); xlabel('Quarter'); grid on;
+
+if max(abs(theta_test - theta_exact)) < 1e-10
+    fprintf('  PASS: Infection dynamics correct.\n');
+else
+    fprintf('  *** FAIL: Infection dynamics incorrect! ***\n');
+    return;  % Stop here
+end
+
+
+%% ========================================================================
+%  STEP 3: VALIDATE OUTPUT DYNAMICS (y only, no pandemic)
+% =========================================================================
+%  Test 3a: S=0 -> y_k = rho_y^k * y_0 (exponential recovery)
+%  Test 3b: S=0.5 constant -> deeper recession, slower recovery
+
+fprintf('\n--- Test 3a: Output gap recovery WITHOUT S ---\n');
+y_0 = -0.10;
+y_test_a = zeros(1, N+1);
+y_test_a(1) = y_0;
+
+for k = 1:N
+    x_k = [y_test_a(k); 0; 0; 0];
+    x_next = f(x_k, [0; 0; 0]);
+    y_test_a(k+1) = x_next(1);
+end
+
+y_exact_a = y_0 * rho_y.^(0:N);
+
+fprintf('  Simulated:  ');  fprintf('%.4f ', y_test_a(1:6)); fprintf('...\n');
+fprintf('  Analytical: ');  fprintf('%.4f ', y_exact_a(1:6)); fprintf('...\n');
+fprintf('  Max error: %.2e\n', max(abs(y_test_a - y_exact_a)));
+
+if max(abs(y_test_a - y_exact_a)) < 1e-10
+    fprintf('  PASS: Output dynamics (S=0) correct.\n');
+else
+    fprintf('  *** FAIL ***\n'); return;
+end
+
+fprintf('\n--- Test 3b: Output gap WITH S=0.5 ---\n');
+S_const = 0.5;
+rho_eff = rho_y + psi * S_const;  % No F_CP -> eta term is 0
+y_ss    = -alpha_S * S_const / (1 - rho_eff);  % Steady state
+
+fprintf('  rho_y_eff = %.3f  (< 1, so system converges)\n', rho_eff);
+fprintf('  Steady state y* = %.4f (%.1f%%)\n', y_ss, y_ss*100);
+
+y_test_b = zeros(1, N+1);
+y_test_b(1) = y_0;
+
+for k = 1:N
+    x_k = [y_test_b(k); 0; 0; 0];
+    x_next = f(x_k, [S_const; 0; 0]);
+    y_test_b(k+1) = x_next(1);
+end
+
+fprintf('  y trajectory (%%): ');
+fprintf('%.1f  ', y_test_b*100);
+fprintf('\n');
+
+% Verify: must be BELOW y_test_a at all k > 0
+if all(y_test_b(2:end) < y_test_a(2:end))
+    fprintf('  PASS: S=0.5 produces deeper recession than S=0.\n');
+else
+    fprintf('  *** FAIL: S should deepen the recession! ***\n'); return;
+end
+
+figure('Name', 'Step 3: Output Dynamics', 'Color', 'w');
+plot(0:N, y_test_a*100, 'b-o', 'LineWidth', 2); hold on;
+plot(0:N, y_test_b*100, 'r-s', 'LineWidth', 2);
+yline(0, '--k');
+yline(y_ss*100, ':r', sprintf('SS = %.1f%%', y_ss*100));
+legend('S = 0', 'S = 0.5', 'Location', 'SouthEast');
+title('Step 3: Output Gap — Effect of Containment');
+ylabel('% deviation'); xlabel('Quarter'); grid on;
+
+
+%% ========================================================================
+%  STEP 4: VALIDATE DEBT DYNAMICS (automatic stabilizers)
+% =========================================================================
+%  With y < 0 and no fiscal instruments: debt must accumulate
+%  because -gamma_y * y_k > 0 when y_k < 0
+
+fprintf('\n--- Test 4: Debt from automatic stabilizers ---\n');
+
+b_test = zeros(1, N+1);
+y_for_debt = y_test_a;  % Use the S=0 output trajectory from Step 3
+
+for k = 1:N
+    x_k = [y_for_debt(k); 0; b_test(k); 0];  % No pandemic (theta=0)
+    x_next = f(x_k, [0; 0; 0]);
+    b_test(k+1) = x_next(3);
+end
+
+fprintf('  b trajectory (pp GDP): ');
+fprintf('%.2f  ', b_test*100);
+fprintf('\n');
+
+% Verify: debt must be positive and growing (from stabilizers)
+if all(b_test(2:end) > 0) && all(diff(b_test(2:end)) >= 0)
+    fprintf('  PASS: Automatic stabilizers generate debt during recession.\n');
+else
+    fprintf('  *** FAIL: Debt should be positive and accumulating! ***\n');
+    return;
+end
+
+figure('Name', 'Step 4: Debt Dynamics', 'Color', 'w');
+subplot(1,2,1);
+plot(0:N, y_for_debt*100, 'b-o', 'LineWidth', 2);
+yline(0, '--k'); title('Output gap (input)');
+ylabel('% deviation'); xlabel('Quarter'); grid on;
+
+subplot(1,2,2);
+plot(0:N, b_test*100, 'm-o', 'LineWidth', 2);
+yline(0, '--k'); title('Debt from auto-stabilizers');
+ylabel('pp of GDP'); xlabel('Quarter'); grid on;
+
+sgtitle('Step 4: Automatic Stabilizer Channel');
+
+
+%% ========================================================================
+%  STEP 5: VALIDATE FULL SYSTEM — UNCONTROLLED BENCHMARK
+% =========================================================================
+%  All states interact, u = 0. This is the "catastrophe trajectory".
+%  Expect: theta explodes, d follows theta, b grows from c_H*theta,
+%          y stays at 0 (no containment -> no recession).
+
+fprintf('\n--- Test 5: Full uncontrolled system ---\n');
+
+x_unc = zeros(4, N+1);
+x_unc(:, 1) = [0; 0; 0; 0.05];  % Pandemic shock only
+
+for k = 1:N
+    x_unc(:, k+1) = f(x_unc(:, k), [0; 0; 0]);
+end
+
+fprintf('  y (%%):     '); fprintf('%7.2f', x_unc(1,:)*100); fprintf('\n');
+fprintf('  d (%%):     '); fprintf('%7.4f', x_unc(2,:)*100); fprintf('\n');
+fprintf('  b (pp):    '); fprintf('%7.2f', x_unc(3,:)*100); fprintf('\n');
+fprintf('  theta (%%): '); fprintf('%7.2f', x_unc(4,:)*100); fprintf('\n');
+
+figure('Name', 'Step 5: Uncontrolled Benchmark', 'Color', 'w', ...
+       'Position', [50 50 1200 700]);
+
+subplot(2,2,1);
+plot(0:N, x_unc(1,:)*100, 'b-o', 'LineWidth', 2);
+yline(0, '--k'); title('Output Gap (y_k)');
+ylabel('% deviation'); xlabel('Quarter'); grid on;
+
+subplot(2,2,2);
+plot(0:N, x_unc(4,:)*100, 'r-o', 'LineWidth', 2);
+title('Infection Rate (\theta_k)');
+ylabel('% population'); xlabel('Quarter'); grid on;
+
+subplot(2,2,3);
+plot(0:N, x_unc(3,:)*100, 'm-o', 'LineWidth', 2);
+yline(0, '--k'); title('Public Debt (b_k)');
+ylabel('pp of GDP'); xlabel('Quarter'); grid on;
+
+subplot(2,2,4);
+plot(0:N, x_unc(2,:)*100, 'r-o', 'LineWidth', 2);
+title('Excess Mortality (d_k)');
+ylabel('% population'); xlabel('Quarter'); grid on;
+
+sgtitle('Step 5: Catastrophe Benchmark (u = 0)', 'FontWeight', 'bold');
+
+fprintf('\n  This is the do-nothing trajectory. All states should diverge.\n');
+fprintf('  If this looks correct, proceed to Step 6 (cost function calibration).\n');
+
+
+%% ========================================================================
+%  STEP 6: COST FUNCTION CALIBRATION CHECK
+% =========================================================================
+%  Compute the effective penalty contribution of each state variable
+%  using the uncontrolled benchmark magnitudes from Step 5.
+%  Goal: verify that the relative costs reflect the desired priority.
+
+fprintf('\n--- Step 6: Cost function calibration ---\n');
+
+% Weights
+w_y = 25;    w_d = 175000000;    w_b = 2.5;    W_b = 2.5;
+r_S = 100; r_DI = 100;   r_CP = 10;
+
+Q_base = diag([w_y, w_d, w_b, 0]);
+Q_N    = diag([0, 0, W_b, 0]);
+R      = diag([r_S, r_DI, r_CP]);
+
+% Typical magnitudes from uncontrolled scenario (peak values)
+y_typ     = max(abs(x_unc(1, :)));
+d_typ     = max(abs(x_unc(2, :)));
+b_typ     = max(abs(x_unc(3, :)));
+theta_typ = max(abs(x_unc(4, :)));
+
+fprintf('\n  Peak magnitudes (uncontrolled):\n');
+fprintf('    |y|_max     = %.4f  (%.1f%%)\n', y_typ, y_typ*100);
+fprintf('    |d|_max     = %.4f  (%.2f%%)\n', d_typ, d_typ*100);
+fprintf('    |b|_max     = %.4f  (%.1f pp)\n', b_typ, b_typ*100);
+fprintf('    |theta|_max = %.4f  (%.1f%%)\n', theta_typ, theta_typ*100);
+
+% Effective cost contribution: w * x_typ^2
+cost_y = w_y * y_typ^2;
+cost_d = w_d * d_typ^2;
+cost_b = w_b * b_typ^2;
+
+fprintf('\n  Effective cost contributions (w * x_typ^2):\n');
+fprintf('    Output:    w_y * y^2     = %8.1f * %.4f^2 = %.4f\n', w_y, y_typ, cost_y);
+fprintf('    Mortality: w_d * d^2     = %8.1f * %.4f^2 = %.4f\n', w_d, d_typ, cost_d);
+fprintf('    Debt:      w_b * b^2     = %8.1f * %.4f^2 = %.4f\n', w_b, b_typ, cost_b);
+
+total = cost_y + cost_d + cost_b;
+fprintf('\n  Relative shares:\n');
+fprintf('    Output:    %.1f%%\n', cost_y/total*100);
+fprintf('    Mortality: %.1f%%\n', cost_d/total*100);
+fprintf('    Debt:      %.1f%%\n', cost_b/total*100);
+
+fprintf('\n  Desired priority: Mortality >> Output > Debt\n');
+fprintf('  Adjust weights if shares do not reflect this ordering.\n');
+fprintf('\n  If satisfied, proceed to Step 7 (iLQR).\n');
+
+%WAS GENAU BEDEUTET DAS?
+%% ========================================================================
+%  STEP 7: AL-iLQR OPTIMIZATION (Augmented Lagrangian)
+% =========================================================================
+% --- 1. Initialisierung & Szenario-Setup (BASELINE: Single Shock) ---
+x0 = [0; 0; 0; 0.01]; % Initial exogenous shock: 1% of population infected
+
+
+% --- 2. Dynamik-Funktionen (Time-Invariant Parameters) ---
+% Note: 'k' is still passed as an argument so the AL-iLQR loops don't break,
+% but it is no longer used to index time-varying parameters or shocks.
+S_eff = @(S, F_CP) S * (1 - eta * F_CP);
+f_nonlin = @(x, u, k) [
+(rho_y + psi*S_eff(u(1),u(3))) * x(1) ...
+- alpha_S*S_eff(u(1),u(3)) + alpha_F_DI*u(2);
+delta_theta * x(4);
+(1+r)*x(3) - gamma_y*x(1) ...
++ kappa_F_DI*u(2) + kappa_F_CP*u(3) + c_H*x(4);
+rho_theta * (1 - phi_S*u(1)) * x(4)
+];
+compute_Ak = @(x_bar, u_bar, k) [
+rho_y + psi*S_eff(u_bar(1),u_bar(3)), 0, 0, 0;
+0, 0, 0, delta_theta;
+-gamma_y, 0, (1+r), c_H;
+0, 0, 0, rho_theta*(1-phi_S*u_bar(1))
+];
+
+compute_Bk = @(x_bar, u_bar, k) [
+(1-eta*u_bar(3))*(psi*x_bar(1)-alpha_S), ...
+alpha_F_DI,eta*u_bar(1)*(alpha_S - psi*x_bar(1));
+0, 0, 0;
+0, kappa_F_DI, kappa_F_CP;
+-rho_theta*phi_S*x_bar(4), 0, 0
+];
+
+
+
+
+
+% --- 3. Start-Trajektorie berechnen ---
+x_bar = zeros(4, N+1);
+u_bar = zeros(3, N);
+x_bar(:, 1) = x0;
+for k = 1:N
+    x_bar(:, k+1) = f_nonlin(x_bar(:, k), u_bar(:, k), k);
+end
+
+% --- 4. AL-iLQR Hyperparameters ---
+max_outer_iter = 20;      % Outer AL loop iterations
+max_inner_iter = 50;      % Inner iLQR loop iterations
+tol_inner      = 1e-4;    % Inner loop convergence tolerance
+tol_outer      = 1e-4;    % Outer loop constraint tolerance
+phi_penalty    = 2.0;     % Penalty scaling factor [cite: 530, 730]
+rho_reg_base = 1e-4;
+
+% Initialize Dual Variables and Penalties for the 6 inequality constraints
+lambda = zeros(6, N);     % Lagrange multipliers
+mu     = 1.0 * ones(6, N);% Initial penalty weights
+
+% Constraint Jacobian (C_u = dc/du)
+% Order: [-S; S-1; -F_DI; F_DI-0.15; -F_CP; F_CP-0.15]
+C_u = [-1  0  0; 
+        1  0  0; 
+        0 -1  0; 
+        0  1  0; 
+        0  0 -1; 
+        0  0  1];
+        
+c_bounds = [0; 1; 0; 0.15; 0; 0.15]; % Offset constants
+
+fprintf('================================================================\n');
+fprintf('  AL-iLQR — Pandemic Social Planner Optimization\n');
+fprintf('================================================================\n\n');
+
+% --- Outer AL Loop ---
+for outer_iter = 1:max_outer_iter
+    fprintf('--- Outer Iteration %d ---\n', outer_iter);
+    
+    % --- Inner iLQR Loop ---
+    for inner_iter = 1:max_inner_iter
+        % 1. Compute time-varying Jacobians
+        Ak = cell(N, 1); Bk = cell(N, 1);
+        for k = 1:N
+            Ak{k} = compute_Ak(x_bar(:, k), u_bar(:, k), k);
+            Bk{k} = compute_Bk(x_bar(:, k), u_bar(:, k), k);
+        end
+
+        % 2. Backward Riccati recursion
+        P = cell(N+1, 1); p = cell(N+1, 1);   
+        K = cell(N, 1);   k_ff = cell(N, 1);  
+
+        P{N+1} = Q_N * beta^N;
+        p{N+1} = Q_N * beta^N * x_bar(:, N+1); 
+
+        % Dynamic regularization initialized
+        rho_reg = rho_reg_base;
+        backward_success = false;
+        
+        while ~backward_success && rho_reg < 1e4
+            backward_success = true;
+            for k = N:-1:1
+                Q_k = Q_base * beta^(k-1);
+                A = Ak{k}; B = Bk{k};
+
+                % Evaluate constraint violations
+                c_val = C_u * u_bar(:, k) - c_bounds;
+                
+                % Determine active constraints (I_mu matrix logic)
+                active_idx = (c_val > 0) | (lambda(:, k) > 0);
+                I_mu = diag(mu(:, k) .* active_idx);
+                
+                % Standard expansions
+                Qx  = Q_k * x_bar(:, k) + A' * p{k+1};
+                Qxx = Q_k + A' * P{k+1} * A;
+                Qux = B' * P{k+1} * A;
+                
+                % Add penalty terms to Qu and Quu
+                Qu  = R * u_bar(:, k) + B' * p{k+1} + C_u' * (lambda(:, k) + I_mu * c_val);
+                Quu = R + B' * P{k+1} * B + C_u' * I_mu * C_u;
+                
+                % Apply dynamic regularization [cite: 673, 695]
+                Quu = Quu + rho_reg * eye(3);
+                
+                % Check if Quu is positive definite
+                [~, p_chol] = chol(Quu);
+                if p_chol > 0
+                    backward_success = false;
+                    rho_reg = rho_reg * 10; % Increase regularization and restart backward pass [cite: 697, 698]
+                    break;
+                end
+
+                K{k}  = Quu \ Qux;       
+                k_ff{k} = -Quu \ Qu;       
+
+                % Corrected sign for affine update
+                p{k} = Qx + K{k}' * Quu * k_ff{k}; 
+                P{k} = Qxx - K{k}' * Quu * K{k};
+            end
+        end
+        
+        if ~backward_success
+            fprintf('      Backward pass failed to find positive definite Quu.\n');
+            break;
+        end
+
+        % 3. Forward simulation with Line Search
+        alpha = 1.0; 
+        cost_old = compute_al_cost(x_bar, u_bar, Q_base, Q_N, R, beta, N, lambda, mu, C_u, c_bounds);
+        line_search_success = false;
+        
+        while alpha > 1e-4
+            x_new = zeros(4, N+1); u_new = zeros(3, N);
+            x_new(:, 1) = x0;
+
+            for k = 1:N
+                u_new(:, k) = u_bar(:, k) + alpha * k_ff{k} - K{k} * (x_new(:, k) - x_bar(:, k));
+                x_new(:, k+1) = f_nonlin(x_new(:, k), u_new(:, k), k); 
+            end
+
+            cost_new = compute_al_cost(x_new, u_new, Q_base, Q_N, R, beta, N, lambda, mu, C_u, c_bounds);
+            
+            % Backtracking Line Search logic [cite: 708]
+            if cost_new < cost_old
+                line_search_success = true; break; 
+            else
+                alpha = alpha * 0.5; % Backtracking scaling parameter [cite: 692, 708]
+            end
+        end
+        if ~line_search_success
+    fprintf('      Line search failed (no cost decrease). Retrying with stronger regularization.\n');
+    % WICHTIG: x_bar/u_bar NICHT überschreiben
+    
+    % Einfache Variante: inner loop abbrechen
+    break;
+end
+        
+        % Convergence check for inner loop
+        delta_x = norm(x_new - x_bar, 'fro') / (norm(x_bar, 'fro') + 1e-12);
+        x_bar = x_new; u_bar = u_new;
+        
+        if delta_x < tol_inner
+            fprintf('    Inner loop converged in %d iterations.\n', inner_iter);
+            break;
+        end
+    end
+
+    % --- 4. Outer AL Updates (Dual Variables & Penalties) ---
+    max_viol = 0;
+    for k = 1:N
+        c_val = C_u * u_bar(:, k) - c_bounds;
+        max_viol = max(max_viol, max(c_val));
+        
+        % Update Lagrange Multipliers [cite: 526, 728]
+        lambda(:, k) = max(0, lambda(:, k) + mu(:, k) .* c_val);
+        
+        % Update Penalties [cite: 527, 730]
+        mu(:, k) = mu(:, k) * phi_penalty;
+    end
+    
+    fprintf('    Max Constraint Violation: %.4f\n', max_viol);
+    if max_viol < tol_outer
+        fprintf('\n*** Optimal Policy Found: Constraints Satisfied ***\n');
+        break;
+    end
+end
+
+x_opt = x_bar; u_opt = u_bar;
+
+%% ========================================================================
+%  8. VISUALIZATION: OPTIMAL TRAJECTORY
+% =========================================================================
+
+time = 0:N;
+quarter_labels = arrayfun(@(k) sprintf('Q%d', k), 1:N, 'UniformOutput', false);
+
+figure('Name', 'Optimal Pandemic Policy — AL-iLQR', 'Color', 'w', ...
+       'Position', [50 50 1400 900]);
+
+% --- State Variables ---
+subplot(3, 2, 1);
+plot(time, x_opt(1,:)*100, 'b-', 'LineWidth', 2);
+yline(0, '--k', 'LineWidth', 0.5);
+title('Output Gap (y_k)'); ylabel('% deviation from potential'); xlabel('Quarter'); grid on;
+
+subplot(3, 2, 2);
+plot(time, x_opt(4,:)*100, 'Color', [0.6 0 0], 'LineWidth', 2);
+title('Infection Rate (\theta_k)'); ylabel('% population infected'); xlabel('Quarter'); grid on;
+
+subplot(3, 2, 3);
+plot(time, x_opt(3,:)*100, 'm-', 'LineWidth', 2);
+yline(0, '--k', 'LineWidth', 0.5);
+title('Public Debt Deviation (b_k)'); ylabel('pp of pre-pandemic GDP'); xlabel('Quarter'); grid on;
+
+subplot(3, 2, 4);
+plot(time, x_opt(2,:)*100, 'r-', 'LineWidth', 2);
+title('Excess Mortality (d_k)'); ylabel('% population'); xlabel('Quarter'); grid on;
+
+% --- Control Variables ---
+subplot(3, 2, 5);
+bar(1:N, u_opt(1,:)', 'FaceColor', [0.2 0.4 0.7]);
+title('Containment Intensity (S_k)'); ylabel('Intensity [0, 1]'); ylim([0 1.1]); xlabel('Quarter'); grid on;
+
+subplot(3, 2, 6);
+bar(1:N, [u_opt(2,:)', u_opt(3,:)'] * 100, 'grouped');
+legend('Demand Injection (F^{DI})', 'Capacity Preservation (F^{CP})', 'Location', 'NorthEast');
+title('Fiscal Composition'); ylabel('% of GDP'); xlabel('Quarter'); grid on;
+
+sgtitle('Optimal Pandemic Policy Trajectory (AL-iLQR)', 'FontWeight', 'bold', 'FontSize', 14);
+
+
+%% === HELPER FUNCTION: Augmented Lagrangian Cost ===
+function J = compute_al_cost(x_traj, u_traj, Q_base, Q_N, R, beta, N, lambda, mu, C_u, c_bounds)
+    J = 0;
+    for k = 1:N
+        % Base cost
+        step_cost = beta^(k-1) * ( ...
+    0.5 * x_traj(:,k)' * Q_base * x_traj(:,k) + ...
+    0.5 * u_traj(:,k)' * R * u_traj(:,k));
+        % Augmented penalty terms
+        c_val = C_u * u_traj(:, k) - c_bounds;
+        active_idx = (c_val > 0) | (lambda(:, k) > 0);
+        I_mu = diag(mu(:, k) .* active_idx);
+        
+        al_cost = lambda(:, k)' * c_val + 0.5 * c_val' * I_mu * c_val;
+        
+        J = J + step_cost + al_cost;
+    end
+    J = J + beta^N * (0.5 * x_traj(:,N+1)' * Q_N * x_traj(:,N+1));
+end
+
