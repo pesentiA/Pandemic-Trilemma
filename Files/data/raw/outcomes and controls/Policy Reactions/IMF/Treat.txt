@@ -1,0 +1,132 @@
+Country	Total spending LC	Total spending USD	Non-Health Spending amount LC	Description	IS	BS	Workforce	C/S	Investment	Sector Supp.	Gov Cons
+											
+Australia	342	236	239.2		"Payments to lower-income Australians (pensioners, other social security and veteran income support recipients, and eligible concession cardholders
+
+Women’s economic support package
+
+Discount utility bills
+
+Cash payments to vulnerable households, as well as the new home care package for the senior citizens
+
+Pandemic Leave Disaster State and Territory governments, which provides a lump sum payment to help workers during their 14-day self-isolation period "	"Measures include tax-free cash flow assistance
+
+Extension of aviation and tourism support"	"Wage subsidies
+
+JobMaker program, comprising job hiring credit
+ Infrastructure projects, and others for job creation
+
+Programs for job creation at state and local government levels
+
+Arts industry for job creation "	Home Builder program  (support confidence in the residential construction sector) 	"Spending on infrastructure
+
+Investment in construction and infrastructure projects
+
+The Commonwealth government will help finance fast-track infrastructure projects across States and Territories "		
+Canada	290	216	289.9		"Recovery benefits, and enhanced employment insurance (CAN 120.2 bn) 
+
+Others, including support to students, seniors, and vulnerable groups (CAN 22.9 bn)"	"Emergency business account with 25% loan forgiveness (CAN 13.8 bn)
+
+Emergency rent subsidy (CAN 8.4 bn)
+
+Others, including sector-specific support and sub-nationals support (CAN 14 bn)"	Wage subsidies and protecting jobs  (CAN 110.5.2 bn)				
+Chile	25400	32	24199		Cash transfers for the most vulnerable						
+Colombia	46304	12.5	30037		"Expanded transfers for vulnerable groups including expanded social programs and support to workers in the informal sector
+
+Support for recently unemployed workers "		Payroll subsidy for three months equivalent to 40 percent of the minimum wage per worker for businesses with a revenue fall above 20 percent and a subsidy worth 50% of June's bonuses for employees earning minimum wage for businesses with a revenue fall above 20 percent 		Increased infrastructure spending to support the recovery 		
+Costa Rica			0.8000		Monatlicher Zuschuss von ¢125.000 an Haushalte, die durch die Pandemie finanziell betroffen sind (IS).						
+Germany	516	589	346		"Temporary relief to affected (Mieter) tenants
+
+Income support for families"	Grants to hard hit small businesses and self-employed	"Increased access to childcare and basic social security benefits
+
+There is also support to firms and households provided through the “Kurzabeit” program, part of which is considered discretionary because the program parameters have been changed"		Incentivizing green and digital investment		
+Spain	94.2	107	74.14	"
+"	"Unemployment benefit for workers temporary laid off under the ERTE due to COVID-19, with no requirement for prior minimum contribution or reduction of accumulated entitlement (about €21.7 bn),
+
+Introduction of a new means-tested ""minimum income scheme""(about €3 bn annually) and new rental assistance programs for certain vulnerable renters and additional state contribution to the State Housing Plan 2018-21, 
+
+Various measures to expand existing benefits for workers and other support for households and firms."	"Exemptions of social contributions for companies that maintain employment under the ERTEs (about €7.7 bn)
+
+An allowance for self-employed workers affected by economic activity suspension (about €6.5 bn), and exemption of social contributions for self-employed that receive this benefit (about €3.3 bn, 
+
+Corporate solvency support (€10 bn)
+
+Measures taken by regional governments  support to firms (about €5.5 bn)
+
+Various measures to expand existing benefits for workers and other support for households and firms (IS,BS); "		Measures taken by regional governments on social services and education			
+United Kingdom	407	522	271		"Support for low-income households by temporarily increasing Universal Credit and Working Tax Credit by £20 per week in 2020-21. The increase to Universal Credit was extended by a further 6 months from April 2021 and a one-off payment of £500 was provided to eligible Working Tax Credit claimants in April 2021
+
+Rent support by increasing the Local Housing Allowance
+
+Support for low-income people in need to self-isolate"	"Grant support for sectors impacted by local and national restrictions
+
+Entitle every diner to a 50% discount of up to £10 in August "	"Paid sick leave for self-isolating individuals and compensation for small firms needing to close for over 2 weeks, and support for low-income people in need to self-isolate
+
+Coronavirus Job Retention Scheme to subsidise furloughed employees' wages (initially for 3 months and extended several times until September 2021) and firms' social security contributions (until the 1st August 2020)
+
+Income support for the self-employed, Cover the cost of 25 hours' work a week at the National Minimum Wage for six months for hired unemployed up to 24 years old
+
+Boost of Active Labour Market Poilicies, including 250,000 subsidized jobs for young people, Funding of 40,000 traineeships and doubling the number of work coaches to 27,000"	Government support for charities	Public sector and social housing decarbonization and Green Homes Grant		
+Greece			31.54717392		"Barzuschüsse und volle Deckung der Renten
+
+Gesundheitsleistungen für Arbeitnehmer in stark betroffenen Unternehmen
+
+Arbeitslosenunterstützung
+
+Zuschüsse zu Hypothekenzahlungen und Elternurlaub "	Unterstützung für kurzfristige Beschäftigung					
+Ireland			44.0078285		The Pandemic Unemployment Payment—a payment available to those who have lost employment due pandemic at a flat rate of €350 per week 	"I. Employment Wage Support Scheme. Employers, whose turnover has fallen 30%, will receive a flat-rate subsidy of up to €203 weekly per employee (BS). 
+
+III. Covid Restrictions Support Scheme (CRSS) provides 10 to 5 percent turnover compensation payments to the affected firms in several sectors (accommodation, food and the arts, recreation and entertainment). It will only apply at the time of increased restrictions, and is capped at 5 thousand euros per week (BS, Confidence), 
+
+V. Measures to support SMEs3 include but not limited to: (a) The Restart Grant for Enterprises ( €550 million); (b) Waiver of commercial rates; (d) MicroFinance Ireland and the Local Enterprise Measures: a package of liquidity and enterprise investment measures worth €55 million to reduce lending rate for micro and small businesses (BS); (e) 
+The Future Growth Loan Scheme (€500 million) with the European Investment Bank Group, so businesses with up to 499 employees can invest for the longer-term at competitive rates, 
+
+VI. Measures to support hospitality and tourism sector include: (a) CRSS; (b) €10 million Restart Fund for the Tourism sector; (e) €10 million Performance Support Scheme for the culture sector to assist planning for events in the context of COVID-19"	IV. Additional €200 million investment in training, education, skills development, work placement schemes, recruitment subsidies, job search and assistance measures, to help those who have lost their jobs find a new one, retrain, or develop new skills, in particular for emerging growth sectors 				
+Italy	180	205	150		Broadening the wage supplementation fund to provide income support to laid-off workers and the self-employed	Grants for SME  (€60 bn)	"Vouchers for the payment of babysitters (€80 bn)
+
+Spending on education (€4 bn) "	and other (€10 bn)			
+NLD	16.6	18.9	61.1		Income support for entrepreneurs and self-employed (administered at municipal and regional level) for a period of three months through expedited procedures 	"Support for start-ups and small innovation companies through loans provided by government regional agencies
+
+Allowances for SMEs affected by the outbreak to help them finance their fixed costs "	"Companies expecting a reduction in revenues over 20% can request a compensation for labor costs (max 90% of labor costs) to allow companies to continue paying wages; compensation for affected sectors (for example, hospitality  and travel) 
+
+Scaling up of the short-time working scheme (unemployment benefit compensation available to companies needing to reduce their staff by at least 20 percent)"				
+Portugal	12.1	13.8	8.7		"Social protection programs, such as extension of unemployment coverage and support to self-employed and informal workers (€0.6 bn)
+
+Family support programs (€0.2 bn)"	"Rresumption of activity
+
+Non-repayble subsidies to businesses affected by the pandemic, program Apoiar.pt (€1.1 bn)
+
+Extraordinary financial incentive (subsidy) to businesses for normalization of economic activity (€0.3 bn)
+
+Support to national airlines (€1.3 bn in 2020 and €1.1 bn in 2021)"	Support measures for employment 	Other support measures (€0.2 bn) (Confidence);	"Investment, incl. digital education, teleworking (€0.4 bn)
+
+Investment under the Recovery and Resilience Plan in 2021 (€0.5 bn)  "		
+Turkey	177	25.2	112.9		"Cash aid and raised minimum pension (TL 29.8 bn)
+
+Unemployment benefits (TL 7.3 bn)
+
+Cash aid to employees (TL 14 bn)
+
+Social Support Program (TL 9.9 bn)  "		Short-time work allowance (TL 36.7 bn)		Normalization support (TL 4.8 bn) 		
+USA	5238	5238	4263	"• Coronavirus Preparedness and Response Supplemental Appropriation (March 6, 2020) of $1.2 bn (Infrastructure, Confidence).
+• Paycheck Protection Program and Health Care Enhancement Act (April 23, 2020)
+• The federal government (through an Executive Order by President Trump on August 8, 2020) reallocated 
+• Consolidated Appropriation Act (Dec.21, 2020)
+• American Rescue Plan (Mar.12, 2021) includes  "	"Families First Coronavirus Response Act (March 16, 2020) includes 2 weeks paid sick leave, up to 3 months emergency leave for those infected (at 2/3 pay), food assistance, free virus testing; federal transfers to states for Medicaid (increased by 6.2 percent during emergency period); and $1 bn in expanded unemployment insurance.  
+
+Coronavirus Aid, Relief, and Economic Security Act (March 27, 2020) includes $437 bn unemployment insurance
+
+$44 billion from the Department of Homeland Security's Disaster Relief Fund to provide extra unemployment benefits of $300 dollar per week following the expiration of the enhanced unemployment benefits mad available by the CARES act
+
+$329bn support to households
+
+$794.2bn support to households "	"$350 bn  in emergency appropriations, and $349 bn forgivable small business loans and other items
+
+$62.1 bn for the Small Business Administration's loans programs and other expense
+
+$347bn support for businesses
+
+$86.4bn support for business and other spending in areas including transportation "	"$321 bn for the Paycheck Protection Program and small business assistance (of the $310 for the Paycheck Protection Program only $176bn was used)
+
+$38.9bn support for providing childcare
+
+$92bn for education and childcare"		$171bn support for education		$362.1bn support for state, local and triable governments, federal emergency management authority
