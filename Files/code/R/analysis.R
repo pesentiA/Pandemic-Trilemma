@@ -1374,6 +1374,76 @@ coeftest(m_cross)
 
 
 ###########################################
+##Write dataset for matlab iLQR
+
+# ================================================================
+# Export für MATLAB: Länderspezifische Kontrafaktuale
+# ================================================================
+
+export_data <- pdataD %>%
+  select(
+    Country, Quarter,
+    # Gesundheitsseite (fixiert)
+    S_mean_tw, theta_pct,
+    # Fiskalpolitik (beobachtet, zum Vergleich)
+    F_CP, F_CP_above, F_CP_below_adj_mid, F_DI, F_H,
+    # Outcomes (Validierung)
+    y_t_pct, debt_dR,
+    # Zusatzinfo
+    vax_rate
+  ) %>%
+  arrange(Country, Quarter) %>%
+  as.data.frame()
+
+# Prüfe ob F_H existiert
+cat("=== F_H Check ===\n")
+cat(sprintf("  F_H vorhanden: %s\n", "F_H" %in% names(export_data)))
+cat(sprintf("  F_H Range: %.3f to %.3f\n", 
+            min(export_data$F_H, na.rm=TRUE), 
+            max(export_data$F_H, na.rm=TRUE)))
+cat(sprintf("  F_H mean:  %.3f\n", mean(export_data$F_H, na.rm=TRUE)))
+
+# Falls F_H nicht in pdataD existiert, prüfe den Namen
+# names(pdataD) %>% grep("H|health|hlth", ., value=TRUE, ignore.case=TRUE)
+
+# Prüfe Vollständigkeit
+cat("\n=== Export Summary ===\n")
+cat(sprintf("  Countries: %d\n", length(unique(export_data$Country))))
+cat(sprintf("  Quarters:  %d\n", length(unique(export_data$Quarter))))
+cat(sprintf("  Rows:      %d\n", nrow(export_data)))
+
+# Missing Values
+cat("\n=== Missing Values ===\n")
+print(colSums(is.na(export_data)))
+
+# Ranges
+cat("\n=== Variable Ranges ===\n")
+for (v in names(export_data)[-(1:2)]) {
+  cat(sprintf("  %-25s  min=%8.3f  max=%8.3f  mean=%8.3f\n",
+              v, min(export_data[[v]], na.rm=TRUE),
+              max(export_data[[v]], na.rm=TRUE),
+              mean(export_data[[v]], na.rm=TRUE)))
+}
+
+write.csv(export_data, "country_data_for_matlab.csv", row.names = FALSE)
+cat("\n  Exported to country_data_for_matlab.csv\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ================================================================
 #  SUB-COMPONENT ANALYSIS: CP, DI, AND H DECOMPOSITION
