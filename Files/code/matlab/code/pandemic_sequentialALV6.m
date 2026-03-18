@@ -560,6 +560,7 @@ function [x_opt, u_opt, J_opt] = solve_pandemic_ilqr_v6( ...
                 bw_ok = true;
                 for k = N:-1:1
                     Q_k = Q_base * beta_disc^(k-1);
+                    R_k = R      * beta_disc^(k-1);   % symmetric discounting (fix)
                     A = Ak{k}; B = Bk{k};
                     c_val = C_u * u_bar(:,k) - c_bounds;
                     act = (c_val > 0) | (lambda(:,k) > 0);
@@ -568,8 +569,8 @@ function [x_opt, u_opt, J_opt] = solve_pandemic_ilqr_v6( ...
                     Qx  = Q_k*x_bar(:,k) + A'*p{k+1};
                     Qxx = Q_k + A'*P{k+1}*A;
                     Qux = B'*P{k+1}*A;
-                    Qu  = R*u_bar(:,k) + B'*p{k+1} + C_u'*(lambda(:,k) + I_mu*c_val);
-                    Quu = R + B'*P{k+1}*B + C_u'*I_mu*C_u + rho_reg*eye(n_u);
+                    Qu  = R_k*u_bar(:,k) + B'*p{k+1} + C_u'*(lambda(:,k) + I_mu*c_val);
+                    Quu = R_k + B'*P{k+1}*B + C_u'*I_mu*C_u + rho_reg*eye(n_u);
 
                     [~, pc] = chol(Quu);
                     if pc > 0

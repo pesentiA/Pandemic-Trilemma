@@ -1,0 +1,614 @@
+\documentclass[12pt]{article}
+
+% ========================================
+% PACKAGES
+% ========================================
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{threeparttable}
+\usepackage{enumitem}
+\usepackage{pdflscape}
+\usepackage{lmodern}           % bessere Grundschrift
+\usepackage[official]{eurosym}
+\usepackage{booktabs}
+\usepackage{threeparttable}
+\usepackage{tabularx}
+
+% ========================================
+% HYPERREF SETUP
+% ========================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=black,      
+    urlcolor=blue,
+    citecolor=black,
+    pdftitle={COVID-19 Fiscal Response Database: Codebook},
+}
+
+% ========================================
+% SPACING
+% ========================================
+\onehalfspacing
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+
+% ========================================
+% CAPTION SETUP
+% ========================================
+\captionsetup{labelfont=bf, textfont=normalfont, skip=10pt}
+
+% ========================================
+% BIBLIOGRAPHY STYLE
+% ========================================
+\bibliographystyle{aer}
+
+% ========================================
+% DOCUMENT START
+% ========================================
+\begin{document}
+
+% ========================================
+% TITLE PAGE
+% ========================================
+\begin{titlepage}
+\begin{center}
+
+% Header
+\vspace*{0.5cm}
+{\large \textsc{Working Paper}}\\[0.5cm]
+{\large Data Documentation}\\[1.5cm]
+
+% Title
+{\LARGE \textbf{COVID-19 Fiscal Response Database:\\[0.3cm]
+Codebook Version 1.3}}\\[2cm]
+
+% Author(s) - CUSTOMIZE THIS
+{\large 
+Aulis Pesenti\\[0.2cm]
+University of Basel\\[0.2cm]
+\href{mailto:email@unibas.ch}{aulis.pesenti@unibas.ch}
+}\\[2cm]
+
+% Date
+{\large 20. November 2025}\\[3cm]
+
+% Abstract
+\begin{minipage}{0.85\textwidth}
+\begin{center}
+\textbf{ABSTRACT}
+\end{center}
+\vspace{0.3cm}
+
+This codebook documents a comprehensive micro-level dataset of fiscal policy responses to the COVID-19 pandemic across all 38 OECD member states during 2020–2021. The dataset contains 2,290 fiscal measures including direct government interventions like subsidies, loans, guarantees or tax measures, with detailed information on timing, target groups, policy instruments, and fiscal commitments. Each measure is documented with primary source verification, enabling systematic cross-country comparison. The dataset distinguishes between announced and disbursed amounts. Unlike existing databases that aggregate measures at higher levels, this micro-level structure enables novel research on policy heterogeneity, instrument choice, and compositional effects of fiscal packages between countries. The granular data allow researchers to analyze which specific policy instruments were deployed, when they were implemented, which groups were targeted, and how policy mixes evolved over time. This represents the first comprehensive micro-level fiscal policy cross country database with complete source documentation for the pandemic period.
+
+
+\end{minipage}
+
+\vspace{1.5cm}
+
+% JEL Codes
+\begin{minipage}{0.85\textwidth}
+\textbf{JEL Classification:} E62, H12, H50, H60, I18\\[0.3cm]
+\textbf{Keywords:} COVID-19, fiscal policy, government spending, pandemic response, cross-country comparison, OECD
+\end{minipage}
+
+
+\vfill
+
+% Disclaimer
+\begin{minipage}{0.85\textwidth}
+\centering
+\footnotesize
+\textit{Please do not cite or distribute without permission. Comments welcome.}
+\end{minipage}
+
+\end{center}
+\end{titlepage}
+
+
+
+
+% ========================================
+% TABLE OF CONTENTS
+% ========================================
+\tableofcontents
+\newpage
+
+% ========================================
+% INTRODUCTION
+% ========================================
+\section{Introduction}
+
+This codebook documents fiscal policy measures from a comprehensive dataset of government responses to the COVID-19 pandemic across all 38 OECD member states. The dataset provides detailed information on fiscal commitments through revenue and expenditure measures implemented during 2020--2021, offering a micro-level breakdown of all fiscal measures during this period. The dataset contains 4,684 total observations, of which 2,290 represent fiscal policy measures (\texttt{broad\_fiscal} = 1, 2, or E). The remaining 2,382 observations consist of monetary policy interventions documented separately. Each fiscal measure includes detailed descriptions, timing information, policy classification, target groups, and size of fiscal commitments in both absolute terms in local currency and as percentage of 2019 GDP.
+
+\subsection{Contribution and Scope}
+
+To the best of our knowledge, this represents the first micro-level dataset of fiscal responses during COVID-19 with comprehensive source documentation, enabling systematic cross-country comparison. Unlike existing datasets by the World Bank \citep{LaceyMassadUtz2021} and IMF \citep{Mishra2022Tracking}, which aggregate measures at higher levels and cover only partial time periods, this database:
+
+\begin{enumerate}
+\item Disaggregates complex legislative packages into individual measures
+\item Extends temporal coverage through 2021
+\item Provides primary source documentation for each entry
+\item Distinguishes between announced and effective/disbursed amounts
+\item Includes detailed policy instrument classification
+\end{enumerate}
+
+
+\textbf{Remark:} This codebook describes only fiscal measures. Monetary policy measures (\texttt{broad\_fiscal=0}) are excluded from this documentation and will be addressed in a separate technical appendix.
+
+\newpage
+% ========================================
+% DATA CONSTRUCTION
+% ========================================
+\section{Data Construction}
+
+\subsection{Data Sources and Collection Process}
+
+The starting point for this database was the work by the World Bank \citep{LaceyMassadUtz2021} and the IMF \citep{Mishra2022Tracking} both of which attempted to create a database at this micro-level. Nevertheless, neither dataset included data beyond 2020 (World Bank only until September 2020 and IMF until December 2020). The measures were captured too broadly, as new laws consisting of numerous individual measures such as for example the CARES Act enacted on March 27, 2020 in the USA were recorded as single entries. This made it impossible to disaggregate measures by type and target group. Additionally, there were gaps in coverage, with some measures and entire countries missing.
+\vspace{3mm}
+
+To address these gaps and refinements, we used these two datasets as a starting point and collected measures country by country. To ensure comprehensive coverage, we began by consulting existing trackers: the IMF Policy Tracker \citep{IMFPolicyResponsesCovid19}, the OECD COVID-19 Policy Tracker \citep{oecd2021covidpolicytracker}, the Yale COVID-19 Financial Response Tracker \citep{YaleCFRTV}, and for European countries, the ESRB Policy Measures Tracker \citep{ESRBCovidPolicyMeasures} and the European Commission Coronavirus Response \citep{EUCommissionCovidOverview}. Subsequently, we visited individual government websites to verify and expand upon measures based on official communications and documents and added the primary source. In some cases, particularly for smaller countries, secondary sources such as newspaper articles or reports from auditors were used to verify measures when primary sources were unavailable or incomplete. Every measure is documented with at least one source, and multiple sources are provided when available. As this is a key distinguishing feature of the dataset, and recognizing that web links may become outdated over time, each measure description is as comprehensive as possible and supplemented with program names and relevant legislation. This documentation strategy enables future researchers to verify measures even when original URLs are no longer accessible.
+
+\subsection{Classification System}
+
+Measures are categorized using a modified classification system adapted from \citep{LaceyMassadUtz2021}. The system comprises 9 main categories with 49 sub-categories, allowing identification of: (1) measure type (revenue vs. expenditure), (2) IMF classification (above-the-line vs. below-the-line), (3) whether measures involve new money or acceleration/refund of existing resources, and (4) primary impact area (households, health system, broad economy, or firm categories). The classification system exhibits strong reliability at the broad category level. Users should exercise caution with fine-grained sub-categories, as some measures span multiple classifications. For robust analysis, we recommend using broad categories. Complete classification details appear in Section \ref{sec:policy_classification}.
+
+\subsection{Measurement Conventions}
+
+\subsubsection{Disbursed vs. Announced Amounts}
+
+Where data are available, all values reflect actual amounts disbursed or utilized. The exception is guarantees and loan facilities, consistently reported at announced ceiling amounts. For these instruments, ceiling amounts were typically set significantly above expected utilization, as the announced ceiling represents the economically relevant metric. These amounts signal government commitment to economic actors, influencing market confidence and borrower behavior regardless of actual uptake. Moreover, actual utilization of guarantees proves difficult to measure accurately, making announced ceilings more reliable indicators of program scale.
+
+\subsubsection{Policy Extensions}
+
+Programs extended without changes in size or target groups are captured with \texttt{fiscal\_size=0} and categorized as \texttt{broad\_fiscal=2}. These extensions are included for completeness to document full policy response timelines.
+
+\subsubsection{Treatment of Supranational Measures}
+
+The dataset includes only national government policies, with two exceptions for EU member states:
+\begin{description}
+  \item[\textit{EIB Pan-European Guarantee Fund:}]
+  All 27 EU member states contributed to this €25 billion guarantee fund
+  proportional to their EIB capital share. The fund enabled the EIB Group
+  to mobilize up to €200 billion in additional financing, focusing on SMEs.
+  Since contributions were proportional to economic size, these guarantees
+  are attributed to individual member states as national government guarantees in the same size.
+\end{description}
+
+\begin{description}
+    \item[\textit{NextGenerationEU/Recovery and Resilience Facility:}] 
+    This €723 billion recovery instrument provides grants and loans to EU member states for reforms and investments. The RRF operates on a performance basis: member states receive funding only upon achieving pre-agreed milestones. To avoid double-counting with national measures, since RRF funds reimburse member states for qualifying expenditures already undertaken, these amounts are recorded separately under \texttt{broad\_fiscal=E}. This approach tracks EU-level fiscal support while distinguishing it from national measures.
+
+\end{description}
+
+
+
+\subsubsection{Subnational Government Transfers}
+
+Transfers to local governments are, where possible, assigned to final purpose. This assignment proves straightforward in most cases, as local governments manage specific policy areas within their jurisdictions. Transfers specifically offsetting local government revenue losses are categorized accordingly (9 observations).
+
+% ========================================
+% DATA QUALITY
+% ========================================
+\section{Data Quality and Validation}
+
+\subsection{Validation Against IMF Policy Tracker}
+
+To validate dataset reliability, aggregate figures were calibrated against the official numbers from the IMF Policy Tracker (covering 2020 to October 2021) \citep{IMFPolicyResponsesCovid19}, that is widely used as a reference in the literature. Some differences from IMF figures occur due to definitional approaches, exchange rate calculations, and data availability. Most importantly, the IMF tracks strictly nominal announced values across all categories, whereas this dataset distinguishes between announced values (for guarantees and loans) and effective or disbursed values (for other fiscal measures where such data are available). Since the IMF does not provide detailed source documentation for individual measures, exact replication of their figures is neither feasible nor necessary given the methodological refinements applied in this dataset.
+\vspace{3mm}
+
+Deviations are measured in percentage points (pp) rather than percentage differences, as this provides consistent economic interpretation across countries. We categorize deviations as: excellent agreement ($<1$ pp), good agreement (1--2 pp), acceptable deviation (2--5 pp), and significant deviation ($>5$ pp).
+
+\subsection{Validation Results}
+
+Table \ref{tab:imf_validation} summarizes validation results across all 38 countries. Key findings:
+
+\begin{itemize}
+\item 24 countries (63\%) show excellent agreement ($<1$ pp)
+\item 32 countries (84\%) show excellent/good agreement ($\leq$2 pp)
+\item 37 countries (97\%) fall within acceptable deviation threshold ($\leq$5 pp)
+\item Mean absolute deviation: 1.2 percentage points
+\item Median absolute deviation: 0.7 percentage points
+\end{itemize}
+
+Where deviations exceed 2 pp, detailed justifications based on primary sources are documented in Appendix \ref{app:imf_deviations}. The single country exceeding 5 pp (Chile, +9 pp) reflects more comprehensive coverage in this dataset, as IMF figures appear to undercount major programs documented in official Chilean government reports.
+
+\subsection{LLM-Assisted Quality Checks}
+
+To further strengthen th reliabality, all entries underwent afterwards systematic quality checks supported by automated procedures. A large language model (LLM) with web browsing capabilities served as an final check assistive tool to flag potential inconsistencies between recorded measures and publicly available sources, as well as typographical errors, currency misspecifications, and data entry errors. The LLM systematically cross-referenced each entry's description, source, and reported amount against accessible documentation.
+
+Flagged entries were manually reviewed and corrected where necessary, with all final coding decisions made by the author. This semi-automated approach enabled efficient verification of all entries while maintaining human oversight of data quality. LLM verification is limited to publicly accessible sources and cannot detect errors originating in original government documentation itself.
+
+% ========================================
+% DATASET DESCRIPTION
+% ========================================
+\section{Dataset Description}
+
+\subsection{Overview}
+
+The dataset \texttt{fiscal\_classified\_v1\_2.xlsx} contains 4,684 observations across 38 OECD member states during 2020--2021. The complete dataset includes:
+
+\begin{itemize}
+\item 1,823 fiscal policy measures (\texttt{broad\_fiscal=1}): Direct government spending, subsidies, grants, tax measures
+\item 438 policy extensions (\texttt{broad\_fiscal=2}): Extensions without changes in size or target groups
+\item 29 EU-level measures (\texttt{broad\_fiscal=3}): NextGenerationEU/RRF funding
+\item 2,382 monetary policy measures (\texttt{broad\_fiscal=0}): Central bank interventions (documented separately)
+\end{itemize}
+
+This codebook documents fiscal-related entries only (\texttt{broad\_fiscal=1, 2, 3}), totaling 2,290 observations.
+
+\subsection{Temporal and Geographic Coverage}
+
+The fiscal measures primarily cover 2020 (1,758 observations) and 2021 (532 observations), with highest concentration in Q1 (527 obs) and Q2 (720 obs) of 2020, reflecting initial government responses to the pandemic. Geographic coverage includes all 38 OECD member states. Table \ref{tab:country_coverage} presents the distribution of observations by country. European countries account for 1,611 observations, with substantial representation from Latin America \& Caribbean (269 obs), East Asia \& Pacific (215 obs), North America (120 obs), and Middle East \& North Africa (75 obs). Advanced economies represent 1,871 observations (82\%), while emerging markets account for 419 observations (18\%).
+
+\subsection{Data Quality Considerations}
+
+\textbf{Missing Values:} The main part of the dataset (\texttt{broad\_fiscal=1}) contains 5 missing values in fiscal size measurements (\texttt{broad\_fiscal\_size}). This reflects situations where fiscal commitment amounts were not publicly disclosed or quantified.
+
+\textbf{Cross-Country Comparability:} The \texttt{broad\_fiscal\_gdp} variable enables cross-country comparisons by normalizing fiscal measures to GDP. 
+
+\textbf{Multiple Recordings:} Some policy measures may be recorded multiple times if announced in phases or modified over time. Users should consider this when trying to count the number of measures.
+\newpage
+% ========================================
+% VARIABLE DEFINITIONS
+% ========================================
+\section{Variable Definitions}
+
+Table \ref{tab:variables} provides complete variable definitions and descriptions for all 18 variables in the dataset.
+
+\begin{table}[H]
+\caption{Variable Definitions and Descriptions}
+\label{tab:variables}
+\scriptsize
+\begin{threeparttable}
+\begin{tabular}{@{}p{3cm}p{2cm}p{12cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Type} & \textbf{Description} \\
+\midrule
+ID & String & Unique identifier for each policy measure (format: CovidID-XXXX) \\
+\addlinespace
+Country & String & Three-letter ISO country code (e.g., AUS, DEU, USA) \\
+\addlinespace
+ifs & Numeric & International Financial Statistics country code \\
+\addlinespace
+income\_group & String & Economic classification: AE (Advanced Economies) or EM (Emerging Markets) \\
+\addlinespace
+region & String & Geographic region (e.g., ``Europe \& Central Asia'', ``North America'') \\
+\addlinespace
+NGDP\_2019 & Numeric & Nominal GDP in 2019 (national currency, millions), used for normalization \\
+\addlinespace
+Year & Numeric & Year when the measure was announced or implemented (2020 or 2021) \\
+\addlinespace
+Quarter & Numeric & Quarter of announcement (1--4) \\
+\addlinespace
+Month & Numeric & Month of announcement (1--12) \\
+\addlinespace
+date & String & Exact date of announcement (DD-MM-YYYY) \\
+\addlinespace
+description & Text & Detailed description of the policy measure, including program names, target groups, and implementation details \\
+\addlinespace
+link & Text & Primary source URL(s) documenting the measure; multiple sources separated by semicolons \\
+\addlinespace
+PolicyCode & Mixed & Specific policy instrument code (49 codes + general); see Table \ref{tab:policy_categories} \\
+\addlinespace
+PolicyCategory & Numeric & Main policy category (1--9); see Table \ref{tab:policy_categories} \\
+\addlinespace
+broad\_fiscal & Mixed & Fiscal measure classification: 1 = Fiscal policy measure; 2 = Policy extension; 3 = EU-level measure; 0 = Monetary policy (excluded) \\
+\addlinespace
+broad\_fiscal\_size & Numeric & Fiscal commitment amount in national currency (millions). For guarantees/loans: announced ceiling; for other measures: disbursed/utilized amount where available \\
+\addlinespace
+broad\_fiscal\_gdp & Numeric & Fiscal commitment as percentage of 2019 GDP (broad\_fiscal\_size / NGDP\_2019 $\times$ 100) \\
+\addlinespace
+category & Numeric & IMF fiscal accounting: 1 = above-the-line; 2 = below-the-line; 3 = tax deferrals \\
+\bottomrule
+\end{tabular}
+\end{threeparttable}
+\end{table}
+
+\newpage
+% ========================================
+% POLICY CLASSIFICATION
+% ========================================
+\section{Policy Classification System}
+\label{sec:policy_classification}
+
+\subsection{Policy Category Classification}
+
+Table \ref{tab:policy_categories} lists all 49 policy codes, based on a modified version of \citep{LaceyMassadUtz2021}. This classification system disaggregates complex legislative packages into individual policy instruments. The 49-code taxonomy distinguishes between revenue and expenditure measures, identifies target groups, and captures instrument types.
+
+\begin{table}[H]
+\centering
+\caption{Policy Measure Codes}
+\label{tab:policy_categories}
+\tiny
+\setlength{\tabcolsep}{4pt}
+\begin{threeparttable}
+\begin{tabularx}{\textwidth}{@{}p{0.04\textwidth}Xp{0.04\textwidth}X@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textbf{1 Revenue Measures to protect businesses}} &
+\multicolumn{2}{l}{\textbf{6 Expenditure Measures to individuals}} \\
+\midrule
+1  & Accelerated asset depreciation (CIT)                    & 35 & Direct cash transfers for individuals \\
+2  & Extend loss carry-forward (CIT)                         & 36 & Expansion of unemployment benefits \\
+3  & Broaden tax deductibility                               & 37 & Temporary expansion of existing benefits \\
+4  & Tax credits                                             & 38 & Supplementary ad hoc programs \\
+5  & Deferral of tax filing                                  & 39 & Wage compensation / enhanced paid leave \\
+6  & Deferral of tax payments                                &    & \\
+7  & Tax rate reduction                                      &    & \\
+8  & Tax amnesty / incentives                                &    & \\
+9  & Accelerating refunds                                    &    & \\
+10 & Lower advance payment                                   &    & \\
+11 & Suspend debt collection                                 &    & \\
+12 & Suspend audit activities                                &    & \\
+13 & Tax exemption                                           &    & \\
+14 & Tax waiver / suspension                                 &    & \\
+[0.6em]
+\midrule
+\multicolumn{2}{@{}l}{\textbf{2 Revenue Measures to protect individuals}} &
+\multicolumn{2}{l}{\textbf{7 Credit and equity measures}} \\
+\midrule
+15 & Deferral of tax filing                                  & 40 & Preferential loans to firms \\
+16 & Deferral of tax payments                                & 41 & Equity or quasi-equity investments \\
+17 & Tax rate reduction                                      & 42 & Preferential loans to households \\
+18 & Tax amnesty / incentives                                & 43 & Guarantees for loans for business \\
+19 & Broaden tax deductibility                               &    & \\
+20 & Tax credits                                             &    & \\
+21 & Tax exemption                                           &    & \\
+22 & Tax waiver / suspension                                 &    & \\
+[0.6em]
+\midrule
+\multicolumn{2}{@{}l}{\textbf{3 Revenue Measures to boost consumption / demand}} &
+\multicolumn{2}{l}{\textbf{8 Expenditure Measures for businesses}} \\
+\midrule
+25 & Exemption of tax rates on consumption VIT               & 45 & Income support general \\
+26 & Lower tax rates on consumption VAT                      & 46 & Income support non-profit  \\
+   &                                                         & 47 & Income support specific \\
+   &                                                         & 48 & Income support education sector \\
+[0.6em]
+\midrule
+\multicolumn{2}{@{}l}{\textbf{4 Expenditure Measures to boost consumption / demand}} &
+\multicolumn{2}{l}{\textbf{9 Transfers to local governments for losses}} \\
+\midrule
+27 & Investment into infrastructure                          & 49 & Income support for local governments \\
+28 & Green investments                                       &    & \\
+29 & Reactivate local tourism                                &    & \\
+[0.6em]
+\midrule
+\multicolumn{4}{@{}l}{\textbf{5 Health expenditure measures}} \\
+\midrule
+31      & Supply of low-cost medical items                    &    & \\
+32      & Supply of high-cost medical items                   &    & \\
+33      & Targeted infrastructure investments                 &    & \\
+34      & Expansion and support of human resources            &    & \\
+\tiny general & General health related spending                     &    & \\
+[0.6em]
+\midrule
+\multicolumn{4}{@{}l}{\textbf{5.5 Revenue Measures to promote availability of medical items}} \\
+\midrule
+30 & Lower tax rates for medical items                        &    & \\
+\bottomrule
+\end{tabularx}
+\end{threeparttable}
+\end{table}
+
+
+
+\newpage
+\subsection{IMF Fiscal Accounting Classification}
+
+While the Policy Category classification identifies what instruments were deployed and who was targeted, the IMF fiscal accounting framework captures how these measures affect government finances and balance sheets. 
+
+\begin{itemize}
+\item \textbf{Category 1 -- Above-the-Line:} Expenditure measures directly impacting government fiscal balance through revenue changes or expenditures. Examples include direct spending programs, wage subsidies, and tax reductions. These measures affect the government's net lending/borrowing position.
+
+\item \textbf{Category 2 -- Below-the-Line:} Expenditure loans and guarantees that primarily affect liquidity and timing without immediate accrual impact on fiscal balance. While these create contingent liabilities, they do not directly affect the deficit at announcement. Examples include loan programs and credit guarantees.
+
+\item \textbf{Category 3 -- Tax Deferrals:} Revenue timing measures allowing businesses or households to defer tax payments. These affect cash flow and liquidity but do not necessarily imply permanent revenue loss, as deferred amounts are typically paid at a later date.
+\end{itemize}
+
+\newpage
+% ========================================
+% DATA AVAILABILITY
+% ========================================
+\section{Data Availability and Citation}
+
+\subsection{Access}
+
+
+
+\subsection{Recommended Citation}
+
+
+
+\subsection{Version History}
+
+\begin{itemize}
+\item \textbf{Version 1.3} (20. November 2025): Added IMF deviations
+\item \textbf{Version 1.2} (19. November 2025): Updated codebook with enhanced documentation
+\item \textbf{Version 1.0} (13. November 2025): Initial version
+\end{itemize}
+
+% ========================================
+% REFERENCES
+% ========================================
+\newpage
+\FloatBarrier
+\bibliographystyle{apa}
+\bibliography{references}
+\addcontentsline{toc}{section}{References}
+
+\vspace{0.3cm}
+
+
+% ========================================
+% APPENDICES
+% ========================================
+\newpage
+\appendix
+
+\section{Country Coverage and Observation Distribution}
+\label{app:country_coverage}
+
+Table \ref{tab:country_coverage} presents the complete distribution of fiscal policy observations by country.
+
+\begin{table}[htbp]
+\centering
+\caption{Distribution of Fiscal Observations by Country}
+\label{tab:country_coverage}
+\scriptsize
+\begin{threeparttable}
+\begin{tabular}{@{}lccl@{}}
+\toprule
+\textbf{Country} & \textbf{Observations} & \textbf{Income Group} & \textbf{Region} \\
+\midrule
+Colombia & 109 & EM & Latin America \& Caribbean \\
+Greece & 97 & AE & Europe \& Central Asia \\
+Germany & 93 & AE & Europe \& Central Asia \\
+Ireland & 93 & AE & Europe \& Central Asia \\
+Spain & 90 & AE & Europe \& Central Asia \\
+United Kingdom & 82 & AE & Europe \& Central Asia \\
+Chile & 80 & EM & Latin America \& Caribbean \\
+France & 78 & AE & Europe \& Central Asia \\
+Israel & 75 & AE & Middle East \& North Africa \\
+Belgium & 73 & AE & Europe \& Central Asia \\
+Portugal & 73 & AE & Europe \& Central Asia \\
+Finland & 73 & AE & Europe \& Central Asia \\
+Italy & 70 & AE & Europe \& Central Asia \\
+USA & 65 & AE & North America \\
+Hungary & 65 & AE & Europe \& Central Asia \\
+Australia & 63 & AE & East Asia \& Pacific \\
+Japan & 57 & AE & East Asia \& Pacific \\
+Austria & 55 & AE & Europe \& Central Asia \\
+Canada & 55 & AE & North America \\
+Denmark & 55 & AE & Europe \& Central Asia \\
+Norway & 52 & AE & Europe \& Central Asia \\
+South Korea & 52 & AE & East Asia \& Pacific \\
+Slovenia & 51 & AE & Europe \& Central Asia \\
+Czech Republic & 51 & AE & Europe \& Central Asia \\
+Netherlands & 50 & AE & Europe \& Central Asia \\
+Sweden & 49 & AE & Europe \& Central Asia \\
+Lithuania & 48 & AE & Europe \& Central Asia \\
+Iceland & 48 & AE & Europe \& Central Asia \\
+Estonia & 46 & AE & Europe \& Central Asia \\
+Turkey & 44 & EM & Middle East \& North Africa \\
+New Zealand & 43 & AE & East Asia \& Pacific \\
+Poland & 41 & AE & Europe \& Central Asia \\
+Costa Rica & 40 & EM & Latin America \& Caribbean \\
+Mexico & 40 & EM & Latin America \& Caribbean \\
+Luxembourg & 36 & AE & Europe \& Central Asia \\
+Switzerland & 34 & AE & Europe \& Central Asia \\
+Latvia & 33 & AE & Europe \& Central Asia \\
+Slovakia & 31 & AE & Europe \& Central Asia \\
+\midrule
+\textbf{Total} & \textbf{2,290} & & \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\scriptsize
+\item \textit{Notes:} Observation counts include all fiscal measures (broad\_fiscal = 1, 2, 3). Countries ordered by number of observations.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+
+
+\newpage
+\section{IMF Policy Tracker Comparison: Detailed Country Results}
+\label{app:imf_deviations}
+
+This appendix presents detailed country-by-country comparisons between this dataset and the IMF Policy Tracker. Deviations are measured in percentage points (pp) of GDP.
+
+\subsection{Methodology}
+
+Deviations are categorized as:
+\begin{itemize}
+\item \textbf{Excellent agreement} ($<1$ pp): Minor rounding and exchange rate differences
+\item \textbf{Good agreement} (1--2 pp): Acceptable methodological differences
+\item \textbf{Acceptable deviation} (2--5 pp): Requires justification based on primary sources
+\item \textbf{Significant deviation} ($>5$ pp): Requires detailed analysis and documentation
+\end{itemize}
+
+\subsection{Summary of Validation Results}
+
+\begin{table}[htbp]
+\centering
+\caption{IMF Validation Results by Agreement Level}
+\label{tab:imf_validation}
+\small
+\begin{threeparttable}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Agreement Level} & \textbf{Countries} & \textbf{Percentage} & \textbf{Avg. Deviation} \\
+\midrule
+Excellent ($<1$ pp) & 22 & 57.9\% & 0.4 pp \\
+Good (1--2 pp) & 10 & 26.3\% & 1.3 pp \\
+Acceptable (2--5 pp) & 4 & 10.5\% & 3.2 pp \\
+Significant ($>5$ pp) & 2 & 5.3\% & 9.1 pp \\
+\midrule
+\textbf{Total} & \textbf{38} & \textbf{100.0\%} & \textbf{1.4 pp} \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item \textit{Notes:} Mean absolute deviation across all countries: 1.4 pp. Median absolute deviation: 0.7 pp. 84.2\% of countries show deviations $\leq$2 pp; 94.7\% show deviations $\leq$5 pp.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsection{Significant Deviations ($>5$ pp)}
+
+\paragraph{Germany (IMF: 44.1\% | Database: 35.8\% | Deviation: -8.3 pp)}
+
+The deviation reflects the IMF's overstatement of guarantee programs at €826 billion versus the actual €400 billion documented in official \href{https://www.advant-nctm.com/en/news/germany-overview-of-all-support-measures-of-the-federal-government-and-each-individual-federal-state}{federal government documentation}.
+
+\paragraph{Chile (IMF: 16.9\% | Database: 26.1\% | Deviation: +9.2 pp)}
+
+The large discrepancy is driven by broader coverage in this dataset. In particular, the IMF figures largely exclude the guarantees that were announced. Official documents clearly indicate that guarantee schemes amounted to around 10\% of GDP. If this guaranteed component is subtracted from our totals, the resulting figures align closely with the IMF numbers \href{https://old.hacienda.cl/sala-de-prensa/noticias/historico/ministro-de-hacienda-tras-actualizacion.html}{official budget documentation}.
+
+\subsection{Acceptable Deviations ($2-5$ pp)}
+
+\paragraph{Estonia (IMF: 10.9\% | Database: 15.8\% | Deviation: +4.9 pp)}
+
+The IMF documentation completely omits tax deferral measures totaling approximately 5 pp of GDP. These measures are clearly documented in official government sources, including parliamentary budget documents. When excluding tax deferrals, both figures align closely at approximately 11\% of GDP.
+
+\paragraph{Portugal (IMF: 12.1\% | Database: 14.9\% | Deviation: +2.8 pp)}
+
+Differences arise from incorrect guarantee valuations in the IMF documentation. When adjusted to reflect actual guarantee ceiling amounts as documented in European Commission state aid approvals, our figures align at approximately 12.5\% of GDP.
+
+\paragraph{Sweden (IMF: 16.0\% | Database: 13.5\% | Deviation: -2.5 pp)}
+
+The IMF substantially overestimates tax deferrals by approximately SEK 200 billion while underestimating guarantee envelopes by about SEK 150 billion. The Swedish National Audit Office confirms actual tax deferral utilization was significantly lower than announced ceilings.
+
+\paragraph{Turkey (IMF: 16.7\% | Database: 14.2\% | Deviation: -2.5 pp)}
+
+This dataset excludes quasi-fiscal operations (noncommercial activities of public corporations on behalf of government) as these do not constitute direct government spending nor carry explicit government guarantees.
+
+\subsection{Good Agreement (1--2 pp)}
+
+Eleven countries show deviations between 1--2 pp: Ireland (-1.8 pp), New Zealand (+1.7 pp), Australia (-1.5 pp), Japan (-1.3 pp), Austria (-1.2 pp), Germany (+1.1 pp), France (+1.1 pp), United Kingdom (+1.1 pp), Canada (-1.1 pp), Colombia (-1.1 pp) and Switzerland (-1.1 pp). These deviations primarily reflect exchange rate variations, minor temporal boundary differences, and the distinction between announced versus disbursed amounts.
+
+\subsection{Excellent Agreement ($<1$ pp)}
+
+Twenty-two countries show deviations below 1 pp, reflecting excellent concordance with IMF figures: Hungary, Spain, Finland, United States, Greece, Italy, Iceland, Korea, Luxembourg, Belgium, Lithuania, Denmark, Norway, Slovenia, Slovak Republic, Costa Rica, Poland, Netherlands, Czech Republic, Israel, Latvia, and Mexico. These minor differences are attributable to standard exchange rate variations and rounding differences.
+
+\subsection{Interpretation}
+
+The high degree of concordance (84\% within 2 pp; 97\% within 5 pp) validates the comprehensiveness and accuracy of this dataset. Where significant deviations exist, they are systematically documented with primary source verification. The mean deviation of 1.2 pp and median of 0.7 pp indicate that typical differences are well within acceptable bounds for cross-country fiscal policy comparisons.
+
+\end{document}
+

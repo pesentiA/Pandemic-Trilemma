@@ -315,6 +315,167 @@ This reframing:
 
 
 % =============================================================
+\section{Numerical Implementation (\texttt{pandemic\_sequentialALV6.m})}
+% =============================================================
+
+This section records the findings from a line-by-line code review of the
+AL-iLQR implementation and a cross-check run in R (\texttt{pandemic\_ALV6\_crosscheck.R}).
+
+\subsection{What Is Correct}
+
+\strength{The algorithm choice is appropriate.} AL-iLQR (Augmented Lagrangian wrapped
+around iLQR) is the right method for this system. The bilinear state-control products
+($\psi S_k y_k$, $\eta F_k^{CP} y_k$, $\rho_\theta \phi_S S_k \theta_k$) rule out
+standard LQR, and AL-iLQR handles the box constraints on controls without requiring a
+full nonlinear programming solver. The choice is well-motivated and correctly implemented.
+
+\strength{All 40 Jacobian entries are analytically verified.} Every entry of $A_k$
+($5\times5$) and $B_k$ ($5\times3$) was checked against the partial derivatives of the
+transition function. No errors were found.
+
+\strength{The backward-pass formulas are correct.} The convention
+\texttt{K = Quu$\backslash$Qux} (positive, without the minus sign) with the minus applied
+in the forward pass (\texttt{u = u\_bar + alpha*k\_ff - K*dx}) is internally consistent
+and produces the standard result $p_k = Q_{x,k} - Q_{xu,k} Q_{uu,k}^{-1} Q_{u,k}$,
+$P_k = Q_{xx,k} - Q_{xu,k} Q_{uu,k}^{-1} Q_{ux,k}$.
+
+\strength{The forward pass uses the nonlinear dynamics.} \texttt{f\_wave} is called
+inside the forward pass, not the linearized approximation. This is essential for
+correct convergence and is implemented correctly.
+
+\strength{The initialization avoids the zero-NPI explosion.} A heuristically decaying
+lockdown ($S \approx 0.7$ in period~1, declining by 0.05 per quarter) prevents the
+explosive $\rho_\theta > 1$ dynamics from making the initial reference trajectory
+numerically pathological.
+
+\subsection{Bug: Control Cost Matrix Not Discounted in Backward Pass}
+
+\concern{$R$ is undiscounted in \texttt{Quu} and \texttt{Qu}, inconsistent with
+\texttt{al\_cost\_v6}.}
+
+The cost function \texttt{al\_cost\_v6} correctly evaluates
+$\beta^{k-1} \cdot \tfrac{1}{2} u_k' R u_k$, applying the discount factor to the
+control cost. However, in the backward pass the matrices are computed as:
+%
+\begin{verbatim}
+    Qu  = R*u_bar(:,k) + ...       % R undiscounted
+    Quu = R + B'*P{k+1}*B + ...   % R undiscounted
+\end{verbatim}
+%
+whereas the consistent specification requires \texttt{R\_k = R * beta\_disc\^{}(k-1)}.
+The fix (one added line, two substitutions) has been applied directly to the file:
+%
+\begin{verbatim}
+    R_k = R * beta_disc^(k-1);   % symmetric discounting (fix)
+    Qu  = R_k*u_bar(:,k) + ...
+    Quu = R_k + B'*P{k+1}*B + ...
+\end{verbatim}
+
+The R cross-check quantifies the impact at the baseline calibration (VSL$=60$,
+MCPF$=0.3$, $N=12$, $\beta=0.99$):
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+Metric & Corrected & MATLAB V6 & Difference \\
+\midrule
+Avg output gap (\%)    & $-2.19$ & $-2.17$ & $-0.016$ \\
+Cumul.\ mortality (\%) &  $1.043$ &  $1.049$ & $-0.006$ \\
+Terminal debt (pp)     &  $9.94$  &  $9.94$  & $-0.003$ \\
+Total cost $J$         & $138.20$ & $138.21$ & $-0.016$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The quantitative impact is small for $\beta=0.99$, $N=12$. It would grow for longer
+horizons or lower discount factors and is corrected for internal consistency.
+
+\subsection{Economic Findings from the Cross-Check}
+
+\concern{Capacity preservation ($F^{CP}$) is zero across all 30 Pareto grid points.}
+
+The optimizer pushes CP to its lower bound under every (VSL, MCPF) combination. This is
+internally consistent given the calibrated parameters: the physical lockdown constraint
+on CP is $\tilde\eta = -0.607$, implying that the contemporaneous CP effect vanishes at
+$S^* = \alpha_F^{CP} / |\tilde\eta| \approx 0.43$. Since optimal $S$ exceeds this
+threshold throughout most of the planning horizon, the contemporaneous channel is
+switched off. The structural preservation channel ($\eta_p = 0.024$, $p = 0.07$) is too
+small to compensate. This produces the clean result that DI dominates CP under the
+current calibration.
+
+\recommend{This is a finding, not a bug, but it requires careful treatment in the paper.}
+\begin{itemize}
+    \item Verify whether CP-heavy countries (Germany, France, Austria) actually show
+        worse fiscal outcomes in the data---if so, the model's prediction is consistent
+        with the evidence.
+    \item Run a robustness check using a higher $\eta_p$ estimate (e.g., the upper bound
+        of the confidence interval at $p = 0.07$) to show whether CP re-enters the
+        optimal solution at higher structural preservation effectiveness.
+    \item The paper currently argues that CP dominates DI during lockdowns (Section~3,
+        Eq.~\ref{eq:cp_positive}). The optimization result is the opposite under the
+        baseline calibration. This tension must be resolved before submitting.
+\end{itemize}
+
+The VSL sensitivity confirms that all other comparative statics are correct: higher
+VSL $\to$ stricter containment $\to$ higher output loss $\to$ lower mortality (monotone
+in all dimensions).
+
+\subsection{Three Mathematical Recommendations}
+
+\textbf{1. Inner convergence criterion.} The current criterion is
+\texttt{dx = norm(xn-x\_bar,'fro') / (norm(x\_bar,'fro')+eps)}, which measures state
+trajectory change. This can be misleadingly small near a saddle point. The standard
+iLQR criterion is the relative cost reduction $|J^{(j)} - J^{(j-1)}| / \max(1, J^{(j-1)}) < \varepsilon$
+or the norm of the feedforward gains $\max_k \|k_k\|$. Switching to one of these provides
+stronger termination guarantees.
+
+\textbf{2. AL penalty escalation is too aggressive.}
+The penalty \texttt{mu} is multiplied by $\phi = 2.5$ unconditionally at every outer
+iteration. After 30 iterations, $\mu \sim 2.5^{30} \approx 10^{12}$, numerically
+dominating the cost function and ill-conditioning $Q_{uu}$. Standard AL theory
+\citep{nocedal2006} recommends escalating $\mu$ only when constraint violation fails
+to decrease by a prescribed factor (e.g., $0.25\times$ previous violation). This
+avoids unnecessary ill-conditioning in early iterations where constraints are already
+satisfied.
+
+\textbf{3. Consider Differential Dynamic Programming (DDP) as a speed-up.}
+Full DDP adds the second-order dynamics terms ($f_{xx}$, $f_{ux}$, $f_{uu}$) to the
+Q-function Hessians. For your bilinear system these are non-zero (e.g.,
+$\partial^2 f_y / \partial S \partial y = \psi$ and
+$\partial^2 f_\theta / \partial S \partial \theta = -\rho_\theta \phi_S$). Including
+them typically halves the number of iLQR iterations to convergence with no correctness
+penalty. Given that the Pareto grid runs 30 solve calls, this would meaningfully reduce
+total runtime.
+
+\subsection{Alternative Approaches}
+
+For the paper's stated goal (optimal fiscal composition over a finite horizon with
+calibrated parameters), AL-iLQR is the right tool. Two alternatives are worth
+considering as robustness checks only:
+
+\begin{center}
+\small
+\begin{tabular}{lp{9cm}}
+\toprule
+Alternative & When it adds value \\
+\midrule
+Direct collocation (CasADi/IPOPT) &
+    If the CP$=0$ result is contested --- a nonlinear programming solver can certify the
+    global minimum for $N=12$, ruling out local-optimum artefacts. \\[4pt]
+Stochastic DP on a discretized grid &
+    If wave timing uncertainty is central to the welfare argument --- the only correct
+    approach for a risk-sensitive objective, but computationally expensive for a
+    5-dimensional state. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Neither is necessary for the current draft. The productive next steps are: fix the AL
+penalty schedule, add a \texttt{rho\_y} robustness check ($\rho_y \in [0.3, 0.7]$), and
+diagnose the CP$=0$ tension with the paper's theoretical prediction.
+
+% =============================================================
 \section{Overall Assessment}
 % =============================================================
 
