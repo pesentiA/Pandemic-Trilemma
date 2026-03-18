@@ -815,6 +815,53 @@ m_output_adj <- plm(y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP+ F_DI_lag2 +
 
 coeftest(m_output_adj, vcov = vcovHC(m_output_adj, cluster = "group", type = "HC1"))
 
+# ==============================================================================
+#  FEAR CHANNEL: OUTPUT GAP PLM WITH EXCESS MORTALITY
+#  Excess mortality (P-score) captures fear-driven voluntary behavioural
+#  suppression beyond S_k mandates (Eichenbaum et al. 2020 channel).
+#  Main:       p_proj_all_ages  — projected-baseline P-score (avoids ageing bias)
+#  Robustness: p_avg_all_ages   — 2015-2019 avg P-score (upper bound)
+# ==============================================================================
+
+# Pull quarterly excess mortality already aggregated in qdata
+pdataY <- pdataY %>%
+  left_join(
+    qdata %>%
+      select(Country, Quarter, p_proj_all_ages, p_avg_all_ages,
+             cum_excess_per_million_proj_all_ages) %>%
+      distinct(Country, Quarter, .keep_all = TRUE),
+    by = c("Country", "Quarter")
+  )
+
+# Main: projected P-score (correct specification — avoids ageing-society upward bias)
+m_y_fear <- plm(
+  y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP + F_DI_lag2 + p_proj_all_ages,
+  data = pdataY, index = c("Country", "Quarter"),
+  model = "within", effect = "twoways"
+)
+ct_y_fear <- coeftest(m_y_fear, vcov = vcovHC(m_y_fear, cluster = "group", type = "HC1"))
+cat("\n=== OUTPUT GAP + FEAR TERM (p_proj_all_ages — projected P-score) ===\n")
+print(ct_y_fear)
+
+# Robustness: 2015-2019 avg baseline P-score (upward biased in ageing societies)
+m_y_fear_avg <- plm(
+  y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP + F_DI_lag2 + p_avg_all_ages,
+  data = pdataY, index = c("Country", "Quarter"),
+  model = "within", effect = "twoways"
+)
+cat("\n=== OUTPUT GAP + FEAR TERM (p_avg_all_ages — 2015-2019 avg, robustness) ===\n")
+print(coeftest(m_y_fear_avg, vcov = vcovHC(m_y_fear_avg, cluster = "group", type = "HC1")))
+
+# Robustness: cumulative excess deaths per million (level measure)
+m_y_fear_cum <- plm(
+  y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP + F_DI_lag2 +
+    cum_excess_per_million_proj_all_ages,
+  data = pdataY, index = c("Country", "Quarter"),
+  model = "within", effect = "twoways"
+)
+cat("\n=== OUTPUT GAP + FEAR TERM (cum_excess_per_million — cumulative stock, robustness) ===\n")
+print(coeftest(m_y_fear_cum, vcov = vcovHC(m_y_fear_cum, cluster = "group", type = "HC1")))
+
 #Hier lag2-> Kette aufzeigen-> DI ist additiv, CP ist also identifiziert, Sample ist jetzt restricted auf Pandemieperiode
 #CP und DI wirken aber DI mit Verzögerung
 #Die Konsequenz ist das DI viel teurer war vor allem wenn wir CP splitten und Guarantees betrachten

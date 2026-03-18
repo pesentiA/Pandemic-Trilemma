@@ -20,12 +20,12 @@ beta_disc = 0.99;
 
 % --- Output Dynamics (Estimated from Panel) ---
 rho_y      = 0.00;
-psi        = 0.0424;
-alpha_S    = 0.028;
-alpha_F_CP = 0.293;
+psi        = 0.0372;
+alpha_S    = 0.025;
+alpha_F_CP = 0.264;
 gamma_int  = -0.00596;
-alpha_F_DI = 0.29;
-beta_fear  = -50;       % Fear channel: reacts to mortality flow d_k
+alpha_F_DI = 0.22;
+beta_fear  = -7.5;       % Fear channel: reacts to mortality flow d_k
 
 % --- Epidemiology (Calibrated, wave-specific) ---
 rho_theta_base = 1.30;

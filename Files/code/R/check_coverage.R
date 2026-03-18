@@ -1,0 +1,10 @@
+library(dplyr)
+load("C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/data/processed/dataforanalysis.RData")
+pw <- panel_w[panel_w$date >= as.Date("2020-01-01") & panel_w$date <= as.Date("2022-12-31"), ]
+cat("Total countries:", length(unique(pw$Country)), "\n")
+has_theta <- unique(pw$Country[!is.na(pw$theta_hat)])
+cat("Countries with theta_hat:", length(has_theta), "\n")
+missing <- setdiff(unique(pw$Country), has_theta)
+cat("Missing theta_hat:", paste(missing, collapse=", "), "\n")
+cat("excess NA%:", round(mean(is.na(pw$excess))*100,1), "\n")
+cat("S_mean NA%:", round(mean(is.na(pw$S_mean))*100,1), "\n")
