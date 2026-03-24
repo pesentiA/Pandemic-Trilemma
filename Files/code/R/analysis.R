@@ -1272,90 +1272,41 @@ cat(strrep("=",70), "\n\n")
 # Refit main spec with feols for efficient SE variants
 y_feols <- feols(
   y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP +F_CP*y_lag1 + F_DI_lag2 + p_proj_all_ages |
-    Country + Quarter,
-  data=main_sample
-)
-cat("--- 5A: SE variants for key parameters (G=38, T=9) ---\n")
-cat(sprintf("  %-24s %-8s %-8s %-8s %-8s %-8s\n",
-            "Parameter","Coef","HC1","HC3","CRV1","CRV3"))
+    Country + Quarter, data=main_sample, panel.id = ~Country + Quarter)#vcov = ~Country) ##always clustered
 
-key_pars <- c("S_mean_tw:y_lag1","S_mean_tw:F_CP","F_DI_lag2")
-vcov_cr3 <- tryCatch(
-  vcovCR(y_feols, cluster=main_sample$Country, type="CR3"),
-  error=function(e) NULL
-)
-ct_cr3_full <- if (!is.null(vcov_cr3))
-  coef_test(y_feols, vcov=vcov_cr3, test="Satterthwaite") else NULL
+summary(y_feols)
+summary(y_feols, vcov = "hc1") # Klassisch robust (Stata style)
+summary(y_feols, vcov = "hc3") # Empfohlen für kleine Samples
+summary(y_feols, vcov = ~Country, ssc = ssc(adj = TRUE, cluster.adj = TRUE))
 
-for (par in key_pars) {
-  ct_hc1 <- crt(m_twfe)
-  ct_hc3 <- coeftest(m_twfe, vcov=vcovHC(m_twfe, cluster="group", type="HC3"))
-  se_crv1 <- tryCatch(
-    summary(y_feols, vcov=~Country)$coeftable[par,"Std. Error"],
-    error=function(e) NA_real_)
-  se_cr3 <- if (!is.null(ct_cr3_full) && par %in% rownames(ct_cr3_full))
-    ct_cr3_full[par,"SE"] else NA_real_
-  if (par %in% rownames(ct_hc1))
-    cat(sprintf("  %-24s %+7.5f %7.5f %7.5f %7.5f %7.5f\n",
-                par, ct_hc1[par,"Estimate"],
-                ct_hc1[par,"Std. Error"], ct_hc3[par,"Std. Error"],
-                se_crv1, se_cr3))
-}
+# Driscoll-Kraay Standardfehler aufrufen
+summary(y_feols, vcov = "dk")
 
-cat(paste0(
-  "\n  RECOMMENDATION: CRV1 (HC1, clustered by country) as main SE.\n",
-  "  Rationale: G=38 exceeds the rule-of-thumb G>30 for asymptotic CRV1\n",
-  "  reliability. HC1 and CRV1 agree closely (minor df correction).\n",
-  "  HC3 (bias-corrected) produces slightly wider SEs — reported as check.\n",
-  "  CRV3 (Bell-McCaffrey) is the most conservative finite-sample option;\n",
-  "  qualitative conclusions unchanged across all four SE types.\n\n"
-))
 
-# --- 5B: Wild Cluster Bootstrap (Rademacher, B=9999) ---
-cat("--- 5B: Wild Cluster Bootstrap (B=9999, Rademacher, impose_null=TRUE) ---\n")
-set.seed(1234)
-wcb_psi <- tryCatch(
-  boottest(y_feols, param="S_mean_tw:y_lag1", clustid=~Country,
-           B=999, type="rademacher", impose_null=TRUE),
-  error=function(e) NULL)
-wcb_eta <- tryCatch(
-  boottest(y_feols, param="S_mean_tw:F_CP", clustid=~Country,
-           B=999, type="rademacher", impose_null=TRUE),
-  error=function(e) NULL)
-wcb_di  <- tryCatch(
-  boottest(y_feols, param="F_DI_lag2", clustid=~Country,
-           B=999, type="rademacher", impose_null=TRUE),
-  error=function(e) NULL)
-if (!is.null(wcb_psi)) cat(sprintf("  ψ (S×y):  p_WCB = %.4f\n", wcb_psi$p_val))
-if (!is.null(wcb_eta)) cat(sprintf("  η (S×CP): p_WCB = %.4f\n", wcb_eta$p_val))
-if (!is.null(wcb_di))  cat(sprintf("  α_DI:     p_WCB = %.4f\n", wcb_di$p_val))
-cat(paste0(
-  "  WCB confirms inference from CRV1 for all three key parameters.\n",
-  "  Main result: ψ and η significant at 1% under all SE approaches.\n\n"
-))
+##Wildclusterboot
+library(fwildclusterboot)
 
-summary(wcb_psi)
-str(wcb_psi)
-names(wcb_psi)
+# 1. Stelle sicher, dass die FE-Variablen Faktoren sind (sehr wichtig!)
+main_sample$Country <- as.factor(main_sample$Country)
+main_sample$Quarter <- as.factor(main_sample$Quarter)
 
-# LSDV-Version des Modells
-y_lsdv <- lm(y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP + y_lag1:F_CP + 
-               F_DI_lag2 + p_proj_all_ages + factor(Country) + factor(Quarter), 
-             data = pdataY)
+# 2. Schätze das Modell neu, damit die Faktor-Informationen im Objekt sind
+y_feols <- feols(
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 + F_DI_lag2 + p_proj_all_ages | 
+    Country + Quarter,  data = pdataY, vcov = ~Country)
 
-# Jetzt boottest
-wcb<-boottest(y_lsdv, param = "F_CP", clustid = c("Country"),
-         B = 9999999, type = "rademacher", impose_null = TRUE)
+# 3. Boottest aufrufen (set.seed davor für Reproduzierbarkeit)
 
-summary(wcb)
+boot_res <- boottest(y_feols, 
+                     clustid = "Country", 
+                     param = "y_lag1:F_CP", 
+                     B = 999)
 
-# Robustness Check mit verschiedenen Typen
-for (wtype in c("rademacher", "mammen", "webb")) {
-  wcb <- boottest(y_lsdv, param = "F_CP", 
-                  clustid = c("Country"), B = 9999, 
-                  type = wtype, impose_null = TRUE)
-  cat(sprintf("%s: p = %.4f\n", wtype, wcb$p_val))
-}
+print(boot_res)
+
+##TO BE DECIDED WHICH ONE TO USE
+
+
 
 # ==============================================================================
 #  STEP 6 — ROBUSTNESS CHECKS
