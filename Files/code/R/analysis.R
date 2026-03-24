@@ -40,6 +40,7 @@ conflicted::conflicts_prefer(data.table::isoweek)
 conflicted::conflicts_prefer(data.table::month)
 conflicted::conflicts_prefer(dplyr::lead)
 conflicted::conflicts_prefer(modelsummary::SD)
+conflicted::conflicts_prefer(lubridate::union)
 
 ##Load Data
 
@@ -1315,15 +1316,15 @@ cat("--- 5B: Wild Cluster Bootstrap (B=9999, Rademacher, impose_null=TRUE) ---\n
 set.seed(1234)
 wcb_psi <- tryCatch(
   boottest(y_feols, param="S_mean_tw:y_lag1", clustid=~Country,
-           B=9999, type="rademacher", impose_null=TRUE),
+           B=999, type="rademacher", impose_null=TRUE),
   error=function(e) NULL)
 wcb_eta <- tryCatch(
   boottest(y_feols, param="S_mean_tw:F_CP", clustid=~Country,
-           B=9999, type="rademacher", impose_null=TRUE),
+           B=999, type="rademacher", impose_null=TRUE),
   error=function(e) NULL)
 wcb_di  <- tryCatch(
   boottest(y_feols, param="F_DI_lag2", clustid=~Country,
-           B=9999, type="rademacher", impose_null=TRUE),
+           B=999, type="rademacher", impose_null=TRUE),
   error=function(e) NULL)
 if (!is.null(wcb_psi)) cat(sprintf("  ψ (S×y):  p_WCB = %.4f\n", wcb_psi$p_val))
 if (!is.null(wcb_eta)) cat(sprintf("  η (S×CP): p_WCB = %.4f\n", wcb_eta$p_val))
@@ -1332,6 +1333,29 @@ cat(paste0(
   "  WCB confirms inference from CRV1 for all three key parameters.\n",
   "  Main result: ψ and η significant at 1% under all SE approaches.\n\n"
 ))
+
+summary(wcb_psi)
+str(wcb_psi)
+names(wcb_psi)
+
+# LSDV-Version des Modells
+y_lsdv <- lm(y_t_pct ~ S_mean_tw * y_lag1 + S_mean_tw * F_CP + y_lag1:F_CP + 
+               F_DI_lag2 + p_proj_all_ages + factor(Country) + factor(Quarter), 
+             data = pdataY)
+
+# Jetzt boottest
+wcb<-boottest(y_lsdv, param = "F_CP", clustid = c("Country"),
+         B = 9999999, type = "rademacher", impose_null = TRUE)
+
+summary(wcb)
+
+# Robustness Check mit verschiedenen Typen
+for (wtype in c("rademacher", "mammen", "webb")) {
+  wcb <- boottest(y_lsdv, param = "F_CP", 
+                  clustid = c("Country"), B = 9999, 
+                  type = wtype, impose_null = TRUE)
+  cat(sprintf("%s: p = %.4f\n", wtype, wcb$p_val))
+}
 
 # ==============================================================================
 #  STEP 6 — ROBUSTNESS CHECKS

@@ -1,0 +1,42 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Continuous DiD: Output Gap (y\_k)},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-8}{solid, black, 0.05em},
+hline{24}={1-8}{solid, black, 0.05em},
+hline{1}={1-8}{solid, black, 0.1em},
+hline{26}={1-8}{solid, black, 0.1em},
+column{2-8}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1) Tercile & (2) Terc + X & (3) Quartile & (4) Median & (5) Linear dose & (6) Dose + Fiscal & (7) Terc + Fiscal \\
+group\_mean\_tercile = Medium & \num{-0.556} & \num{0.132} &  &  &  &  & \num{-0.541} \\
+& (\num{1.003}) & (\num{0.999}) &  &  &  &  & (\num{1.004}) \\
+group\_mean\_tercile = High & \num{-0.074} & \num{0.578} &  &  &  &  & \num{-0.135} \\
+& (\num{1.245}) & (\num{1.317}) &  &  &  &  & (\num{1.258}) \\
+gdppc\_pre &  & \num{0.000} &  &  &  &  &  \\
+&  & (\num{0.000}) &  &  &  &  &  \\
+debt\_pre &  & \num{0.000} &  &  &  &  &  \\
+&  & (\num{0.000}) &  &  &  &  &  \\
+group\_mean\_quartile = Q2 &  &  & \num{-1.379} &  &  &  &  \\
+&  &  & (\num{0.956}) &  &  &  &  \\
+group\_mean\_quartile = Q3 &  &  & \num{-0.638} &  &  &  &  \\
+&  &  & (\num{1.272}) &  &  &  &  \\
+group\_mean\_quartile = Q4\_High &  &  & \num{0.436} &  &  &  &  \\
+&  &  & (\num{1.410}) &  &  &  &  \\
+group\_mean\_median = High &  &  &  & \num{0.580} &  &  &  \\
+&  &  &  & (\num{0.989}) &  &  &  \\
+dose\_mean &  &  &  &  & \num{0.043} & \num{0.039} &  \\
+&  &  &  &  & (\num{0.060}) & (\num{0.060}) &  \\
+F\_CP &  &  &  &  &  & \num{-0.037} & \num{-0.038} \\
+&  &  &  &  &  & (\num{0.073}) & (\num{0.068}) \\
+F\_DI &  &  &  &  &  & \num{0.442}* & \num{0.466}* \\
+&  &  &  &  &  & (\num{0.239}) & (\num{0.232}) \\
+Num.Obs. & \num{456} & \num{456} & \num{456} & \num{456} & \num{456} & \num{456} & \num{456} \\
+R2 & \num{0.411} & \num{0.456} & \num{0.429} & \num{0.412} & \num{0.412} & \num{0.416} & \num{0.415} \\
+\end{talltblr}
+\end{table}
