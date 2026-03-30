@@ -2414,6 +2414,154 @@ cat(paste0(
   "     heterogeneity concerns. Robustness: subsample splits by timing (Annex).\n\n"
 ))
 
+# ==============================================================================
+#  STEP 9 — ROBUSTNESS: UNEMPLOYMENT RATE AS ALTERNATIVE DEPENDENT VARIABLE
+#  Re-estimate the main TWFE specification using the quarterly harmonised
+#  unemployment rate (OECD Household Dashboard, LAB_UR6) instead of the
+#  HP-filtered output gap. This validates that the structural channels
+#  (lockdown hysteresis, CP cushioning) operate through the labour market,
+#  not just through GDP accounting identities.
+# ==============================================================================
+
+cat("\n", strrep("=",70), "\n")
+cat("  STEP 9: ROBUSTNESS — UNEMPLOYMENT RATE AS DEPENDENT VARIABLE\n")
+cat(strrep("=",70), "\n\n")
+
+# --- 9A: Load quarterly unemployment rate from OECD HH Dashboard ---
+hh_raw <- readxl::read_excel(
+  file.path(dirname(dirname(dirname(safedata))),
+            "data/raw/outcomes and controls/Quarterly/hh_inidcators_legende.xlsx")
+)
+
+# OECD SDMX long format: filter for unemployment rate (UNE_LF_Q)
+# Note: LAB_UR6 is the broader "labour underutilisation rate" — not what we want.
+#       UNE_LF_Q is the standard harmonised unemployment rate (% of labour force).
+ur_quarterly <- hh_raw %>%
+  filter(MEASURE == "UNE_LF_Q") %>%
+  transmute(
+    Country  = REF_AREA,
+    Quarter  = gsub("^(\\d{4})-Q(\\d)$", "Q\\2.\\1", TIME_PERIOD),
+    UR       = as.numeric(OBS_VALUE)
+  ) %>%
+  filter(!is.na(UR)) %>%
+  distinct(Country, Quarter, .keep_all = TRUE)
+
+cat(sprintf("  Loaded %d country-quarter observations for unemployment rate.\n",
+            nrow(ur_quarterly)))
+cat(sprintf("  Countries: %d | Quarters: %s to %s\n",
+            n_distinct(ur_quarterly$Country),
+            min(ur_quarterly$Quarter), max(ur_quarterly$Quarter)))
+
+# --- 9B: Merge into estimation sample and construct lag ---
+pdataY <- pdataY %>%
+  left_join(ur_quarterly, by = c("Country", "Quarter"))
+
+pdataY <- pdataY %>%
+  group_by(Country) %>%
+  arrange(t_idx) %>%
+  mutate(UR_lag1 = lag(UR, 1)) %>%
+  ungroup()
+
+main_sample_ur <- pdataY %>%
+  filter(t_idx >= 5 & t_idx <= 13, !is.na(UR), !is.na(UR_lag1))
+
+cat(sprintf("  Estimation sample: %d obs, %d countries (after UR merge).\n",
+            nrow(main_sample_ur), n_distinct(main_sample_ur$Country)))
+
+# --- 9C: Main specification with unemployment rate ---
+# Note: signs flip relative to output gap equation.
+#   Lockdown (S) should INCREASE unemployment → positive α_S
+#   CP cushioning (S×F_CP) should REDUCE UR increase → negative η̃
+#   Hysteresis (S×UR_lag1) should be POSITIVE (lockdowns amplify UR persistence)
+
+ur_feols <- feols(
+  UR ~ S_mean_tw*UR_lag1 + S_mean_tw*F_CP + F_CP*UR_lag1 + F_DI_lag2 + p_proj_all_ages |
+    Country + Quarter,
+  data    = main_sample_ur,
+  vcov    = ~Country
+)
+
+cat("--- 9C: TWFE — Unemployment Rate Equation (feols, CRV1) ---\n")
+print(summary(ur_feols))
+
+# --- 9D: Comparison table: Output Gap vs Unemployment Rate ---
+y_feols_compare <- feols(
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 + F_DI_lag2 + p_proj_all_ages |
+    Country + Quarter,
+  data    = main_sample,
+  vcov    = ~Country
+)
+
+coef_map_ur <- c(
+  "S_mean_tw"            = "S  [lockdown cost/effect]",
+  "y_lag1"               = "y(t-1)  [output persist.]",
+  "UR_lag1"              = "UR(t-1)  [UR persist.]",
+  "S_mean_tw:y_lag1"     = "S×y(t-1)  [ψ, hysteresis]",
+  "S_mean_tw:UR_lag1"    = "S×UR(t-1)  [ψ, hysteresis]",
+  "F_CP"                 = "F^CP  [level effect]",
+  "S_mean_tw:F_CP"       = "S×F^CP  [η̃, cushioning]",
+  "y_lag1:F_CP"          = "F^CP×y(t-1)  [η_p, persist. red.]",
+  "UR_lag1:F_CP"         = "F^CP×UR(t-1)  [η_p, persist. red.]",
+  "F_DI_lag2"            = "F^DI lag2  [α_DI]",
+  "p_proj_all_ages"      = "Fear term"
+)
+
+ur_rob_list <- list(
+  "(1) Output Gap (baseline)" = y_feols_compare,
+  "(2) Unemployment Rate"     = ur_feols
+)
+
+cat("--- Table: Output Gap vs Unemployment Rate ---\n")
+modelsummary(ur_rob_list,
+             stars    = c("*"=0.1, "**"=0.05, "***"=0.01),
+             coef_map = coef_map_ur,
+             gof_map  = c("nobs", "r.squared.within"),
+             title    = "Robustness: Output Gap vs Unemployment Rate")
+
+modelsummary(ur_rob_list,
+             stars    = c("*"=0.1, "**"=0.05, "***"=0.01),
+             coef_map = coef_map_ur,
+             gof_map  = c("nobs", "r.squared.within"),
+             output   = file.path(safetable, "tab_ur_robustness.tex"),
+             title    = "Robustness: Output Gap vs Unemployment Rate")
+cat("  → Saved: tab_ur_robustness.tex\n\n")
+
+# --- 9E: Interpretation ---
+ct_ur <- summary(ur_feols)$coeftable
+cat("--- 9E: Interpretation (sign-flip check) ---\n")
+cat(paste0(
+  "  If the output gap equation is correctly capturing real-economy dynamics,\n",
+  "  the unemployment rate equation should show MIRROR-IMAGE signs:\n",
+  "    α_S  > 0 (lockdowns raise unemployment)\n",
+  "    ψ    > 0 (lockdowns amplify UR persistence — hysteresis)\n",
+  "    α_CP < 0 (CP reduces unemployment)\n",
+  "    η̃   should flip sign (CP cushioning under lockdown reduces UR)\n",
+  "    α_DI < 0 (demand injection reduces UR with delay)\n\n"
+))
+
+if ("S_mean_tw" %in% rownames(ct_ur)) {
+  cat(sprintf("  α_S  (UR): %+.4f [p=%.4f] — expected: positive\n",
+              ct_ur["S_mean_tw","Estimate"], ct_ur["S_mean_tw","Pr(>|t|)"]))
+}
+if ("S_mean_tw:UR_lag1" %in% rownames(ct_ur)) {
+  cat(sprintf("  ψ    (UR): %+.5f [p=%.4f] — expected: positive\n",
+              ct_ur["S_mean_tw:UR_lag1","Estimate"], ct_ur["S_mean_tw:UR_lag1","Pr(>|t|)"]))
+}
+if ("F_CP" %in% rownames(ct_ur)) {
+  cat(sprintf("  α_CP (UR): %+.4f [p=%.4f] — expected: negative\n",
+              ct_ur["F_CP","Estimate"], ct_ur["F_CP","Pr(>|t|)"]))
+}
+if ("S_mean_tw:F_CP" %in% rownames(ct_ur)) {
+  cat(sprintf("  η̃   (UR): %+.5f [p=%.4f] — expected: sign flip from OG\n",
+              ct_ur["S_mean_tw:F_CP","Estimate"], ct_ur["S_mean_tw:F_CP","Pr(>|t|)"]))
+}
+if ("F_DI_lag2" %in% rownames(ct_ur)) {
+  cat(sprintf("  α_DI (UR): %+.4f [p=%.4f] — expected: negative\n",
+              ct_ur["F_DI_lag2","Estimate"], ct_ur["F_DI_lag2","Pr(>|t|)"]))
+}
+
+rm(hh_raw, ur_quarterly, main_sample_ur)
+
 cat("\n", strrep("=",70), "\n")
 cat("  OUTPUT GAP SECTION COMPLETE.\n")
 cat("  Structural parameters calibrated. Proceed to DEBT section.\n")
