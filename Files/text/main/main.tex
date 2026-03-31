@@ -435,28 +435,20 @@ Fourth, the system is inescapably constrained: every response to one dimension o
 
 To establish that the pandemic trilemma represents a structurally distinct problem, I apply the four constitutive properties as a diagnostic framework to four alternative crisis types: armed conflict, natural disasters, financial crises, and climate change.\footnote{See Appendix~\ref{subsec:comparison} for the complete diagnostic.} No other crisis type satisfies all four properties simultaneously. Armed conflict and natural disasters fail Property~2: the instruments that address the threat---military mobilization, reconstruction spending---are expansionary rather than contractionary. Financial crises fail Property~1: the shock is endogenous, and the primary interventions work with rather than against economic stabilization. Climate change approximates all four properties in principle, but differs in time scale (decades versus quarters), observability of the health outcome (diffuse versus immediate), and terminal condition: while technological decarbonization can in principle dissolve the climate trilemma---analogous to vaccination dissolving the pandemic trilemma---this resolution operates on a multi-decadal horizon with no guaranteed terminal date. The pandemic is therefore the only crisis type in which all four properties and their interdependence are simultaneously operative within a tractable planning horizon providing a unique situation.
 
-%%Everything after this is a draft
 
 % =============================================================
-% Section 3 — Model Framework
+% Section 3 — Model Framework- DRAFT
 % =============================================================
 \section{Model Framework}
 \label{sec:model}
 
-This section formalizes the planner's optimization problem. The state variables,
-control variables, and structural parameters were introduced in
-Section~\ref{sec:trilemma}; here I specify the complete transition system, the
-objective function, and the solution method.
+Section~\ref{sec:trilemma} established that the pandemic confronts the social planner with four simultaneously binding properties: an explosive epidemiological shock, an inherently contractionary suppression instrument, heterogeneous fiscal compensation channels, and endogenous fiscal feedback. This section translates these properties into a formal optimization problem. The state variables, control instruments, and structural parameters introduced verbally in Section~\ref{sec:trilemma} are collected into a transition system that makes the circular interdependence---and therefore the impossibility of resolving any single dimension without affecting the others---analytically precise. I specify the transition system, the objective function, and the solution method; the section is kept concise to focus on the economically substantive content. All technical derivations, including the full augmented state-space formulation and the iterative solution algorithm, are provided in Appendix~\ref{app:ilqr_derivation}. The notation follows \citet[Chapters~3--4]{bertsekas2017dynamic}.
 
 % -----------------------------------------------------------------
 \subsection{Non-Linear Transition System}
 \label{sec:nonlinear}
 
-The state of the system at time $k$ is represented by
-$\bm{x}_k = (y_k,\, d_k,\, b_k,\, \theta_k)' \in \mathbb{R}^4$ and the planner's
-controls by $\bm{u}_k = (S_k,\, F_k^{DI},\, F_k^{CP})' \in \mathbb{R}^3$.
-Collecting the transition equations derived in Section~\ref{sec:trilemma}, the system
-evolves as:
+The planner's problem involves four economic state variables---the output gap ($y_k$), excess mortality ($d_k$), public debt ($b_k$), and infection prevalence ($\theta_k$)---collected in the state vector $\bm{x}_k = (y_k,\, d_k,\, b_k,\, \theta_k)' \in \mathbb{R}^4$, and three policy instruments---containment intensity ($S_k$), demand injection ($F_k^{DI}$), and capacity preservation ($F_k^{CP}$)---collected in the control vector $\bm{u}_k = (S_k,\, F_k^{DI},\, F_k^{CP})' \in \mathbb{R}^3$. The system is unstable without intervention: infection prevalence grows explosively ($\rho_\theta > 1$), and public debt compounds at the sovereign interest rate ($(1+r) > 1$). The planner must therefore act---but every available instrument simultaneously affects multiple state dimensions, generating the trade-offs formalized in Properties~1--4. Collecting the transition equations derived in Section~\ref{sec:trilemma}:
 %
 \begin{align}
     y_{k+1} &= \underbrace{\bigl[\rho_y + \psi\, S_k
@@ -487,55 +479,12 @@ identity $z_{k+1} = F_k^{DI}$. This standard device casts the system in first-or
 form without altering the economics; the augmented matrices are given in
 Appendix~\ref{app:ilqr_derivation}.}
 
-The output equation~(\ref{eq:y_nonlin}) contains four nonlinear terms that prevent the
-application of standard linear-quadratic methods. The effective persistence
-$\rho_y^{\text{eff}} = \rho_y + \psi S_k - \eta_p F_k^{CP}$ multiplies the current
-output gap, generating the state-control products $\psi\, S_k\, y_k$ (lockdown
-hysteresis) and $\eta_p\, F_k^{CP}\, y_k$ (structural preservation). The cushioning
-term $\tilde{\eta}\, S_k\, F_k^{CP}$ is a control-control interaction: CP
-effectiveness depends on the intensity of containment. In the infection
-equation~(\ref{eq:theta_nonlin}), the suppression effect operates multiplicatively
-on current prevalence, generating the product
-$\rho_\theta \phi_S\, S_k\, \theta_k$. The fear term $\beta_d\, d_k$ in
-(\ref{eq:y_nonlin}) is linear (a state-to-state coupling), requiring no special
-treatment beyond standard affine linearization. These nonlinear interactions encode the
-state-dependent structure established in Section~\ref{sec:trilemma}: the marginal
-output cost of containment depends on the depth of the recession (Property~2), the
-marginal benefit of capacity preservation scales with the output gap (Property~3),
-and the marginal health benefit of suppression depends on current prevalence
-(Property~1). By contrast, the mortality equation~(\ref{eq:d_nonlin}) and the debt
-equation~(\ref{eq:b_nonlin}) are linear in states and controls.
-
-The marginal effect of each control on next-period output encodes the
-state-dependent structure:
-%
-\begin{align}
-    \frac{\partial y_{k+1}}{\partial S_k}
-    &= \psi\, y_k - \alpha_S + \tilde{\eta}\, F_k^{CP}
-    \label{eq:marginal_S_model} \\[4pt]
-    \frac{\partial y_{k+1}}{\partial F_k^{CP}}
-    &= \alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k
-    \label{eq:marginal_CP_model} \\[4pt]
-    \frac{\partial y_{k+2}}{\partial F_k^{DI}}
-    &= \alpha_F^{DI}
-    \label{eq:marginal_DI_model}
-\end{align}
-%
-The marginal output cost of containment~(\ref{eq:marginal_S_model}) depends on the
-depth of the recession ($\psi y_k$) and is partially offset by active CP
-($\tilde{\eta} F_k^{CP}$). The marginal effect of CP~(\ref{eq:marginal_CP_model})
-contains three components: the baseline stabilization ($\alpha_F^{CP} > 0$), the
-physical lockdown constraint ($\tilde{\eta}\, S_k < 0$, since $\tilde{\eta} < 0$),
-and the structural preservation benefit ($-\eta_p\, y_k > 0$ when $y_k < 0$). The
-marginal effect of DI~(\ref{eq:marginal_DI_model}) is state-independent and lagged
-by one period.
-
 \begin{table}[H]
 \centering
 \caption{Variables and Parameters}
 \label{tab:parameters}
 \renewcommand{\arraystretch}{1.2}
-\small
+\scriptsize
 \begin{tabular}{@{} c l l @{}}
 \toprule
 \textbf{Symbol} & \textbf{Description} & \textbf{Equation} \\
@@ -607,68 +556,6 @@ $r_S,\, r_F^{DI},\, r_F^{CP}$ & Control implementation costs &
 \end{table}
 
 % -----------------------------------------------------------------
-\subsection{Iterative Linearization}
-\label{sec:linearization}
-
-To apply linear-quadratic methods, I employ an iterative Linear-Quadratic Regulator
-(iLQR) approach \citep{li2004iterative}. At each iteration $j$, the system is
-linearized around the current reference trajectory
-$(\bar{\bm{x}}_k^{(j)},\, \bar{\bm{u}}_k^{(j)})_{k=0}^{N-1}$:
-%
-\begin{equation}
-    \bm{x}_{k+1} \approx f\bigl(\bar{\bm{x}}_k,\, \bar{\bm{u}}_k\bigr)
-    \;+\; \bm{A}_k\bigl(\bm{x}_k - \bar{\bm{x}}_k\bigr)
-    \;+\; \bm{B}_k\bigl(\bm{u}_k - \bar{\bm{u}}_k\bigr)
-    \;+\; \bm{G}\,\varepsilon_k
-    \label{eq:linearization}
-\end{equation}
-%
-where $\bm{A}_k = \partial f / \partial \bm{x}$ and
-$\bm{B}_k = \partial f / \partial \bm{u}$ are the Jacobians evaluated at the
-reference trajectory. For the $\mathbb{R}^4$ economic state, the Jacobians are:
-%
-\begin{equation}
-\bm{A}_k = \begin{pmatrix}
-\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP}
-    & \beta_d & 0 & 0 \\[3pt]
-0 & 0 & 0 & \delta_\theta \\[3pt]
--\gamma_y & 0 & (1+r) & c_H \\[3pt]
-0 & 0 & 0 & \rho_\theta\bigl(1 - \phi_S\,\bar{S}_k\bigr)
-\end{pmatrix}
-\label{eq:Ak}
-\end{equation}
-%
-\begin{equation}
-\bm{B}_k = \begin{pmatrix}
-\psi\,\bar{y}_k - \alpha_S + \tilde{\eta}\,\bar{F}_k^{CP}
-    & 0
-    & \alpha_F^{CP} + \tilde{\eta}\,\bar{S}_k - \eta_p\,\bar{y}_k \\[3pt]
-0 & 0 & 0 \\[3pt]
-0 & \kappa_F^{DI} & \kappa_F^{CP} \\[3pt]
--\rho_\theta\,\phi_S\,\bar{\theta}_k & 0 & 0
-\end{pmatrix}
-\label{eq:Bk}
-\end{equation}
-%
-Note that the $(1,2)$ entry of $\bm{B}_k$ is zero because DI enters the output
-equation with a one-period lag; its effect on $y_{k+1}$ operates through the
-auxiliary state $z_k$ in the augmented $\mathbb{R}^5$ system
-(Appendix~\ref{app:ilqr_derivation}). The full $5 \times 5$ and $5 \times 3$
-augmented Jacobians used in the implementation are given therein.
-
-Three features warrant attention. First, the matrices are \textit{time-varying}: they
-depend on the reference trajectory at each period, encoding the state-dependent
-marginal effects. The $(1,1)$ entry of $\bm{A}_k$ is the effective persistence
-$\rho_y^{\text{eff}}$; the $(1,1)$ entry of $\bm{B}_k$ is the marginal output cost
-of containment, which depends on both the recession depth ($\psi\bar{y}_k$) and the
-CP level ($\tilde{\eta}\bar{F}_k^{CP}$); the $(1,3)$ entry of $\bm{B}_k$ is the
-total marginal CP effect, combining all three channels. Second, the mortality row of
-$\bm{B}_k$ is zero: the planner has no direct contemporaneous instrument for
-mortality. The two-period policy lag $S_k \to \theta_{k+1} \to d_{k+2}$ emerges from
-the state-space structure. Third, the debt row of $\bm{B}_k$ is time-invariant: the
-budgetary cost parameters $\kappa_F^{DI}$ and $\kappa_F^{CP}$ are constant.
-
-% -----------------------------------------------------------------
 \subsection{Objective Function}
 \label{sec:objective}
 
@@ -712,12 +599,14 @@ at each iLQR iteration.}
 \subsection{Solution Method}
 \label{sec:solution}
 
-The iLQR algorithm iterates between a backward pass and a forward pass until
-convergence \citep{li2004iterative, tassa2014control}. In the backward pass, the
-algorithm computes time-varying feedback gains $\bm{K}_k$ and feedforward corrections
-$\bm{k}_k$ by solving a Riccati-like recursion from $k = N-1$ to $k = 0$
-(Appendix~\ref{app:ilqr_derivation}). In the forward pass, the updated control
-sequence
+The bilinear terms in (\ref{eq:y_nonlin}) and (\ref{eq:theta_nonlin})---the
+state-control products $\psi\, S_k\, y_k$, $\eta_p\, F_k^{CP}\, y_k$,
+$\tilde{\eta}\, S_k\, F_k^{CP}$, and $\rho_\theta \phi_S\, S_k\, \theta_k$---prevent
+the application of standard linear-quadratic methods. I solve the problem using the
+iterative Linear-Quadratic Regulator (iLQR) of \citet{li2004iterative}, which
+iteratively linearizes the dynamics around a nominal trajectory and applies a
+time-varying LQR backward pass to compute feedback gains $\bm{K}_k$ and feedforward
+corrections $\bm{k}_k$. The updated control sequence
 %
 \begin{equation}
     \bm{u}_k^{(j+1)} = \bar{\bm{u}}_k^{(j)} + \alpha\,\bm{k}_k
@@ -728,90 +617,125 @@ sequence
 is applied to the nonlinear dynamics with line search parameter
 $\alpha \in (0,1]$, generating a new trajectory. Controls are projected onto the
 feasible set $\bm{u}_{\min} = (0, 0, 0)'$,
-$\bm{u}_{\max} = (1, \bar{F}^{DI}, \bar{F}^{CP})'$ after each update. The
-feedforward term $\bm{k}_k$ drives the trajectory toward lower cost; the feedback
-gain $\bm{K}_k$ stabilizes perturbations around the updated trajectory. The iteration
-terminates when the relative cost reduction falls below $10^{-6}$.
-
-The converged feedback gains $\bm{K}_k$ constitute the optimal state-dependent
-policy rule: each row of $\bm{K}_k$ gives the marginal response of one control
-instrument to a unit deviation in each state variable, evaluated at the optimal
-trajectory.%
+$\bm{u}_{\max} = (1, \bar{F}^{DI}, \bar{F}^{CP})'$ after each update. Under
+certainty equivalence \citep[Chapter~3.1]{bertsekas2017dynamic}, stochastic shocks
+do not alter the optimal policy rule. The complete derivation---including Jacobians,
+Q-function expansion, regularization, and convergence criteria---is provided in
+Appendix~\ref{app:ilqr_derivation}.%
 \footnote{The bilinear terms render the full problem non-convex. The iterative
 linearization converges to a local optimum; global optimality is verified by
 solving from multiple initialization trajectories
 (Appendix~\ref{app:convergence}).}
 
 % -----------------------------------------------------------------
-\subsection{Certainty Equivalence}
-\label{sec:ce}
+\subsection{Parameters}
+\label{sec:calibration}
 
-At each iLQR iteration, the linearized system is affine and the objective quadratic,
-satisfying the conditions for certainty equivalence
-\citep[Chapter~3.1]{bertsekas2017dynamic}. The optimal feedback gain $\bm{K}_k$ is
-identical to the deterministic case ($\varepsilon_k \equiv 0$). Stochastic shocks
-increase the expected cost by
-$\sum_{k=0}^{N-1} \sigma^2\, \bm{G}'\bm{P}_{k+1}\bm{G}$---the irreducible cost of
-epidemiological uncertainty---but do not alter the optimal policy rule.
+The transition system~(\ref{eq:y_nonlin})--(\ref{eq:theta_nonlin}) contains 16
+structural parameters. A subset can be calibrated from the existing literature---either
+because they are standard macroeconomic quantities or because they have been estimated
+in the epidemiological literature for COVID-19 specifically. The remaining
+parameters---governing the transmission of fiscal instruments to output and the fiscal
+cost of each instrument category---have not been identified for the pandemic setting
+and constitute the empirical contribution of this paper. Table~\ref{tab:calibration}
+summarizes the parameter status.
 
-% -----------------------------------------------------------------
-\subsection{Modeling Approach}
-\label{sec:modeling_approach}
+\begin{table}[H]
+\centering
+\caption{Parameter Calibration Status}
+\label{tab:calibration}
+\renewcommand{\arraystretch}{1.25}
+\scriptsize
+\begin{tabular}{@{} c l c c l @{}}
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Value} & \textbf{Source}
+    & \textbf{Status} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Epidemiological dynamics}} \\
+$\rho_\theta$ & Effective reproduction rate
+    & 1.25--1.60 & \citet{Flaxman2020, liu2020reproductive}
+    & Calibrated \\
+$\delta_\theta$ & Infection fatality rate
+    & 0.005--0.025 & \citet{levin2020assessing, Meyerowitz2021}
+    & Calibrated \\
+$\phi_S$ & NPI suppression effectiveness
+    & 0.4--0.7 & \citet{Flaxman2020, brauner2021inferring}
+    & Calibrated \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Fiscal and macroeconomic environment}} \\
+$r$ & Real interest rate (quarterly)
+    & $\approx 0.001$ & \citet{OECD2021borrowing}
+    & Calibrated \\
+$\beta$ & Discount factor (quarterly)
+    & 0.99 & Standard
+    & Calibrated \\
+$c_H$ & Health expenditure per unit infection
+    & 0.02 & \citet{imf2022fiscalmonitor}
+    & Calibrated \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Output dynamics --- to be estimated (Section~\ref{sec:estimation})}} \\
+$\rho_y$ & Baseline output persistence
+    & --- & &  Estimated \\
+$\psi$ & Lockdown-induced scarring
+    & --- & & Estimated \\
+$\alpha_S$ & Contractionary effect of NPIs
+    & --- & & Estimated \\
+$\alpha_F^{CP}$ & CP contemporaneous stabilization
+    & --- & & Estimated \\
+$\tilde{\eta}$ & CP--containment interaction
+    & --- & & Estimated \\
+$\eta_p$ & CP structural preservation
+    & --- & & Estimated \\
+$\alpha_F^{DI}$ & DI multiplier (lagged)
+    & --- & & Estimated \\
+$\beta_d$ & Behavioral fear channel
+    & --- & & Estimated \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Debt dynamics --- to be estimated (Section~\ref{sec:estimation})}} \\
+$\gamma_y$ & Budget semi-elasticity
+    & --- & & Estimated \\
+$\kappa_F^{CP}$ & Budgetary cost of CP
+    & --- & & Estimated \\
+$\kappa_F^{DI}$ & Budgetary cost of DI
+    & --- & & Estimated \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The macroeconomic dynamics in (\ref{eq:y_nonlin})--(\ref{eq:theta_nonlin}) are
-specified directly as transition equations governing the evolution of the state vector,
-rather than derived as equilibrium conditions from optimizing household and firm
-behavior. This places the model in the tradition of optimal policy analysis with
-reduced-form constraints---an approach with established precedents in both fiscal
-policy \citep{barro1999} and monetary policy \citep{svensson1999}, and adopted by the
-leading contributions to the pandemic-macro literature
-\citep{alvarez2020, acemoglu2021}.
+The epidemiological parameters are calibrated from the COVID-19 literature. The
+effective reproduction rate $\rho_\theta$ varies between waves: early estimates for the
+ancestral strain center on $R_0 \approx 2.5$--$3.0$
+\citep{liu2020reproductive}, which translates to quarterly effective rates of
+approximately 1.25--1.60 after accounting for within-quarter behavioral adaptation and
+partial immunity.\footnote{At quarterly frequency, $\rho_\theta$ captures the net
+growth of infections over a three-month period, not the instantaneous reproduction
+number. The mapping from the daily $R_t$ literature to this reduced-form parameter
+depends on the generation interval, recovery rate, and average containment during the
+quarter. I calibrate wave-specific values to match observed infection trajectories in
+the OECD sample.} The infection fatality rate $\delta_\theta$ declined from
+approximately 2--2.5\% in early 2020 to below 0.5\% by late 2021, reflecting
+improvements in treatment and the onset of vaccination
+\citep{levin2020assessing, Meyerowitz2021}. NPI effectiveness $\phi_S$ is calibrated
+from \citet{Flaxman2020} and \citet{brauner2021inferring}, who estimate that
+comprehensive lockdowns reduce transmission by 40--70\%.
 
-The reduced-form approach offers three advantages. First, the structural parameters
-($\alpha_S$, $\alpha_F^{CP}$, $\alpha_F^{DI}$, $\psi$, $\tilde{\eta}$, $\eta_p$,
-$\delta_\theta$) are estimable from panel data without imposing the equilibrium
-restrictions that a DSGE would require---the empirical identification in
-Section~\ref{sec:estimation} exploits cross-country variation in policy choices
-conditional on the common pandemic shock. Second, the model accommodates the
-instrument disaggregation (DI vs.\ CP) without requiring a production-side theory of
-how short-time work schemes interact with firm-level labor demand. Third, the
-quadratic objective function is interpretable as a second-order approximation to the
-welfare function of a representative agent \citep{woodford2003}.%
-\footnote{The approximation is valid when the steady state is efficient and the
-deviations from steady state are not too large. The pandemic application pushes the
-boundaries of this condition---output gaps of $-10\%$ to $-20\%$ are not ``small''
-deviations. The quantitative welfare implications should therefore be interpreted
-with appropriate caution, while the qualitative policy rankings (instrument
-composition, timing) are robust to the approximation quality.}
+The real interest rate $r$ is set near zero, consistent with the negative-to-zero
+real yields on OECD sovereign debt during 2020--2021
+\citep{OECD2021borrowing}. Health expenditure $c_H$ is calibrated from the IMF Fiscal
+Monitor data on pandemic-related health spending \citep{imf2022fiscalmonitor}.
 
-% -----------------------------------------------------------------
-\subsection{Controllability and Stability}
-\label{sec:controllability}
-
-For any fixed linearization $(\bm{A}_k, \bm{B}_k)$, the controllability matrix
-$\mathcal{C}_k = [\bm{B}_k \;\; \bm{A}_k\bm{B}_k \;\;
-\bm{A}_k^2\bm{B}_k \;\; \bm{A}_k^3\bm{B}_k]$ has full row rank under
-non-degeneracy conditions ($\delta_\theta,\, \phi_S,\, \alpha_S,\,
-\alpha_F^{CP},\, \alpha_F^{DI},\, \tilde{\eta},\, \eta_p,\, \kappa_F^{DI},\,
-\kappa_F^{CP} \neq 0$ and $\bar{\theta}_k,\, \bar{y}_k \neq 0$). Although
-mortality is decoupled from $\bm{B}_k$ (the second row is zero), it is reachable
-through $\bm{A}_k\bm{B}_k$ via the composite parameter
-$\delta_\theta\,\rho_\theta\,\phi_S\,\bar{\theta}_k$, confirming the two-period
-transmission lag established in Section~\ref{sec:trilemma}.
-
-The eigenvalues of $\bm{A}_k$ are
-$\bigl\{\rho_y + \psi\bar{S}_k - \eta_p\bar{F}_k^{CP},\;\; 0,\;\; (1+r),\;\;
-\rho_\theta(1-\phi_S\bar{S}_k)\bigr\}$.\footnote{The fifth eigenvalue from the
-augmented system is $0$ (the auxiliary state $z_{k+1} = F_k^{DI}$ has no
-autoregressive component), which does not affect stability.} For any positive real
-interest rate, the debt eigenvalue $(1+r) > 1$ lies outside the unit circle: the debt
-state is explosive in the absence of intervention. The infection eigenvalue
-$\rho_\theta(1-\phi_S\bar{S}_k)$ is explosive when suppression is insufficient
-($\phi_S \bar{S}_k < 1 - 1/\rho_\theta$). Active policy is therefore required not
-merely for optimization but for stabilization of the system.
-
-
-
+The parameters left empty in Table~\ref{tab:calibration} cannot be calibrated from the
+existing literature because they concern either (i) the transmission of
+\textit{disaggregated} fiscal instruments to output---a distinction not present in the
+pre-pandemic multiplier literature, which does not separate capacity preservation from
+demand injection---or (ii) the \textit{pandemic-specific} fiscal cost of each
+instrument category, which depends on the composition of national packages (loans vs.\
+grants vs.\ guarantees) and differs from standard peacetime budget elasticities. The
+behavioral fear channel $\beta_d$, while documented qualitatively by
+\citet{GOOLSBEE2021}, has not been estimated in a panel framework that permits
+identification of its magnitude relative to the lockdown channel. These parameters
+constitute the empirical contribution of this paper and are identified in
+Section~\ref{sec:estimation}.
 
 
 
@@ -3040,7 +2964,6 @@ to equal their expected value of zero.
 \noindent\textit{This derivation follows \citet[Chapter~3.1]{bertsekas2017dynamic}.
 For extensions to infinite-horizon problems, time-varying systems,
 and output feedback, see anderson2007optimal.}
-
 
 % =============================================================================
 \section{iLQR Derivation for the Augmented System}
