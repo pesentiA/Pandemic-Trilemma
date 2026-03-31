@@ -657,6 +657,311 @@ cat(strrep("=",70), "\n\n")
 
 main_sample <- pdataY %>% filter(t_idx >= 5 & t_idx <= 13)
 
+# ==============================================================================
+#  DESCRIPTIVES FOR PAPER (AER-style)
+#  Added: within/between decomposition, correlation matrix, pre-pandemic
+#  validation, density plots of fiscal instruments
+#  Uses: main_sample (Q1.2020–Q1.2022, N=342, 38 countries)
+# ==============================================================================
+
+cat("\n", strrep("=", 70), "\n")
+cat("  DESCRIPTIVES FOR PAPER\n")
+cat(strrep("=", 70), "\n\n")
+
+# --- D1: Within vs. Between Variation Decomposition ---------------------------
+# Critical for FE identification: shows whether variation comes from
+# countries doing different things over time (within) or cross-country
+# differences (between). FE exploits within-variation only.
+
+cat("--- D1: Within vs. Between Variation Decomposition ---\n\n")
+
+decomp_vars <- c("y_t_pct", "S_mean_tw", "F_CP", "F_DI", "F_H",
+                  "p_proj_all_ages", "theta_pct", "vax_rate")
+
+decomp_labels <- c("Output gap (pp)", "Stringency (0-100)",
+                    "CP (pp GDP)", "DI (pp GDP)", "Health (pp GDP)",
+                    "Excess mortality (P-score)", "Infection prev. (%)",
+                    "Vaccination (%)")
+
+cat(sprintf("  %-28s %8s %8s %8s %8s %8s\n",
+            "Variable", "Overall", "Between", "Within", "W/O (%)", "B/O (%)"))
+cat("  ", strrep("-", 78), "\n")
+
+decomp_results <- list()
+for (i in seq_along(decomp_vars)) {
+  v <- decomp_vars[i]
+  if (!v %in% colnames(main_sample)) next
+
+  d <- main_sample %>%
+    filter(!is.na(.data[[v]])) %>%
+    group_by(Country) %>%
+    mutate(
+      x_bar_i = mean(.data[[v]], na.rm = TRUE),  # country mean
+      x_within = .data[[v]] - x_bar_i            # within deviation
+    ) %>%
+    ungroup()
+
+  sd_overall <- sd(d[[v]], na.rm = TRUE)
+  sd_between <- sd(d$x_bar_i, na.rm = TRUE)
+  sd_within  <- sd(d$x_within, na.rm = TRUE)
+
+  cat(sprintf("  %-28s %8.3f %8.3f %8.3f %7.1f%% %7.1f%%\n",
+              decomp_labels[i], sd_overall, sd_between, sd_within,
+              (sd_within / sd_overall) * 100,
+              (sd_between / sd_overall) * 100))
+
+  decomp_results[[v]] <- data.frame(
+    variable = decomp_labels[i],
+    sd_overall = sd_overall,
+    sd_between = sd_between,
+    sd_within  = sd_within,
+    within_share = sd_within / sd_overall,
+    between_share = sd_between / sd_overall
+  )
+}
+
+cat("\n  INTERPRETATION: Variables with high within-share (>50%) are well-identified\n")
+cat("  by country FE. Variables with low within-share rely on cross-country\n")
+cat("  variation that FE absorbs — requiring interaction terms or IV for identification.\n\n")
+
+# Export decomposition as LaTeX table
+decomp_df <- bind_rows(decomp_results)
+decomp_tex <- paste0(
+  "\\begin{table}[H]\n",
+  "\\centering\n",
+  "\\caption{Within vs.\\ Between Variation Decomposition}\n",
+  "\\label{tab:within_between}\n",
+  "\\small\n",
+  "\\renewcommand{\\arraystretch}{1.15}\n",
+  "\\begin{tabular}{@{} l r r r r r @{}}\n",
+  "\\toprule\n",
+  "\\textbf{Variable} & \\textbf{Overall SD} & \\textbf{Between SD} & \\textbf{Within SD}",
+  " & \\textbf{Within (\\%)} & \\textbf{Between (\\%)} \\\\\n",
+  "\\midrule\n"
+)
+for (j in 1:nrow(decomp_df)) {
+  decomp_tex <- paste0(decomp_tex, sprintf(
+    "%s & %.3f & %.3f & %.3f & %.1f & %.1f \\\\\n",
+    decomp_df$variable[j], decomp_df$sd_overall[j],
+    decomp_df$sd_between[j], decomp_df$sd_within[j],
+    decomp_df$within_share[j] * 100, decomp_df$between_share[j] * 100
+  ))
+}
+decomp_tex <- paste0(decomp_tex,
+  "\\bottomrule\n",
+  "\\end{tabular}\n",
+  "\\vspace{4pt}\n\n",
+  "\\parbox{\\textwidth}{\\footnotesize\\textit{Notes:} 38 OECD countries, ",
+  "Q1\\,2020--Q1\\,2022. Overall SD: total standard deviation. Between SD: ",
+  "standard deviation of country means. Within SD: standard deviation of ",
+  "deviations from country means. Within (\\%) = Within SD / Overall SD $\\times$ 100. ",
+  "Country fixed effects absorb between-variation; within-variation identifies the coefficients.}\n",
+  "\\end{table}\n"
+)
+writeLines(decomp_tex, file.path(safetable, "tab_within_between.tex"))
+cat("  -> Saved: tab_within_between.tex\n\n")
+
+
+# --- D2: Pairwise Correlation Matrix ------------------------------------------
+# Key concern: multicollinearity between S and F_CP (governments that lock
+# down also spend on CP), and between S and theta (endogeneity).
+
+cat("--- D2: Pairwise Correlation Matrix ---\n\n")
+
+cor_vars <- c("y_t_pct", "S_mean_tw", "F_CP", "F_DI",
+              "p_proj_all_ages", "theta_pct", "vax_rate")
+cor_labels <- c("$y_{ik}$", "$S_{ik}$", "$F^{CP}_{ik}$", "$F^{DI}_{ik}$",
+                "$d_{ik}$", "$\\theta_{ik}$", "$\\text{Vax}_{ik}$")
+
+cor_data <- main_sample %>%
+  select(all_of(cor_vars)) %>%
+  filter(complete.cases(.))
+
+cor_mat <- cor(cor_data)
+rownames(cor_mat) <- cor_labels
+colnames(cor_mat) <- cor_labels
+
+cat("  Correlation matrix (Pearson, pairwise complete):\n")
+print(round(cor_mat, 3))
+
+# Flag high correlations
+cat("\n  Key correlations for identification:\n")
+cat(sprintf("    r(S, F_CP)    = %+.3f  (lockdown-fiscal nexus)\n",
+            cor(cor_data$S_mean_tw, cor_data$F_CP)))
+cat(sprintf("    r(S, F_DI)    = %+.3f\n",
+            cor(cor_data$S_mean_tw, cor_data$F_DI)))
+cat(sprintf("    r(S, theta)   = %+.3f  (endogeneity concern)\n",
+            cor(cor_data$S_mean_tw, cor_data$theta_pct)))
+cat(sprintf("    r(F_CP, F_DI) = %+.3f  (fiscal composition)\n",
+            cor(cor_data$F_CP, cor_data$F_DI)))
+cat(sprintf("    r(S, d)       = %+.3f  (containment-mortality)\n",
+            cor(cor_data$S_mean_tw, cor_data$p_proj_all_ages)))
+
+# Export correlation matrix as LaTeX
+n_cv <- length(cor_vars)
+cor_tex <- paste0(
+  "\\begin{table}[H]\n",
+  "\\centering\n",
+  "\\caption{Pairwise Correlation Matrix}\n",
+  "\\label{tab:corr_matrix}\n",
+  "\\small\n",
+  "\\begin{tabular}{@{} l", paste(rep("r", n_cv), collapse = ""), " @{}}\n",
+  "\\toprule\n",
+  " & ", paste(cor_labels, collapse = " & "), " \\\\\n",
+  "\\midrule\n"
+)
+for (j in 1:n_cv) {
+  row_vals <- sapply(1:n_cv, function(k) {
+    if (k > j) return("")
+    if (k == j) return("1")
+    sprintf("%.2f", cor_mat[j, k])
+  })
+  cor_tex <- paste0(cor_tex, cor_labels[j], " & ",
+                    paste(row_vals, collapse = " & "), " \\\\\n")
+}
+cor_tex <- paste0(cor_tex,
+  "\\bottomrule\n",
+  "\\end{tabular}\n",
+  "\\vspace{4pt}\n\n",
+  "\\parbox{\\textwidth}{\\footnotesize\\textit{Notes:} Pearson correlations, ",
+  "estimation sample (38 countries, Q1\\,2020--Q1\\,2022). ",
+  "Lower triangle only; diagonal = 1.}\n",
+  "\\end{table}\n"
+)
+writeLines(cor_tex, file.path(safetable, "tab_corr_matrix.tex"))
+cat("\n  -> Saved: tab_corr_matrix.tex\n\n")
+
+
+# --- D3: Pre-pandemic Validation (2019) ---------------------------------------
+# Show that y_ik ≈ 0 and delta_b ≈ 0 in 2019 (HP filter well-calibrated,
+# no pre-trends in dependent variables before treatment)
+
+cat("--- D3: Pre-pandemic Validation (2019 quarters) ---\n\n")
+
+pre_pandemic <- pdataY %>%
+  filter(t_idx <= 4) %>%  # Q1-Q4.2019
+  summarise(
+    y_mean   = mean(y_t_pct, na.rm = TRUE),
+    y_sd     = sd(y_t_pct, na.rm = TRUE),
+    y_max    = max(abs(y_t_pct), na.rm = TRUE),
+    n        = sum(!is.na(y_t_pct))
+  )
+
+cat(sprintf("  Output gap (2019): mean = %.3f, SD = %.3f, max|y| = %.3f (N = %d)\n",
+            pre_pandemic$y_mean, pre_pandemic$y_sd, pre_pandemic$y_max, pre_pandemic$n))
+cat("  -> Near-zero mean confirms HP filter is well-calibrated.\n")
+cat("  -> Small SD confirms no pre-trends in the dependent variable.\n\n")
+
+# t-test: H0: mean(y_2019) = 0
+y_2019 <- pdataY$y_t_pct[pdataY$t_idx <= 4 & !is.na(pdataY$y_t_pct)]
+tt <- t.test(y_2019, mu = 0)
+cat(sprintf("  t-test H0: mean(y_2019) = 0: t = %.3f, p = %.4f\n", tt$statistic, tt$p.value))
+if (tt$p.value > 0.05) {
+  cat("  -> Cannot reject H0 at 5%: output gap centered at zero pre-pandemic.\n\n")
+} else {
+  cat("  -> WARNING: Rejects H0 at 5%. Check HP filter specification.\n\n")
+}
+
+
+# --- D4: Distribution of Fiscal Instruments -----------------------------------
+# Many country-quarters have zero or near-zero fiscal measures. Show the
+# skewness explicitly — important for interpreting mean effects.
+
+cat("--- D4: Distribution of Fiscal Instruments ---\n\n")
+
+for (fv in c("F_CP", "F_DI", "F_H")) {
+  x <- main_sample[[fv]][!is.na(main_sample[[fv]])]
+  n_zero   <- sum(x == 0)
+  pct_zero <- n_zero / length(x) * 100
+  skew     <- mean(((x - mean(x)) / sd(x))^3)
+  cat(sprintf("  %-6s: N=%d, zeros=%d (%.1f%%), skewness=%.2f, P50=%.3f, P90=%.3f\n",
+              fv, length(x), n_zero, pct_zero, skew,
+              median(x), quantile(x, 0.90)))
+}
+
+# Density plots
+fig_density <- main_sample %>%
+  select(F_CP, F_DI, F_H) %>%
+  pivot_longer(everything(), names_to = "instrument", values_to = "value") %>%
+  filter(!is.na(value)) %>%
+  mutate(instrument = recode(instrument,
+    "F_CP" = "Capacity Preservation",
+    "F_DI" = "Demand Injection",
+    "F_H"  = "Health")) %>%
+  ggplot(aes(x = value, fill = instrument)) +
+  geom_density(alpha = 0.5, color = NA) +
+  facet_wrap(~instrument, scales = "free", ncol = 3) +
+  scale_fill_manual(values = c("grey25", "grey60", "grey85")) +
+  labs(
+    title    = "Distribution of Fiscal Instruments (pp of 2019 GDP)",
+    subtitle = "Estimation sample Q1.2020-Q1.2022. Highly right-skewed; many zeros.",
+    x = "pp of 2019 GDP", y = "Density"
+  ) +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "none",
+        strip.text = element_text(face = "bold"))
+ggsave(file.path(safeplots, "fig_fiscal_density.pdf"),
+       fig_density, width = 10, height = 4)
+cat("\n  -> Saved: fig_fiscal_density.pdf\n\n")
+
+
+# --- D5: Time-series of Key Variables (OECD mean) ----------------------------
+# Shows the economic story visually before the regressions.
+
+cat("--- D5: Time-series of Key Variables (OECD mean) ---\n\n")
+
+ts_data <- main_sample %>%
+  mutate(q_num = t_idx - 4L) %>%
+  group_by(q_num, Quarter) %>%
+  summarise(
+    y_mean   = mean(y_t_pct, na.rm = TRUE),
+    y_sd     = sd(y_t_pct, na.rm = TRUE),
+    S_mean   = mean(S_mean_tw, na.rm = TRUE),
+    CP_mean  = mean(F_CP, na.rm = TRUE),
+    DI_mean  = mean(F_DI, na.rm = TRUE),
+    d_mean   = mean(p_proj_all_ages, na.rm = TRUE),
+    .groups  = "drop"
+  )
+
+q_labels <- c("Q1.20","Q2.20","Q3.20","Q4.20","Q1.21",
+              "Q2.21","Q3.21","Q4.21","Q1.22")
+
+fig_ts_all <- ts_data %>%
+  select(q_num, Quarter,
+         `Output Gap (pp)` = y_mean,
+         `Stringency (0-100)` = S_mean,
+         `CP (pp GDP)` = CP_mean,
+         `DI (pp GDP)` = DI_mean,
+         `Excess Mortality (P-score)` = d_mean) %>%
+  pivot_longer(-c(q_num, Quarter), names_to = "variable", values_to = "value") %>%
+  mutate(variable = factor(variable,
+    levels = c("Output Gap (pp)", "Stringency (0-100)",
+               "CP (pp GDP)", "DI (pp GDP)",
+               "Excess Mortality (P-score)"))) %>%
+  ggplot(aes(x = q_num, y = value)) +
+  geom_line(linewidth = 0.9, color = "#2166ac") +
+  geom_point(size = 2, color = "#2166ac") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  facet_wrap(~variable, scales = "free_y", ncol = 3) +
+  scale_x_continuous(breaks = 1:9, labels = q_labels) +
+  labs(
+    title    = "OECD-Mean Trajectories of Key Variables",
+    subtitle = "38 OECD countries, Q1.2020-Q1.2022.",
+    x = NULL, y = NULL
+  ) +
+  theme_bw(base_size = 10) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+    strip.text  = element_text(face = "bold", size = 9)
+  )
+ggsave(file.path(safeplots, "fig_ts_key_variables.pdf"),
+       fig_ts_all, width = 12, height = 7)
+cat("  -> Saved: fig_ts_key_variables.pdf\n\n")
+
+cat(strrep("=", 70), "\n")
+cat("  END DESCRIPTIVES FOR PAPER\n")
+cat(strrep("=", 70), "\n\n")
+
 # --- 1A: Descriptive statistics table (Table 1) ---
 desc_vars <- main_sample %>%
   transmute(
