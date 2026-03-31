@@ -49,13 +49,19 @@
 % Section 1 — Introduction
 % =============================================================
 
-\section{Introduction}
-
-
-
-%hie rnoch ohne Variablenbezeichnungen
-%Wie den Social Planner einführen-> warum ist das so besser?
+%%Notes
+%Decide about the Lag of DI in the Transisitonsystem (2,4 und 3)
+%Dont forget the Theta Equation in 3
+%Section 3-> Baseline Persistence erwähnen
 %Catchy Einstieg noch schreiben-> Thinking aboz z.B.
+%F Effekt gegeben S
+% S vs CP und S vs DI und auch CP vs DI noch hinzufügen-> Substitutionseffekt
+
+
+
+
+
+\section{Introduction}
 
 A government confronting a pandemic faces three simultaneous objectives: protecting public health by minimizing excess mortality, preserving economic stability by minimizing the deviation of output from its potential, and maintaining fiscal sustainability by not destabilizing the level of public debt. This paper establishes that these three objectives are mutually incompatible due to the structural architecture of the pandemic environment---forming a \textit{trilemma} in the precise economic sense of the Mundell-Fleming impossible trinity \citet{mundell1963}: no feasible policy of a benevolent social planner can simultaneously achieve all three goals, regardless of the resources deployed.
 %obstefeld2005 hat auch noch eine anwendung des trilemmas
@@ -176,9 +182,6 @@ This property distinguishes the pandemic shock qualitatively from an impulse sho
 The interaction between the lethality parameter $\delta_\theta$ and the transmission potential $\rho_\theta$ plays a decisive role. If $\delta_\theta = 0$---that is, if the virus were non-lethal---or if the pathogen were not transmissible ($\rho_\theta = 0$), there would be no reason for the planner to suppress $\theta_{k+1}$. This logic is formally derived in Appendix \ref{app:Theta import}, which proves that the necessity of a trade-off-inducing policy ($S_k > 0$) depends strictly on the joint condition of positive lethality ($\delta_\theta > 0$) and active transmission ($\rho_\theta > 0$). Absent this conjunction, the suppression strategy becomes orthogonal to health outcomes, and no mortality costs or behavioral responses would arise.
 
 
-%Fear Effect Extension \citep{GOOLSBEE2021}
-%(the ``fear effect'', whereby households voluntarily reduce economic activity) would materialise. The fear effect is therefore not a function of prevalence \textit{per se} but of the perceived connection between infection and death. In a model extension incorporating behavioural channels, this response should accordingly be mediated through $\delta_\theta$: agents curtail activity \textit{because} the virus is lethal, not because it exists. In the baseline framework, however, we attribute the economic impact of the pandemic exclusively to the planner's policy response, maintaining the analytical focus on policy-driven trade-offs.
-
 \medskip
 \noindent\textit{Summary.} Property~1 introduces the epidemiological state: the infection rate $\theta_k$ (self-reinforcing with $\rho_\theta > 1$), the mortality outcome $d_k$ (driven by $\delta_\theta$), and the exogenous shock $\varepsilon_k$. Together, they establish that the planner must act to suppress viral prevalence, as the system is unstable without intervention.
 
@@ -198,7 +201,7 @@ NPIs suppress viral prevalence by reducing human contact \citep{Flaxman2020}. I 
 %
 This equation encodes two features that are central to the planner's problem. First, the suppression effect is multiplicative in the current level of prevalence: at high $\theta_k$, each unit of lockdown prevents more infections---and therefore more deaths---than at low $\theta_k$. The marginal health benefit of suppression, $\partial d_{k+2} / \partial S_k = -\delta_\theta \rho_\theta \phi_S \theta_k$, is state-dependent and vanishes as the pandemic recedes (see Appendix \ref{app:Theta import}). Second, the planner does not control the infection level or the death rate directly but only the growth rate of the epidemic. When $\phi_S S_k$ is sufficient to push $\rho_\theta^{\text{eff}}$ below unity, infections decline; otherwise, they continue to grow despite the intervention. This threshold property---$\rho_\theta^{\text{eff}} < 1$ requires $S_k > \frac{1 - 1/\rho_\theta}{\phi_S}$---implies a minimum lockdown intensity below which suppression is ineffective at reversing the epidemic trajectory.
 
-The central feature of Property~2 is that the channel through which NPIs suppress viral transmission---restricting human interaction---simultaneously reduces the volume of economic activity. Containment measures close businesses, idle labor, and curtail the flow of goods, services, and persons that constitutes aggregate economic output.This duality is not a matter of calibration or implementation; it is inherent to the nature of any instrument that operates through contact reduction.
+The central feature of Property~2 is that the channel through which NPIs suppress viral transmission---restricting human interaction---simultaneously reduces the volume of economic activity. Containment measures close businesses, idle labor, and curtail the flow of goods, services, and persons that constitutes aggregate economic output. This duality is not a matter of calibration or implementation; it is inherent to the nature of any instrument that operates through contact reduction.
 
 To formalize this, I introduce the next state variable \textit{output gap} ($y_k$): the percentage deviation of real GDP from its potential trend, where $y_k = 0$ represents normal economic conditions and $y_k < 0$ represents a recession. The contractionary effect of NPIs on output is governed by the parameter $\alpha_S > 0$. Every unit of suppression $\Sk > 0$ therefore simultaneously implies some values of:
 %
@@ -209,7 +212,7 @@ To formalize this, I introduce the next state variable \textit{output gap} ($y_k
 %
 The suppression instrument cannot control the epidemiological shock without simultaneously destabilizing the economic state. This dual impact is structural: it arises from the fact that $\alpha_S$ and $\phi_S$ are both strictly positive and operate through the same policy variable.
 
-A natural objection to Property~2 is that alternative instruments, such as testing, might control the pandemic without suppressing economic activity, thereby dissolving the contractionary link. However, testing capacity constitutes a complement to, rather than a substitute for, NPIs \citep{repec:nbr}. Critically, testing does not alter the biological parameters driving the pandemic: it reduces neither the inherent transmissibility ($\rho_\theta$) nor the lethality ($\delta_\theta$) of the virus. Instead, it operates exclusively through the suppression channel $S_k$. By identifying infected agents, testing enables targeted isolation---which remains a form of NPI. Ideally, this improves the efficiency of the intervention, increasing the ratio of epidemiological benefit ($\phi_S$) to economic cost ($\alpha_S$) by replacing broad lockdowns with specific quarantines. However, testing cannot eliminate the contractionary effect ($\alpha_S > 0$) since even targeted isolation disrupts economic transactions. Moreover, the net effect on the efficiency ratio is ambiguous. Higher detection rates may intensify behavioral responses, thought the net effect on the efficency ratio is theoretically ambiguous.Thus, testing modulates the parameter ratio but does not resolve the structurally contractionary nature of suppression.
+A natural objection to Property~2 is that alternative instruments, such as testing, might control the pandemic without suppressing economic activity, thereby dissolving the contractionary link. However, testing capacity constitutes a complement to, rather than a substitute for, NPIs \citep{repec:nbr}. Critically, testing does not alter the biological parameters driving the pandemic: it reduces neither the inherent transmissibility ($\rho_\theta$) nor the lethality ($\delta_\theta$) of the virus. Instead, it operates exclusively through the suppression channel $S_k$. By identifying infected agents, testing enables targeted isolation---which remains a form of NPI. Ideally, this improves the efficiency of the intervention, increasing the ratio of epidemiological benefit ($\phi_S$) to economic cost ($\alpha_S$) by replacing broad lockdowns with specific quarantines. However, testing cannot eliminate the contractionary effect ($\alpha_S > 0$) since even targeted isolation disrupts economic transactions. Moreover, the net effect on the efficiency ratio is ambiguous. Higher detection rates may intensify behavioral responses, though the net effect on the efficiency ratio is theoretically ambiguous. Thus, testing modulates the parameter ratio but does not resolve the structurally contractionary nature of suppression.
 
 Vaccination, by contrast, is the instrument that dissolves the trilemma by invalidating Property~2. It operates through both channels: reducing viral transmission among the immunized population (lowering $\rho_\theta$) and reducing the lethality of breakthrough infections (lowering $\delta_\theta$)---which, as demonstrated in Appendix~\ref{app:Theta import}, is the critical mechanism. Crucially, vaccination achieves both effects without operating through the suppression channel $S_k$---it requires no restriction of economic activity \citep{Giordano2021V}, thereby eliminating the contractionary link that constitutes Property~2. However, effective vaccines were not widely available until mid-2021, and the critical vaccination thresholds required to sustainably decouple mortality from infection rates were not reached in most OECD economies until the end of 2021 \citep{OECD2021}. Consequently, for the main phase of the pandemic (Q1 2020--Q4 2021)---the period during which critical policy decisions were taken \citep{Hale2021}---NPIs remained the only available suppression instrument, and were thus inherently contractionary.
 
@@ -225,17 +228,13 @@ Vaccination, by contrast, is the instrument that dissolves the trilemma by inval
 \noindent Figure~\ref{fig:planing_horizon} illustrates with the OECD average the 
 mechanism through which vaccination dissolves the trilemma. During Waves~1--3, infection prevalence and excess mortality move in parallel, and governments maintain elevated containment. With the onset of Wave~4 (Omicron, late 2021), the relationship breaks: infection prevalence reaches its pandemic peak, yet excess mortality declines sharply---reflecting the reduction in $\delta_\theta$ achieved by widespread vaccination. Governments respond by withdrawing containment to near-zero levels despite record case counts. This decoupling is precisely the condition 
 $\delta_\theta \to 0$ formalized above: once the fatality rate 
-falls sufficiently, the rational to action vanishes, and the trilemma ceases to bind. This observation defines the planner's  horizon: the trilemma is operative from Q1\,2020 through Q4\,2021---the period during which the joint condition of positive lethality ($\delta_\theta > 0$) and absence of effective vaccination necessitated the health--economy--fiscal trade-off. Beyond the terminal date, the planner faces no further trilemma and deals exclusively with the fiscal legacy of the crisis.
+falls sufficiently, the rational to act vanishes, and the trilemma ceases to bind. This observation defines the planner's  horizon: the trilemma is operative from Q1\,2020 through Q4\,2021---the period during which the joint condition of positive lethality ($\delta_\theta > 0$) and absence of effective vaccination necessitated the health--economy--fiscal trade-off. Beyond the terminal date, the planner faces no further trilemma and deals exclusively with the fiscal legacy of the crisis.
 
 
 \medskip
 \noindent\textit{Summary.} Property~2 introduces the suppression instrument $\Sk$, its effectiveness $\phi_S$, its economic cost $\alpha_S$, and the output gap $y_k$. It establishes that pandemic suppression is inherently contractionary: the planner cannot protect health without damaging the economy unless there is an effective vaccine.
 
-
-%A further dimension of heterogeneity arises from the targeting of fiscal measures to specific recipient groups---households versus firms---which may generate additional variation in both $\alpha_F$ and $\kappa_F$. However, since not all instrument--target combinations were implemented in practice (notably, credit guarantees were deployed exclusively for firms), this disaggregation is developed in the extended model of Section~X rather than treated here. 
-
-%%NEUNEU
-% ================================================================
+%================================================================
 % Property 3: Fiscal Compensation Instruments
 % Revised: March 2026
 % ================================================================
@@ -293,7 +292,6 @@ epidemiological state rather than as a policy instrument in the
 composition problem. See Section~\ref{sec:data} for the 
 classification of health-related fiscal measures.}. It can only be reduced indirectly through the containment channel. Combining all channels, the output transition is:
 
-%It can only be controlled and reduced by the social planner through the containment channel: $S_{k-1} \to \theta_k \downarrow \to d_{k+1} \downarrow \to \beta_d\, d_{k+1} \to y_{k+2} \uparrow$, with a two-period lag from the containment decision to the behavioral output benefit describing the intertemporal problem.
 
 %
 \begin{equation}{
@@ -316,7 +314,7 @@ classification of health-related fiscal measures.}. It can only be reduced indir
 
 \noindent Three properties of equations~\eqref{eq:marginal_S}--\eqref{eq:marginal_DI} are central to the planner's problem.
 
-First, the marginal output cost of containment~\eqref{eq:marginal_S} is depending in the depth of the recession: at $y_k = 0$, the cost is $-\alpha_S$; at $y_k < 0$, the cost rises to $-\alpha_S + \psi\, y_k$. Each additional unit of lockdown is more costly when the economy is already weakened. This convexity provides a formal rationale for early intervention \citep{acemoglu2021}.
+First, the marginal output cost of containment~\eqref{eq:marginal_S} depends on the depth of the recession: at $y_k = 0$, the cost is $-\alpha_S$; at $y_k < 0$, the cost rises to $-\alpha_S + \psi\, y_k$. Each additional unit of lockdown is more costly when the economy is already weakened. This convexity provides a formal rationale for early intervention \citep{acemoglu2021}.
 
 Second, the marginal effect of capacity preservation~\eqref{eq:marginal_CP} contains three components with distinct economic content. The baseline effect $\alpha^{CP}_F > 0$ captures the direct stabilization from maintaining productive structures. The physical constraint $\tilde{\eta}\, S_k < 0$ reflects that preserved capacity cannot be utilized while the economy is locked down---this effect dominates the baseline at strict containment levels ($S_k > S^*$). The structural preservation term $-\eta_p\, y_k > 0$ (since $y_k < 0$ during the pandemic) captures the value of preventing permanent damage---this effect is increasing in the depth of the recession.
 %
@@ -431,7 +429,7 @@ Second, every available instrument is structurally coupled across state dimensio
 
 Third, the marginal costs and benefits of each instrument are state-dependent: the output cost of containment is convex in the depth of the recession; the output effect of capacity preservation scales with $|y_k|$; and the net fiscal cost of capacity preservation declines with the severity of the crisis were signs and levels remain ambiguous.
 
-Fourth, the system is inescapably constraint: every response to one dimension of the crisis worsenes at least one other dimension, and passivity worsenes the fiscal dimension regardless.
+Fourth, the system is inescapably constrained: every response to one dimension of the crisis worsens at least one other dimension, and passivity worsens the fiscal dimension regardless.
 
 \subsubsection*{Structural Uniqueness}
 
@@ -931,7 +929,272 @@ $\rho_\theta(1-\phi_S\bar{S}_k)$ is explosive when suppression is insufficient t
 push the effective reproduction rate below unity
 ($\phi_S \bar{S}_k < 1 - 1/\rho_\theta$). Active policy is therefore required not
 merely for optimization but for stabilization of the system.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Vorschlag}
+% =============================================================================
+%  SECTION 3 — MODEL FRAMEWORK (Corrected)
+%  Transition system consistent with Section 2 (three CP channels)
+%  Changes marked with %% CHANGED
+% =============================================================================
 
+\section{Model Framework}
+\label{sec:model}
+
+This section formalizes the planner's optimization problem. The state variables,
+control variables, and structural parameters were introduced in
+Section~\ref{sec:trilemma}; here I specify the complete transition system, the
+objective function, and the solution method.
+
+% -----------------------------------------------------------------
+\subsection{Non-Linear Transition System}
+\label{sec:nonlinear}
+
+The state of the system at time $k$ is represented by
+$\bm{x}_k = (y_k,\, d_k,\, b_k,\, \theta_k)' \in \mathbb{R}^4$ and the planner's
+controls by $\bm{u}_k = (S_k,\, F_k^{DI},\, F_k^{CP})' \in \mathbb{R}^3$.
+Collecting the transition equations derived in Section~\ref{sec:trilemma}, the system
+evolves as:
+%
+%% CHANGED: Output equation now includes all three CP channels from Section 2
+\begin{align}
+    y_{k+1} &= \underbrace{\bigl[\rho_y + \psi\, S_k
+    - \eta_p\, F_k^{CP}\bigr]}_{\rho_y^{\text{eff}}(S_k, F_k^{CP})}\, y_k
+    \;-\; \alpha_S\, S_k
+    \;+\; \alpha_F^{CP}\, F_k^{CP}
+    \;+\; \tilde{\eta}\, S_k\, F_k^{CP}
+    \;+\; \alpha_F^{DI}\, F_k^{DI}
+    \;+\; \beta_d\, d_k
+    \label{eq:y_nonlin} \\[1ex]
+    d_{k+1} &= \delta_\theta\, \theta_k
+    \label{eq:d_nonlin} \\[1ex]
+    b_{k+1} &= (1+r)\, b_k \;-\; \gamma_y\, y_k
+    \;+\; \kappa_F^{DI}\, F_k^{DI} \;+\; \kappa_F^{CP}\, F_k^{CP}
+    \;+\; c_H\, \theta_k
+    \label{eq:b_nonlin} \\[1ex]
+    \theta_{k+1} &= \rho_\theta\bigl(1 - \phi_S\, S_k\bigr)\,\theta_k
+    \;+\; \varepsilon_k
+    \label{eq:theta_nonlin}
+\end{align}
+%
+where $\varepsilon_k \sim \text{WN}(0,\, \sigma^2)$ represents exogenous
+epidemiological shocks. Table~\ref{tab:parameters} summarizes all structural
+parameters.
+
+%% CHANGED: Discussion of bilinear terms updated for three CP channels
+The output equation~(\ref{eq:y_nonlin}) contains three bilinear terms---products of
+controls and states---that prevent the application of standard linear-quadratic
+methods. The effective persistence
+$\rho_y^{\text{eff}} = \rho_y + \psi S_k - \eta_p F_k^{CP}$ multiplies the current
+output gap, generating the state-control products $\psi\, S_k\, y_k$ (lockdown
+hysteresis) and $\eta_p\, F_k^{CP}\, y_k$ (structural preservation). The cushioning
+term $\tilde{\eta}\, S_k\, F_k^{CP}$ is a control-control interaction: CP
+effectiveness depends on the intensity of containment. In the infection
+equation~(\ref{eq:theta_nonlin}), the suppression effect operates multiplicatively
+on current prevalence, generating the product
+$\rho_\theta \phi_S\, S_k\, \theta_k$. The fear term $\beta_d\, d_k$ in
+(\ref{eq:y_nonlin}) is linear (a state-to-state coupling), requiring no special
+treatment beyond standard affine linearization.
+
+%% CHANGED: Marginal effects updated for three channels
+The marginal effect of each control on next-period output encodes the
+state-dependent structure established in Section~\ref{sec:trilemma}:
+%
+\begin{align}
+    \frac{\partial y_{k+1}}{\partial S_k}
+    &= \psi\, y_k - \alpha_S + \tilde{\eta}\, F_k^{CP}
+    \label{eq:marginal_S} \\[4pt]
+    \frac{\partial y_{k+1}}{\partial F_k^{CP}}
+    &= \alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k
+    \label{eq:marginal_CP} \\[4pt]
+    \frac{\partial y_{k+1}}{\partial F_k^{DI}}
+    &= \alpha_F^{DI}
+    \label{eq:marginal_DI}
+\end{align}
+%
+The marginal output cost of containment~(\ref{eq:marginal_S}) depends on the depth
+of the recession ($\psi y_k$) and is partially offset by active CP
+($\tilde{\eta} F_k^{CP}$). The marginal effect of CP~(\ref{eq:marginal_CP})
+contains three components: the baseline stabilization ($\alpha_F^{CP} > 0$), the
+physical lockdown constraint ($\tilde{\eta}\, S_k < 0$, since $\tilde{\eta} < 0$),
+and the structural preservation benefit ($-\eta_p\, y_k > 0$ when $y_k < 0$). The
+marginal effect of DI~(\ref{eq:marginal_DI}) is state-independent.
+
+By contrast, the mortality equation~(\ref{eq:d_nonlin}) and the debt
+equation~(\ref{eq:b_nonlin}) are linear in states and controls.
+
+% -----------------------------------------------------------------
+\subsection{Iterative Linearization}
+\label{sec:linearization}
+
+To apply linear-quadratic methods, I employ an iterative Linear-Quadratic Regulator
+(iLQR) approach \citep{li2004iterative}. At each iteration $j$, the system is
+linearized around the current reference trajectory
+$(\bar{\bm{x}}_k^{(j)},\, \bar{\bm{u}}_k^{(j)})_{k=0}^{N-1}$:
+%
+\begin{equation}
+    \bm{x}_{k+1} \approx f\bigl(\bar{\bm{x}}_k,\, \bar{\bm{u}}_k\bigr)
+    \;+\; \bm{A}_k\bigl(\bm{x}_k - \bar{\bm{x}}_k\bigr)
+    \;+\; \bm{B}_k\bigl(\bm{u}_k - \bar{\bm{u}}_k\bigr)
+    \;+\; \bm{G}\,\varepsilon_k
+    \label{eq:linearization}
+\end{equation}
+%
+where $\bm{A}_k = \partial f / \partial \bm{x}$ and
+$\bm{B}_k = \partial f / \partial \bm{u}$ are the Jacobians evaluated at the
+reference trajectory, and $\bm{G} = (0,\, 0,\, 0,\, 1)'$.
+
+%% CHANGED: A_k and B_k updated for three CP channels
+\begin{equation}
+\bm{A}_k = \begin{pmatrix}
+\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP}
+    & \beta_d & 0 & 0 \\[3pt]
+0 & 0 & 0 & \delta_\theta \\[3pt]
+-\gamma_y & 0 & (1+r) & c_H \\[3pt]
+0 & 0 & 0 & \rho_\theta\bigl(1 - \phi_S\,\bar{S}_k\bigr)
+\end{pmatrix}
+\label{eq:Ak}
+\end{equation}
+%
+%% CHANGED: B_k first row now reflects all three CP channels
+\begin{equation}
+\bm{B}_k = \begin{pmatrix}
+\psi\,\bar{y}_k - \alpha_S + \tilde{\eta}\,\bar{F}_k^{CP}
+    & \alpha_F^{DI}
+    & \alpha_F^{CP} + \tilde{\eta}\,\bar{S}_k - \eta_p\,\bar{y}_k \\[3pt]
+0 & 0 & 0 \\[3pt]
+0 & \kappa_F^{DI} & \kappa_F^{CP} \\[3pt]
+-\rho_\theta\,\phi_S\,\bar{\theta}_k & 0 & 0
+\end{pmatrix}
+\label{eq:Bk}
+\end{equation}
+
+Three features warrant attention. First, the matrices are \textit{time-varying}: they
+depend on the reference trajectory at each period, encoding the state-dependent
+marginal effects. The $(1,1)$ entry of $\bm{A}_k$ is the effective persistence
+$\rho_y^{\text{eff}}$; the $(1,1)$ entry of $\bm{B}_k$ is the marginal output cost
+of containment, which depends on both the recession depth ($\psi\bar{y}_k$) and the
+CP level ($\tilde{\eta}\bar{F}_k^{CP}$); the $(1,3)$ entry of $\bm{B}_k$ is the
+total marginal CP effect, combining all three channels. Second, the mortality row of
+$\bm{B}_k$ is zero: the planner has no direct contemporaneous instrument for
+mortality. The two-period policy lag $S_k \to \theta_{k+1} \to d_{k+2}$ emerges from
+the state-space structure. Third, the debt row of $\bm{B}_k$ is time-invariant: the
+budgetary cost parameters $\kappa_F^{DI}$ and $\kappa_F^{CP}$ are constant.
+
+% -----------------------------------------------------------------
+\subsection{Objective Function}
+\label{sec:objective}
+
+The planner minimizes the expected intertemporal cost over a finite horizon $N$:
+%
+\begin{equation}
+    J = \mathbb{E}\left\{\tfrac{1}{2}\bm{x}_N'\,\bm{Q}_N\,\bm{x}_N
+    \;+\; \sum_{k=0}^{N-1}\tfrac{1}{2}\left(\bm{x}_k'\,\bm{Q}_k\,\bm{x}_k
+    \;+\; \bm{u}_k'\,\bm{R}_k\,\bm{u}_k\right)\right\}
+    \label{eq:objective}
+\end{equation}
+%
+with:
+%
+\begin{equation}
+    \bm{Q}_k = \beta^k\,\operatorname{diag}\bigl(w_y,\; w_d,\; w_b,\; 0\bigr),
+    \quad
+    \bm{Q}_N = \beta^N\,\operatorname{diag}\bigl(0,\; 0,\; W_b,\; 0\bigr),
+    \quad
+    \bm{R}_k = \beta^k\,\operatorname{diag}\bigl(r_S,\; r_F^{DI},\; r_F^{CP}\bigr).
+    \label{eq:weights}
+\end{equation}
+
+The zero weight on $\theta_k$ implies that infections are penalized only through
+their delayed effect on mortality---the planner has no intrinsic preference over
+prevalence beyond its health consequences. The terminal cost $W_b$ penalizes
+exclusively debt: output gaps close endogenously as containment is lifted, and deaths
+are irreversible costs already penalized through $w_d$ along the trajectory. Debt, by
+contrast, compounds at rate $(1+r)$ beyond the planning horizon and constrains the
+fiscal response to subsequent shocks. The control costs $r_S$, $r_F^{DI}$,
+$r_F^{CP}$ capture implementation frictions---political costs of lockdowns,
+administrative costs of program design---that are independent of the state.%
+\footnote{The standard regularity conditions hold: $\bm{Q}_k, \bm{Q}_N \succeq 0$
+(satisfied for non-negative weights) and $\bm{R}_k \succ 0$ (satisfied for strictly
+positive control costs), guaranteeing existence and uniqueness of the optimal policy
+at each iLQR iteration.}
+
+% -----------------------------------------------------------------
+\subsection{Solution Method}
+\label{sec:solution}
+
+The iLQR algorithm iterates between a backward pass and a forward pass until
+convergence \citep{li2004iterative, tassa2014control}. In the backward pass, the
+algorithm computes time-varying feedback gains $\bm{K}_k$ and feedforward corrections
+$\bm{k}_k$ by solving a Riccati-like recursion from $k = N-1$ to $k = 0$
+(Appendix~\ref{app:ilqr_derivation}). In the forward pass, the updated control
+sequence
+%
+\begin{equation}
+    \bm{u}_k^{(j+1)} = \bar{\bm{u}}_k^{(j)} + \alpha\,\bm{k}_k
+    + \bm{K}_k\bigl(\bm{x}_k^{(j+1)} - \bar{\bm{x}}_k^{(j)}\bigr)
+    \label{eq:fwd_u}
+\end{equation}
+%
+is applied to the nonlinear dynamics with line search parameter
+$\alpha \in (0,1]$, generating a new trajectory. The feedforward term $\bm{k}_k$
+drives the trajectory toward lower cost; the feedback gain $\bm{K}_k$ stabilizes
+perturbations around the updated trajectory. The iteration terminates when the
+relative cost reduction falls below $10^{-6}$.
+
+The converged feedback gains $\bm{K}_k$ constitute the optimal state-dependent
+policy rule: each row of $\bm{K}_k$ gives the marginal response of one control
+instrument to a unit deviation in each state variable, evaluated at the optimal
+trajectory.%
+\footnote{The bilinear terms render the full problem non-convex. The iterative
+linearization converges to a local optimum; global optimality is verified by
+solving from multiple initialization trajectories
+(Appendix~\ref{app:convergence}).}
+
+% -----------------------------------------------------------------
+\subsection{Certainty Equivalence}
+\label{sec:ce}
+
+At each iLQR iteration, the linearized system is affine and the objective quadratic,
+satisfying the conditions for certainty equivalence
+\citep[Chapter~3.1]{bertsekas2017dynamic}. The optimal feedback gain $\bm{K}_k$ is
+identical to the deterministic case ($\varepsilon_k \equiv 0$). Stochastic shocks
+increase the expected cost by
+$\sum_{k=0}^{N-1} \sigma^2\, \bm{G}'\bm{P}_{k+1}\bm{G}$---the irreducible cost of
+epidemiological uncertainty---but do not alter the optimal policy rule.
+
+% -----------------------------------------------------------------
+\subsection{Controllability and Stability}
+\label{sec:controllability}
+
+For any fixed linearization $(\bm{A}_k, \bm{B}_k)$, the controllability matrix
+$\mathcal{C}_k = [\bm{B}_k \;\; \bm{A}_k\bm{B}_k \;\;
+\bm{A}_k^2\bm{B}_k \;\; \bm{A}_k^3\bm{B}_k]$ has full row rank under
+non-degeneracy conditions ($\delta_\theta,\, \phi_S,\, \alpha_S,\,
+\alpha_F^{DI},\, \tilde{\eta},\, \eta_p,\, \kappa_F^{DI},\,
+\kappa_F^{CP} \neq 0$ and $\bar{\theta}_k,\, \bar{y}_k \neq 0$). Although
+mortality is decoupled from $\bm{B}_k$, it is reachable through $\bm{A}_k\bm{B}_k$
+via the composite parameter
+$\delta_\theta\,\rho_\theta\,\phi_S\,\bar{\theta}_k$, confirming the two-period
+transmission lag.
+
+%% CHANGED: Eigenvalue expression updated for eta_p
+The eigenvalues of $\bm{A}_k$ are
+$\bigl\{\rho_y + \psi\bar{S}_k - \eta_p\bar{F}_k^{CP},\;\; 0,\;\; (1+r),\;\;
+\rho_\theta(1-\phi_S\bar{S}_k)\bigr\}$. For any positive real interest rate, the
+debt eigenvalue $(1+r) > 1$ lies outside the unit circle: the debt state is explosive
+in the absence of intervention. The infection eigenvalue
+$\rho_\theta(1-\phi_S\bar{S}_k)$ is explosive when suppression is insufficient
+($\phi_S \bar{S}_k < 1 - 1/\rho_\theta$). Active policy is therefore required not
+merely for optimization but for stabilization of the system.
+
+
+
+
+
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % =============================================================
 % Section 4 — Empirical Strategy
 % =============================================================
@@ -955,7 +1218,7 @@ iLQR optimization in Section~\ref{sec:results}.
 
 The analysis draws on a quarterly panel dataset covering all 38 OECD member states.
 The underlying data span Q1.2015 through Q4.2024, though the estimation sample is
-substantially varies. Table~\ref{tab:data_sources} summarizes all variables and sources.
+substantially narrower. Table~\ref{tab:data_sources} summarizes all variables and sources.
 
 % --- TABLE 1: Variables and Sources ---
 \begin{table}[H]
@@ -1098,7 +1361,7 @@ Unlike reported COVID-19 deaths, which depend on testing capacity, health
 infrastructure and cause-of-death attribution practices that varied widely across
 countries, excess mortality captures both direct viral fatalities and indirect
 deaths from healthcare system overload, deferred care, and resource diversion
-\citep{Msemburi2023WHO}. It is recorded with coverage across all OECD countries regardless of testing infrastructure, making it comparable across countries and over time. Excess mortality also enters the output equation as the fear term $p_{ik}$, controlling for voluntary reductions in economic activity: \citet{GOOLSBEE2021} show that observed lethality---not case counts---was the primary driver of voluntary behavioral responses during the pandemic.
+\citep{Msemburi2023WHO}. It is recorded with coverage across all OECD countries regardless of testing infrastructure, making it comparable across countries and over time. Excess mortality also enters the output equation as the fear term $d_{ik}$, controlling for voluntary reductions in economic activity: \citet{GOOLSBEE2021} show that observed lethality---not case counts---was the primary driver of voluntary behavioral responses during the pandemic.
 
 Reported case counts are an unreliable measure of true infection prevalence, as
 testing capacity and reporting standards varied systematically across countries
@@ -1114,14 +1377,6 @@ testing regimes. As the pandemic-related variables are available at daily or wee
 \subsection{Identification}
 \label{subsec:identification}
 
-
-% =============================================================================
-%  IDENTIFICATION — Final Consolidated Draft
-%  Incorporating critical analysis feedback
-%  Bracketed comments preserved for final revision
-% =============================================================================
-
-
 % -----------------------------------------------------------------
 %  1. IDENTIFICATION GOAL & PROBLEM
 % -----------------------------------------------------------------
@@ -1129,26 +1384,28 @@ testing regimes. As the pandemic-related variables are available at daily or wee
 The estimation targets the causal effects of Capacity Preservation ($F_k^{CP}$) and
 Demand Injection ($F_k^{DI}$) on the output gap $y_k$ conditional on the containment
 level $S_k$, and the fiscal cost of each instrument in terms of debt accumulation
-$b_k$. %% (für was nutzen hinzufügen: "Recovering these parameters is necessary both
-%% for the policy question---which composition minimizes output loss per unit of
-%% debt---and for calibrating the iLQR optimization in Section~X.")
+$b_k$.
 
-Three features of the pandemic setting pose potentiall identification challenges. First, containment and fiscal support could both be endogenous to pandemic severity: countries experiencing worse outbreaks imposed stricter lockdowns and deployed larger fiscal packages, generating a positive correlation between the treatment variables and the severity of the shock---both across countries and over time within countries.
+Three features of the pandemic setting pose potential identification challenges. First, containment and fiscal support could both be endogenous to pandemic severity: countries experiencing worse outbreaks imposed stricter lockdowns and deployed larger fiscal packages, generating a positive correlation between the treatment variables and the severity of the shock---both across countries and over time within countries.
 %% (grund für fear term und evtl.\ mobility)
 Second, the two policy instruments---containment $S_k$ and fiscal support
 $F_k$---are applied simultaneously to the same units, creating a double-treatment
 setting in which isolating the marginal effect of either instrument requires
-conditioning on the other. Third, treatment is continuous, time-varying, and global.%
-\footnote{These features jointly preclude other estimators like difference-in-differences estimation: there is no untreated control group, treatment intensity is continuous rather than binary, and onset is approximately simultaneous. Appendix~\ref{app:did} provides a formal
-assessment.}
-
+conditioning on the other. Third, treatment is continuous, time-varying, and global.
 % -----------------------------------------------------------------
 %  2. VARIATION → RESEARCH QUESTION → IDENTIFICATION
 % -----------------------------------------------------------------
 
 Yet the same setting that poses these challenges also provides the variation to
 overcome them. Critically, the within-country correlation between containment
-intensity and fiscal deployment over the sample period is below $r = 0.04$, ruling out
+intensity and fiscal deployment over the sample period is below $r = 0.04$,  \footnote{Disaggregated pooled correlations: $r(S, F^{CP}) = 0.061$
+($p = 0.26$), $r(S, F^{DI}) = 0.059$ ($p = 0.28$),
+$r(F^{CP}, F^{DI}) = 0.233$ ($p < 0.001$). After absorbing country and
+quarter fixed effects (the identifying variation): $r(S, F^{CP}) = -0.066$,
+$r(S, F^{DI}) = -0.087$, $r(F^{CP}, F^{DI}) = 0.082$,
+$r(S \times F^{CP},\, S \times F^{DI}) = -0.010$. The near-zero
+TWFE-demeaned correlations confirm that the identifying variation in
+fiscal composition is orthogonal to containment intensity.} ruling out
 the concern that stricter containment induces larger fiscal compensation. Countries
 that were structurally comparable along many dimensions and faced similar pandemic
 intensity chose fundamentally different strategies for supporting their economies: the
@@ -1164,41 +1421,56 @@ strategy delivered more stabilization per unit of debt incurred.
 The estimating equations map directly onto the transition system in
 Section~\ref{sec:trilemma}. The output equation corresponds to a linearized version
 of~(\ref{eq:y_nonlin}):
-%
+
+
+%% OUTPUT — empirisch, konsistent mit Section 2 und 3
 \begin{equation}
-    y_{ik} = \alpha_S\, S_{ik} + \psi\, S_{ik}\, y_{i,k-1}
-    + \alpha_F^{CP}\, F_{ik}^{CP} + \eta\, S_{ik}\, F_{ik}^{CP}
-    + \alpha_F^{DI}\, F_{i,k-2}^{DI} + \beta_p\, p_{ik}
+\begin{split}
+    y_{ik} &= \alpha_S\, S_{ik} + \rho_y\, y_{i,k-1}
+    + \psi\, S_{ik}\, y_{i,k-1}
+    + \alpha_F^{CP}\, F_{ik}^{CP}
+    + \tilde{\eta}\, S_{ik}\, F_{ik}^{CP} \\
+    &\quad + \eta_p\, F_{ik}^{CP}\, y_{i,k-1}
+    + \alpha_F^{DI}\, F_{i,k-2}^{DI}
+    + \beta_d\, d_{ik}
     + \gamma_i + \delta_k + \varepsilon_{ik}
+\end{split}
     \label{eq:output_est}
 \end{equation}
-%
-where $\gamma_i$ and $\delta_k$ denote country and quarter fixed effects. Each
-coefficient has a structural interpretation: $\alpha_S < 0$ is the direct output
-cost of containment; $\psi > 0$ governs the lockdown-induced persistence of the
-contraction; and $\alpha_F^{DI}$ is the demand injection multiplier. The total
-marginal effect of CP is $\partial y / \partial F^{CP} = \alpha_F^{CP} + \eta\, S_k$: the level effect $\alpha_F^{CP}$ captures channels that operate independently of mandated containment (e.g., confidence effects from announced guarantee frameworks),
-while the interaction $S_{ik} \cdot F_{ik}^{CP}$ is the empirical counterpart
-of the effective economic lockdown intensity $S_k^{\text{eff}} = S_k(1 - \eta F_k^{CP})$ derived in Section~\ref{sec:trilemma}. $F^{CP}$ enters in aggregate because both above-the-line and below-the-line instruments operate through the same
-transmission channel. The infection risk variable $p_{ik}$ controls for voluntary behavioral responses to perceived infection risk (discussed below). The lag structure of DI is not imposed but selected empirically by comparing specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the data select lag~2, consistent with the authorization--disbursement--spending chain documented by \citet{chetty2020}..%
-\footnote{DI authorized in period $k$ generates balance sheet costs in $k+1$
-(identified in the debt equation) and output effects in $k+2$ (identified in the
-output equation). Section~\ref{subsec:robustness} reports all lag specifications.}
+
+
+where $\gamma_i$ and $\delta_k$ denote country and quarter fixed effects. Each coefficient has a structural interpretation: $\alpha_S < 0$ is the direct output cost of containment; $\rho_y$ captures the baseline persistence of the output gap; $\psi > 0$ governs the lockdown-induced hysteresis; and $\alpha_F^{DI}$ is the demand injection multiplier. The total marginal effect of CP is $\partial y / \partial F^{CP} = \alpha_F^{CP} + \tilde{\eta}\, S_k
++ \eta_p\, y_{k-1}$, combining three channels from
+Section~\ref{sec:trilemma}: the level effect $\alpha_F^{CP}$ captures stabilization independent of containment and the cycle, the cushioning term
+$\tilde{\eta}\, S_k$ reflects that preserved capacity cannot be fully utilized under strict lockdown ($\hat{\tilde{\eta}} < 0$), and the structural preservation term $\eta_p\, y_{k-1}$ captures the reduction in output gap persistence ($\hat{\eta}_p < 0$ since $y_{k-1} < 0$ during the pandemic).
+$F^{CP}$ enters in aggregate because both above-the-line and below-the-line instruments operate through the same transmission channel. Excess mortality
+$d_{ik}$ controls for voluntary behavioral reductions in economic activity driven by observed lethality (discussed below). The lag structure of DI is not imposed but selected empirically by comparing
+specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the
+data select lag~2. This is consistent both with the standard fiscal
+transmission lag documented in the literature \citep{Blanchard2002, Ramey2011}
+and with the pandemic-specific prediction that demand stimulus is ineffective
+while supply constraints bind \citep{guerrieri2022}---DI authorized during
+active containment reaches spending only after restrictions are eased.
+Section~\ref{subsec:robustness} reports all lag specifications.
 As a complement to the static TWFE specification, Section~\ref{subsec:results}
 reports local projection impulse responses \citep{JordaTaylor2025} to illustrate the
 dynamic transmission profile of each instrument over a four-quarter horizon.
 
 The debt equation corresponds to~(\ref{eq:b_nonlin}):
-%
+
+%%%
+%% DEBT — empirisch, mit Health und Theta
 \begin{equation}
     b_{ik} = \gamma_y\, y_{ik}
     + \kappa^{\text{above}}\, F_{ik}^{CP,\text{above}}
     + \kappa^{\text{below}}\, F_{ik}^{CP,\text{below}}
     + \kappa_F^{DI}\, F_{i,k-1}^{DI}
+    + \kappa_H\, F_{ik}^{H}
     + \phi\, t + \mu_i + u_{ik}
     \label{eq:debt_est}
 \end{equation}
-%
+%%%
+
 where $\mu_i$ denotes country fixed effects and $\phi\, t$ a linear time trend.
 The debt equation employs a linear trend rather than quarter fixed effects for
 two reasons. First, the endogeneity concern that motivates quarter fixed effects
@@ -1213,7 +1485,7 @@ $\kappa^{\text{above}}$, $\kappa^{\text{below}}$, and $\kappa_F^{DI}$. The two
 remaining common time-varying factors---interest rates and denominator
 effects---are addressed by construction: sovereign borrowing costs were near zero
 throughout the sample period, and $b_{ik}$ is normalized by pre-COVID GDP (see
-Section~\ref{sec:data}).
+Section~\ref{subsec:data}).
 
 The inclusion of $y_{ik}$ as a regressor serves a dual role. It absorbs a
 substantial share of the common temporal variation in debt accumulation through
@@ -1228,17 +1500,15 @@ channel. The total debt cost of CP is therefore
 $\kappa^{CP} + \gamma_y \cdot (\partial y / \partial F^{CP})$, where the
 second term is the self-financing component.
 
-Unlike in the output equation, where above- and below-the-line CP operate
-through a common channel, the debt equation disaggregates $F^{CP}$ by
-accounting treatment. Above-the-line CP (short-time work, payroll subsidies)
-generates direct government expenditure; below-the-line CP (loan guarantees)
-creates contingent liabilities whose realized fiscal cost is substantially
-below face value. Estimating a single $\kappa_F^{CP}$ would conflate these
+Unlike in the output equation, where above- and below-the-line CP operate through a common channel, the debt equation disaggregates $F^{CP}$ by accounting treatment. Above-the-line CP (short-time work, payroll subsidies) generates direct government expenditure; below-the-line CP (loan guarantees)
+creates contingent liabilities whose realized fiscal cost is substantially below face value. Estimating a single $\kappa_F^{CP}$ would conflate these
 fundamentally different debt implications.%
-\footnote{The baseline specification adjusts below-the-line guarantees to a
-35\% take-up rate following ECB and IMF Fiscal Monitor (2022) estimates.
+\footnote{The baseline specification adjusts below-the-line guarantees to a 35\% take-up rate following ECB and IMF Fiscal Monitor (2022) estimates.
 Robustness checks at 25\% and 50\% are reported in
-Section~\ref{subsec:robustness}.}
+Section~\ref{subsec:robustness}.} 
+Health spending $F_{ik}^H$ is included to capture pandemic-specific expenditures (medical procurement, hospital capacity) that generate direct
+fiscal costs but operate through the epidemiological state rather than through
+the output channel.
 
 % -----------------------------------------------------------------
 %  4. THREATS TO IDENTIFICATION
@@ -1248,14 +1518,14 @@ Section~\ref{subsec:robustness}.}
 
 Causal interpretation of equations~(\ref{eq:output_est}) and~(\ref{eq:debt_est}) requires $E[\varepsilon_{ik} \mid \cdot] = 0$ and $E[u_{ik} \mid \cdot] = 0$. The most immediate concern is endogeneity. Stringency $S_k$ is a policy choice responding to epidemiological conditions, raising the possibility that unobserved pandemic severity drives both containment and economic outcomes simultaneously. Quarter fixed effects absorb the common pandemic cycle generating the co-movement of $S_k$ across countries; the residual within-quarter variation reflects country-specific policy choices that exhibit the near-orthogonality to fiscal composition documented above. The identifying condition is not that $S_k$ is exogenous in general, but that containment was chosen independently of fiscal composition---that the decision to lock down did not depend on whether the economy would be supported primarily through wage subsidies or through transfers. The reverse dependence---fiscal deployment responding to the containment level---is not a threat but the mechanism the model captures: the interaction $S_k \cdot F_k^{CP}$ in equation~(\ref{eq:output_est}) explicitly conditions on this relationship. Similarly, CP instruments were activated in response to the lockdown decision, not to observed GDP data, which became available only with substantial publication delay; the lag structure of DI rules out contemporaneous feedback by construction. 
 
-Unemployment is not included as a control because it is an \textit{outcome} of the same process---CP, particularly short-time work, directly prevents unemployment by design. Conditioning on it would absorb part of the treatment effect \citep{Angrist2009}; indeed, the robustness analysis confirms that CP significantly reduces unemployment (Section~\ref{subsec:robustness}).
+Unemployment is not included as a control because it is an outcome of the same process---CP, particularly short-time work, directly prevents unemployment by design. Conditioning on it would absorb part of the treatment effect; indeed, the robustness analysis confirms that CP significantly reduces unemployment (Section~\ref{subsec:robustness}).
 
 The population weighted Stringency Index captures mandated restrictions but not the voluntary reduction in economic activity driven by perceived infection risk
 \citep{chetty2020, GOOLSBEE2021}. If this voluntary response correlates with fiscal
 composition---for instance, if populations in countries with stronger safety nets
 reduce activity less---the estimated effect of $S_k$ is attenuated. The infection risk
-control $p_{ik}$ absorbs this channel directly. Importantly, the voluntary response
-does not threaten identification of $\eta$ from the interaction $S_k \cdot F_k^{CP}$, since CP eligibility was typically tied to mandated revenue losses rather than voluntary demand reductions. Robustness specifications using Google Mobility data in place of $S_k$ confirm that $\psi$ and $\eta$ are insensitive to the operationalization of containment (Section~\ref{subsec:robustness}).
+control $d_{ik}$ absorbs this channel directly. Importantly, the voluntary response
+does not threaten identification of $\hat{\tilde\eta}$ from the interaction $S_k \cdot F_k^{CP}$, since CP eligibility was typically tied to mandated revenue losses rather than voluntary demand reductions. Robustness specifications using Google Mobility data in place of $S_k$ confirm that $\psi$ and $\eta$ are insensitive to the operationalization of containment (Section~\ref{subsec:robustness}).
 
 Vaccination, available from Q1.2021, dissolves the trilemma by reducing the health
 cost of economic activity and is a potential confounder if countries that vaccinated
@@ -1267,7 +1537,7 @@ pre-vaccination period Q1.2020--Q4.2020, when the trilemma was fully binding
 The classification of fiscal measures into CP and DI involves judgment calls that
 could introduce measurement error. If classification errors correlate systematically
 with $S_k$ or $y_k$, the estimated coefficients are attenuated. The classification
-protocol (Section~\ref{sec:data}) mitigates this through rules based on the primary
+protocol (Section~\ref{subsec:data}) mitigates this through rules based on the primary
 transmission mechanism; robustness specifications under alternative classification
 rules confirm that the results are not driven by borderline cases
 (Section~\ref{subsec:robustness}).
@@ -1278,7 +1548,7 @@ Symmetric spillovers---global demand contractions affecting all countries
 equally---are absorbed by quarter fixed effects. Asymmetric spillovers, such as
 differential EU single market exposure that varies over the pandemic, are not fully
 absorbed by either country or quarter fixed effects and constitute a maintained
-limitation, partially addressed by controlling for trade openness does not affect the results (Section~\ref{subsec:robustness}).
+limitation, partially addressed by the finding that controlling for trade openness does not affect the results (Section~\ref{subsec:robustness}).
 
 Under these conditions, equations~(\ref{eq:output_est}) and~(\ref{eq:debt_est})
 identify the structural parameters governing the pandemic trilemma.
@@ -1293,6 +1563,9 @@ identify the structural parameters governing the pandemic trilemma.
 
 \section{Results}
 \label{sec:results_empirical}
+Both equations are estimated on Q1.2020--Q1.2022 ($T = 9$ per country,
+$N \times T = 342$) as the main specification. Extension through Q4.2022
+is reported as a robustness check (Section~\ref{subsec:robustness}).
 
 \footnote{In the data, $S_k > 0$ throughout the sample period, so the two channels are not separately identified at $S_k = 0$. The level effect is identified from variation in $F^{CP}$ at low stringency; the interaction from the differential effect at high versus low stringency.}
 
@@ -1541,7 +1814,208 @@ Countries        & 38  & 38  & 38  & 38   \\
 
 \section{Conclusion}
 
+\section{Robustness}
+\label{subsec:robustness}
 
+% =============================================================================
+%  ROBUSTNESS CHECKLIST — derived from Referee Discussion
+%  Reference document for structuring the Robustness Section
+% =============================================================================
+
+\subsection*{Robustness Checks: Summary of Required Tests}
+
+\begin{enumerate}
+
+% -----------------------------------------------------------------
+\item \textbf{Simultaneity of $S$ and $F$ (Referee Q1)}
+\begin{itemize}
+    \item Within-quarter cross-correlation of $\Delta S$ and $F^{CP}$ /
+        $F^{DI}$ at weekly frequency (Figure in Appendix~\ref{app:timing})
+    \item Asymmetric lag structure: $F$ responds to $S$, not the reverse
+        ($r < 0.05$ at negative lags, $r > 0$ at positive lags)
+    \item $F^{CP}$ lead test: $F_{i,k+1}^{CP}$ as placebo regressor ---
+        expected insignificant
+\end{itemize}
+
+\paragraph{Within-quarter timing.}
+To verify the temporal ordering of containment and fiscal deployment,
+Figure~\ref{fig:crosscorr} reports weekly cross-correlations between changes in
+stringency $\Delta S_t$ and fiscal flows $F_t^{CP}$ and $F_t^{DI}$ at lags
+$h = -6, \ldots, +6$ weeks. The pattern is strongly asymmetric: at negative lags
+(fiscal deployment preceding containment changes), correlations are near zero or
+negative ($r < 0.01$ for $h \leq -2$). At lag zero and positive lags (containment
+leading fiscal deployment), correlations are positive and persistent, peaking
+contemporaneously at $r = 0.19$ for CP and $r = 0.09$ for DI. Granger causality
+tests confirm this ordering: $\Delta S$ strongly predicts $F^{CP}$ ($F = 40.7$,
+$p < 0.0001$) and $F^{DI}$ ($F = 6.5$, $p < 0.0001$), while $F^{DI}$ does not
+predict $\Delta S$ ($F = 0.28$, $p = 0.89$). The reverse direction $F^{CP} \to
+\Delta S$ shows some statistical significance ($F = 6.8$, $p < 0.0001$),
+consistent with governments announcing lockdown measures and fiscal support
+packages simultaneously---this does not threaten identification, which relies on
+the orthogonality of fiscal \textit{composition} to containment intensity, not on
+the absence of any temporal association between aggregate fiscal deployment and
+lockdown decisions.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_crosscorr_weekly.pdf}
+    \caption{Pandemic Dynamics: Infection Prevalence, Excess Mortality, 
+    and Containment}
+    \label{fig:planing_horizon}
+\end{figure}
+
+% -----------------------------------------------------------------
+\item \textbf{Fear Term Specification (Referee Q3)}
+\begin{itemize}
+    \item Specification without $d_{ik}$: core coefficients
+        $\hat{\psi}$, $\hat{\tilde{\eta}}$ stronger / unchanged
+    \item Specification with $\theta_{ik}$ instead of $d_{ik}$
+    \item Specification with $p_{avg}$ instead of $p_{proj}$
+    \item All three: $\hat{\psi}$, $\hat{\tilde{\eta}}$, $\hat{\alpha}_F^{DI}$
+        qualitatively unchanged
+    \item Identification argument: $d_{ik} = \delta_\theta \theta_{i,k-1}$
+        is predetermined relative to $S_{ik}$ $\to$ not a bad control
+\end{itemize}
+
+% -----------------------------------------------------------------
+\item \textbf{Persistence Channel $\eta_p$ (Referee Q4)}
+\begin{itemize}
+    \item Specification without $F^{CP} \times y_{i,k-1}$:
+        $\hat{\psi}$ and $\hat{\tilde{\eta}}$ stable
+    \item $\hat{\eta}_p$ significant in baseline, fragile to outlier
+        exclusion and alternative containment measures
+    \item Interpretation: suggestive evidence consistent with the
+        structural preservation channel; not load-bearing for main results
+    \item Identification: within-country time-variation in
+        $F^{CP} \times y_{i,k-1}$; GDP publication delay rules out
+        contemporaneous reverse causality from $y_{k-1}$ to $F^{CP}_k$
+\end{itemize}
+
+% -----------------------------------------------------------------
+\item \textbf{Endogeneity of $y_{ik}$ in Debt Equation (Referee Q5)}
+\begin{itemize}
+    \item Reduced-form specification excluding $y_{ik}$: estimates total
+        debt effect (direct costs $+$ automatic stabilizers combined)
+    \item $\hat{\kappa}$ in reduced form lower than in baseline $\to$
+        confirms self-financing channel
+    \item Direction of bias: inclusion of $y_{ik}$ overstates direct
+        fiscal cost $\hat{\kappa}$ $\to$ conservative for the
+        self-financing argument
+    \item Automatic stabilizer is quasi-mechanical (tax-transfer system),
+        not a behavioral channel; reverse causality ($b \to y$) implausible
+        at quarterly frequency
+\end{itemize}
+
+% -----------------------------------------------------------------
+\item \textbf{Sample Horizon (Referee Q6)}
+\begin{itemize}
+    \item Both equations estimated on $T = 9$ (Q1.2020--Q1.2022,
+        main specification)
+    \item Both equations estimated on $T = 12$ (Q1.2020--Q4.2022,
+        robustness)
+    \item Coefficients stable across both horizons
+\end{itemize}
+
+% -----------------------------------------------------------------
+\item \textbf{DI Lag Selection (Referee Q7)}
+\begin{itemize}
+    \item All three lag specifications (lag 1, 2, 3) reported in a
+        single table
+    \item Lag 1: insignificant; Lag 2: significant; Lag 3: insignificant
+    \item AIC/BIC comparison if available; otherwise transparent that
+        selection is based on statistical significance and theoretical
+        priors \citep{Blanchard2002, Ramey2011}
+    \item DI $\times$ CP complementarity interaction
+        \citep{Guerrieri2022}: $p = 0.022$ --- DI effectiveness
+        conditional on CP having preserved supply side
+\end{itemize}
+
+\end{enumerate}
+
+% -----------------------------------------------------------------
+\subsection*{Additional Robustness Checks (from earlier discussion)}
+
+\begin{enumerate}[resume]
+
+\item \textbf{Standard Error Comparison}
+\begin{itemize}
+    \item HC1 (baseline), HC3, CRV1, CRV3 (Bell--McCaffrey)
+    \item Wild Cluster Bootstrap (Rademacher, $B = 9{,}999$)
+    \item Qualitative conclusions unchanged across all SE types
+\end{itemize}
+
+\item \textbf{Nickell Bias}
+\begin{itemize}
+    \item $O(1/T) \approx 11\%$; absolute bias $< 0.007$ at
+        $\hat{\rho}_y \approx 0.06$
+    \item GMM (Arellano--Bond): $\hat{\psi}$ and $\hat{\tilde{\eta}}$
+        quantitatively unchanged
+    \item GMM diagnostically sound (AR(2) insignificant, Sargan $p > 0.05$)
+        but CP coefficient inflated $\to$ weak instruments at $N = 38$
+\end{itemize}
+
+\item \textbf{Containment Measure}
+\begin{itemize}
+    \item Population-weighted $S$ (baseline) vs.\ unweighted national index
+    \item Google Mobility data in place of $S$
+    \item Within-quarter maximum $S_{\max}$ instead of mean $S$
+    \item Trade-weighted $S$ (addresses spillover concern)
+\end{itemize}
+
+\item \textbf{Output Measure}
+\begin{itemize}
+    \item HP-filtered gap (baseline) vs.\ YoY GDP growth rate
+    \item Log gap specification
+\end{itemize}
+
+\item \textbf{Debt Measure}
+\begin{itemize}
+    \item Real debt normalized by 2019 GDP (baseline) vs.\ nominal debt
+    \item Controlling for inflation rate
+\end{itemize}
+
+\item \textbf{Outliers}
+\begin{itemize}
+    \item Excluding Ireland (extreme GDP volatility)
+    \item Excluding Turkey (extreme macro conditions)
+    \item Excluding Estonia (sensitive for $\kappa^{\text{above}}$)
+\end{itemize}
+
+\item \textbf{Subsample Splits}
+\begin{itemize}
+    \item High vs.\ low stringency countries
+    \item High vs.\ low social safety net countries
+    \item High vs.\ low pre-crisis debt countries
+    \item Pre-vaccination (Q1.2020--Q4.2020) vs.\ full sample
+\end{itemize}
+
+\item \textbf{Guarantee Take-Up Rate}
+\begin{itemize}
+    \item Baseline: 35\% take-up
+    \item Robustness: 25\% and 50\% take-up
+\end{itemize}
+
+\item \textbf{Fiscal Classification}
+\begin{itemize}
+    \item Alternative classification rules for borderline measures
+    \item Inclusion of tax deferrals (IMF Cat.\ 3)
+\end{itemize}
+
+\item \textbf{Time Controls in Debt Equation}
+\begin{itemize}
+    \item Linear trend (baseline) vs.\ quadratic trend
+    \item Half-year fixed effects
+\end{itemize}
+
+\item \textbf{Functional Form}
+\begin{itemize}
+    \item Quadratic $F^{CP}$ term: $p = 0.11$, insignificant $\to$
+        linear specification validated
+    \item Threshold model: insignificant
+\end{itemize}
+
+\end{enumerate}
 
 \section{ENTWURF: Further (possible) Steps}
 
