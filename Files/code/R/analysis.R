@@ -4657,6 +4657,33 @@ ggsave(file.path(safeplots, "descriptive_ts_averages_flow.pdf"),
 # Export für MATLAB: Länderspezifische Kontrafaktuale
 # ================================================================
 
+# Recompute debt_dR with proper chronological sorting (fix alphabetical lag bug)
+# Include Q3.2019 from pdata as lag source for Q4.2019
+debt_lag_source <- pdata %>%
+  filter(Quarter %in% c("Q3.2019", "Q4.2019",
+                         "Q1.2020","Q2.2020","Q3.2020","Q4.2020",
+                         "Q1.2021","Q2.2021","Q3.2021","Q4.2021",
+                         "Q1.2022","Q2.2022","Q3.2022","Q4.2022")) %>%
+  select(Country, Quarter, DebtR_share2019) %>%
+  mutate(
+    q_num_sort = as.integer(substr(as.character(Quarter), 2, 2)),
+    yr_sort    = as.integer(substr(as.character(Quarter), 4, 7)),
+    date_sort  = as.Date(paste0(yr_sort, "-", (q_num_sort - 1) * 3 + 1, "-01"))
+  ) %>%
+  arrange(Country, date_sort) %>%
+  group_by(Country) %>%
+  mutate(debt_dR_new = DebtR_share2019 - lag(DebtR_share2019, 1)) %>%
+  ungroup() %>%
+  filter(Quarter != "Q3.2019") %>%
+  select(Country, Quarter, debt_dR_new)
+
+# Merge back and use chronologically correct debt_dR
+pdataD <- pdataD %>%
+  left_join(debt_lag_source, by = c("Country", "Quarter")) %>%
+  mutate(debt_dR = debt_dR_new) %>%
+  select(-debt_dR_new)
+
+# Export: Q4.2019 through Q4.2022, fill pre-pandemic NAs with 0
 export_data <- pdataD %>%
   select(
     Country, Quarter,
@@ -4666,10 +4693,24 @@ export_data <- pdataD %>%
     F_CP, F_CP_above, F_CP_below_adj_mid, F_DI, F_H,
     # Outcomes (Validierung)
     y_t_pct, debt_dR,
+    # Excess mortality
+    excess_mortality = p_proj_all_ages,
     # Zusatzinfo
     vax_rate
   ) %>%
-  arrange(Country, Quarter) %>%
+  mutate(
+    # Pre-pandemic quarters: fill NAs with 0 (no policy, no infections)
+    across(c(S_mean_tw, theta_pct, F_CP, F_CP_above, F_CP_below_adj_mid,
+             F_DI, F_H, excess_mortality, vax_rate),
+           ~ replace_na(.x, 0))
+  ) %>%
+  mutate(
+    q_num_sort = as.integer(substr(as.character(Quarter), 2, 2)),
+    yr_sort    = as.integer(substr(as.character(Quarter), 4, 7)),
+    date_sort  = as.Date(paste0(yr_sort, "-", (q_num_sort - 1) * 3 + 1, "-01"))
+  ) %>%
+  arrange(Country, date_sort) %>%
+  select(-q_num_sort, -yr_sort, -date_sort) %>%
   as.data.frame()
 
 # Prüfe ob F_H existiert

@@ -1,0 +1,497 @@
+%% ========================================================================
+%  PANDEMIC SOCIAL PLANNER — V7 (Full Counterfactual Engine)
+%
+%  Two-stage architecture:
+%    STAGE 1 (Normative): Pareto frontier — what is achievable?
+%       - Sweep weights, optimize all instruments
+%       - Show time profiles (S, FDI, FCP) for selected frontier points
+%       - Show aggregate frontier (Y, D, B)
+%    STAGE 2 (Positive): Country counterfactuals — what went wrong?
+%       - Fix S at observed, optimize fiscal
+%       - Welfare decomposition: Composition Gap + Containment Gap
+%       - Locate countries relative to frontier
+%
+%  Horizon: N=12 quarters (Q1.2020–Q4.2022)
+%    k=1:9  — active pandemic, data available
+%    k=10:12 — post-trilemma, F=0 observed, debt dynamics continue
+%
+%  UNIT CONVENTION (all model variables in fractions):
+%    S in [0,1], y/b/theta/F in fractions
+%
+%  TRANSITION SYSTEM (main.tex Section 3):
+%    y_{k+1} = rho_y*y + (psi*y - alpha_S)*S + (alpha_CP + eta_tilde*S - eta_p*y)*F^CP
+%              + alpha_DI*z + beta_d*d
+%    d_{k+1} = delta_theta(k)*theta
+%    b_{k+1} = (1+r)*b - gamma_y*y + kappa_CP*F^CP + kappa_DI*F^DI + c_H*theta
+%    theta_{k+1} = rho_theta(k)*(1 - phi_S*S)*theta + eps
+%    z_{k+1} = F^DI
+%
+%  State: x=(y,d,b,theta,z)' in R^5    Control: u=(S,F^DI,F^CP)' in R^3
+% =========================================================================
+clear; clc; close all;
+fprintf('=== V7: Full Counterfactual Engine (N=12) ===\n');
+fprintf('  %s\n\n', datestr(now));
+
+%% ========================================================================
+%  STEP 0: STRUCTURAL PARAMETERS
+% =========================================================================
+N = 12;  beta_disc = 0.99;  n_x = 5;  n_u = 3;
+
+% --- Output dynamics (TWFE estimates, Section 4, with Q4.2019 baseline) ---
+rho_y      = 0.227;     % Baseline persistence (p=0.051, now meaningful)
+psi        = 0.372;
+alpha_S    = 0.028;      alpha_F_CP = 0.253;
+eta_tilde  = -0.596;     eta_p      = 0.026;    % Now significant (p=0.045)
+alpha_F_DI = 0.244;      beta_fear  = -0.018;    % Coeff on P-score (pp→pp)
+
+% --- Epidemiology (tab:wave_specific) ---
+%  CRITICAL: delta_theta converts theta (infection fraction) to d (P-score fraction).
+%  delta_theta = IFR / baseline_quarterly_mortality, where baseline ≈ 0.0025.
+%  This ensures d_k is in P-score units, consistent with beta_fear = -0.018.
+phi_S = 0.55;
+rho_theta_base = 1.30;
+baseline_qmort = 0.0025;       % ~1% annual mortality / 4 quarters
+delta_theta_base = 0.020 / baseline_qmort;   % = 8.0 (Ancestral)
+
+%  Wave table: [quarter, rho_theta, IFR (for reference), theta_shock]
+%  delta_theta computed from IFR / baseline_qmort
+wave_ifr = [0.020, 0.015, 0.012, 0.008, 0.003];  % IFR by wave
+wave_table = [1 1.30 wave_ifr(1)/baseline_qmort 0.003;
+              3 1.25 wave_ifr(2)/baseline_qmort 0.002;
+              5 1.45 wave_ifr(3)/baseline_qmort 0.003;
+              7 1.55 wave_ifr(4)/baseline_qmort 0.003;
+              8 1.70 wave_ifr(5)/baseline_qmort 0.005];
+
+rho_theta_t = rho_theta_base*ones(1,N);
+delta_theta_t = delta_theta_base*ones(1,N);
+wave_shock_vec = zeros(1,N+1);
+for w = 1:size(wave_table,1)
+    kw=wave_table(w,1);
+    if kw<=N
+        rho_theta_t(kw)=wave_table(w,2);
+        if kw+1<=N, rho_theta_t(kw+1)=0.5*(wave_table(w,2)+rho_theta_base); end
+        delta_theta_t(kw:end)=wave_table(w,3);
+        wave_shock_vec(kw+1)=wave_table(w,4);
+    end
+end
+
+% --- Exogenous output shocks (Quarter FE from TWFE with Q4.2019 baseline) ---
+%  These capture the common pandemic effect absorbed by Quarter FE in the
+%  empirical specification. Without them, alpha_S only measures the cross-
+%  country partial effect, not the total output contraction.
+%  Units: pp → fractions (/100). Applied at k+1 (shock in quarter k affects x_{k+1}).
+eps_y_data = [0.000, -1.844, -9.526, +0.149, -1.294, ...  % Q4.19, Q1-Q4.20
+              -0.538, -0.137, -0.052, +0.534, -0.426] / 100;  % Q1-Q4.21, Q1.22
+% Map to model quarters: k=1→Q1.20, ..., k=9→Q1.22, k=10:12→post-pandemic
+eps_y_vec = zeros(1, N+1);  % eps_y_vec(k+1) = shock hitting x_{k+1}
+for k = 1:min(9, N)
+    eps_y_vec(k+1) = eps_y_data(k+1);  % k+1 because eps_y_data(1)=Q4.19=reference
+end
+% k=10:12: no common shock (post-pandemic)
+
+% --- Debt dynamics ---
+r_int=0.001; gamma_y=0.191; kappa_F_CP=0.193; kappa_F_DI=0.468; c_H=0.02;
+
+% --- Bounds ---
+S_max=0.86; FDI_max=0.04; FCP_max=0.12;
+
+% --- Initial conditions ---
+x0 = [0;0;0;0.001;0];
+
+% --- Pack ---
+P = struct('rho_y',rho_y,'psi',psi,'alpha_S',alpha_S,'alpha_F_CP',alpha_F_CP,...
+    'eta_tilde',eta_tilde,'eta_p',eta_p,'alpha_F_DI',alpha_F_DI,...
+    'beta_fear',beta_fear,'rho_theta_t',rho_theta_t,'delta_theta_t',delta_theta_t,...
+    'phi_S',phi_S,'r_int',r_int,'gamma_y',gamma_y,'kappa_F_CP',kappa_F_CP,...
+    'kappa_F_DI',kappa_F_DI,'c_H',c_H,'S_max',S_max,'FDI_max',FDI_max,...
+    'FCP_max',FCP_max,'wave_shock_vec',wave_shock_vec,'eps_y_vec',eps_y_vec,...
+    'N',N,'n_x',n_x,'n_u',n_u,'beta_disc',beta_disc);
+
+fprintf('  delta_theta_base = %.1f (IFR/baseline_mort, P-score units)\n', delta_theta_base);
+fprintf('  beta_fear = %.3f (coefficient on P-score fraction)\n', beta_fear);
+fprintf('  N = %d quarters (Q1.2020-Q4.2022)\n\n', N);
+
+
+%% ========================================================================
+%  STEP 1: LOAD COUNTRY DATA
+% =========================================================================
+fprintf('--- Loading country data ---\n');
+T = readtable('country_data_for_matlab.csv');
+qord = {'Q1.2020','Q2.2020','Q3.2020','Q4.2020','Q1.2021','Q2.2021','Q3.2021','Q4.2021','Q1.2022'};
+countries = unique(T.Country,'stable');
+n_c = length(countries);
+
+cdata = struct();
+for i = 1:n_c
+    iso = countries{i};
+    cdata(i).iso = iso;
+    cdata(i).S=zeros(1,N); cdata(i).FCP=zeros(1,N); cdata(i).FDI=zeros(1,N);
+    cdata(i).y=zeros(1,N); cdata(i).theta=zeros(1,N); cdata(i).b=zeros(1,N);
+    for k = 1:9
+        row = T(strcmp(T.Country,iso) & strcmp(T.Quarter,qord{k}),:);
+        if isempty(row), continue; end
+        cdata(i).S(k)=row.S_mean_tw/100; cdata(i).FCP(k)=row.F_CP/100;
+        cdata(i).FDI(k)=row.F_DI/100; cdata(i).y(k)=row.y_t_pct/100;
+        cdata(i).theta(k)=row.theta_pct/100;
+        if ~ismissing(row.debt_dR), cdata(i).b(k)=row.debt_dR/100; end
+    end
+    cdata(i).S(10:12) = max(0, cdata(i).S(9)*[0.5 0.2 0.05]);
+end
+
+oecd = struct();
+oecd.S=mean(reshape([cdata.S],N,n_c),2)';
+oecd.FCP=mean(reshape([cdata.FCP],N,n_c),2)';
+oecd.FDI=mean(reshape([cdata.FDI],N,n_c),2)';
+oecd.y=mean(reshape([cdata.y],N,n_c),2)';
+oecd.theta=mean(reshape([cdata.theta],N,n_c),2)';
+oecd.b=mean(reshape([cdata.b],N,n_c),2)';
+fprintf('  %d countries x %d quarters\n\n', n_c, N);
+
+
+%% ========================================================================
+%  STEP 2: WEIGHT GRID
+% =========================================================================
+w_y=100; r_S=10; r_DI=5; r_CP=0.5;
+
+var_y=var(oecd.y(1:9));
+var_d=var(delta_theta_t(1:9).*oecd.theta(1:9));
+if var_d<1e-10, var_d=1e-6; end
+vn = var_y/var_d;
+
+VSL_grid  = [10 20 40 60 80 100 140];
+MCPF_grid = [0.1 0.3 0.5 1.0 2.0];
+
+
+%% ========================================================================
+%  STAGE 1: PARETO FRONTIER
+% =========================================================================
+fprintf('========================================\n');
+fprintf('  STAGE 1: Pareto Frontier\n');
+fprintf('========================================\n');
+
+nv=length(VSL_grid); nm=length(MCPF_grid); np=nv*nm;
+par = struct('VSL',zeros(np,1),'MCPF',zeros(np,1),'cum_y',zeros(np,1),...
+    'cum_d',zeros(np,1),'end_b',zeros(np,1),'avg_S',zeros(np,1),...
+    'avg_CP',zeros(np,1),'avg_DI',zeros(np,1),'CP_share',zeros(np,1),...
+    'J',zeros(np,1));
+par.x=cell(np,1); par.u=cell(np,1);
+
+idx=0;
+for iv=1:nv, for im=1:nm
+    idx=idx+1;
+    w_d=w_y*VSL_grid(iv)*vn; w_b=w_y*MCPF_grid(im); W_b=w_b*5;
+    fprintf('  [%2d/%d] VSL=%3d MCPF=%.1f ', idx,np,VSL_grid(iv),MCPF_grid(im));
+
+    [xp,up,Jp]=solve_ilqr_v7(w_y,w_d,w_b,W_b,r_S,r_DI,r_CP,x0,P,[],[]);
+
+    par.VSL(idx)=VSL_grid(iv); par.MCPF(idx)=MCPF_grid(im);
+    par.cum_y(idx)=mean(xp(1,2:end))*100;
+    par.cum_d(idx)=sum(xp(2,2:end))*100;
+    par.end_b(idx)=xp(3,end)*100;
+    par.avg_S(idx)=mean(up(1,1:9));
+    par.avg_CP(idx)=mean(up(3,1:9))*100;
+    par.avg_DI(idx)=mean(up(2,1:9))*100;
+    tf=par.avg_CP(idx)+par.avg_DI(idx);
+    par.CP_share(idx)=par.avg_CP(idx)/max(tf,1e-6);
+    par.J(idx)=Jp; par.x{idx}=xp; par.u{idx}=up;
+
+    fprintf('-> y=%.1f%% d=%.3f%% b=%.0fpp\n', par.cum_y(idx),par.cum_d(idx),par.end_b(idx));
+end, end
+
+x_noint = sim_noint(x0, P);
+
+% --- Figure 1: Pareto 2D ---
+qlbl={'Q1.20','Q2.20','Q3.20','Q4.20','Q1.21','Q2.21','Q3.21','Q4.21','Q1.22','Q2.22','Q3.22','Q4.22'};
+
+figure('Name','Pareto Frontier','Color','w','Position',[50 50 1400 450]);
+subplot(1,3,1);
+scatter(par.cum_d,par.cum_y,70,par.VSL,'filled','MarkerEdgeColor','k','LineWidth',.3);
+xlabel('Cum. Mortality (%)'); ylabel('Avg Output Gap (%)');
+title('Mortality-Output'); cb=colorbar; cb.Label.String='VSL'; grid on;
+subplot(1,3,2);
+scatter(par.cum_d,par.end_b,70,par.MCPF,'filled','MarkerEdgeColor','k','LineWidth',.3);
+xlabel('Cum. Mortality (%)'); ylabel('Terminal Debt (pp GDP)');
+title('Mortality-Debt'); cb=colorbar; cb.Label.String='MCPF'; grid on;
+subplot(1,3,3);
+scatter(par.cum_y,par.end_b,70,par.CP_share*100,'filled','MarkerEdgeColor','k','LineWidth',.3);
+xlabel('Avg Output Gap (%)'); ylabel('Terminal Debt (pp GDP)');
+title('Output-Debt'); cb=colorbar; cb.Label.String='CP share (%)'; grid on;
+sgtitle('Stage 1: Pareto Frontier','FontWeight','bold');
+
+% --- Figure 2: Time profiles for 5 frontier points ---
+sel_lab = {'Pro-Health','Balanced','Pro-Fiscal','High-VSL Fiscal','Low-VSL Loose'};
+sel_v=[140 60 20 100 10]; sel_m=[0.1 0.3 2.0 1.0 0.1]; ns=length(sel_v);
+si=zeros(ns,1);
+for s=1:ns, [~,si(s)]=min(abs(par.VSL-sel_v(s))+abs(par.MCPF-sel_m(s))); end
+cols=[.8 .1 .1;.2 .5 .8;.1 .7 .2;.7 .4 .1;.5 .1 .7];
+
+figure('Name','Time Profiles','Color','w','Position',[30 30 1500 700]);
+titles_sub={'Containment (S)','Capacity Preservation','Demand Injection',...
+            'Output Gap','Cumulative Mortality','Public Debt'};
+for p=1:6, subplot(2,3,p); hold on;
+    for s=1:ns
+        xp=par.x{si(s)}; up=par.u{si(s)};
+        switch p
+            case 1, plot(1:N,up(1,:),'-','Color',cols(s,:),'LineWidth',1.8);
+            case 2, plot(1:N,up(3,:)*100,'-','Color',cols(s,:),'LineWidth',1.8);
+            case 3, plot(1:N,up(2,:)*100,'-','Color',cols(s,:),'LineWidth',1.8);
+            case 4, plot(0:N,xp(1,:)*100,'-','Color',cols(s,:),'LineWidth',1.8);
+            case 5, plot(0:N,cumsum([0,xp(2,2:end)])*100,'-','Color',cols(s,:),'LineWidth',1.8);
+            case 6, plot(0:N,xp(3,:)*100,'-','Color',cols(s,:),'LineWidth',1.8);
+        end
+    end
+    % Add OECD observed
+    switch p
+        case 1, plot(1:9,oecd.S(1:9),'k:','LineWidth',2);
+        case 2, plot(1:9,oecd.FCP(1:9)*100,'k:','LineWidth',2);
+        case 3, plot(1:9,oecd.FDI(1:9)*100,'k:','LineWidth',2);
+        case 4, plot(1:9,oecd.y(1:9)*100,'k:','LineWidth',2); yline(0,'--k');
+        case 5, oecd_cum_d = [0, cumsum(delta_theta_t(1:9) .* oecd.theta(1:9))] * 100;
+                plot(0:9, oecd_cum_d, 'k:', 'LineWidth', 2);
+        case 6, oecd_cum_b = [0, cumsum(oecd.b(1:9))] * 100;
+                plot(0:9, oecd_cum_b, 'k:', 'LineWidth', 2);
+    end
+    title(titles_sub{p}); grid on;
+    if p<=3, set(gca,'XTick',1:N,'XTickLabel',qlbl,'XTickLabelRotation',45,'FontSize',6); end
+end
+legend([sel_lab {'OECD observed'}],'Location','best','FontSize',6);
+sgtitle('Stage 1: Optimal Strategies along the Pareto Frontier','FontWeight','bold');
+
+
+%% ========================================================================
+%  STAGE 2: COUNTRY COUNTERFACTUALS
+% =========================================================================
+fprintf('\n========================================\n');
+fprintf('  STAGE 2: Country Counterfactuals\n');
+fprintf('========================================\n');
+
+VSL_cf=60; MCPF_cf=0.3;
+w_d_cf=w_y*VSL_cf*vn; w_b_cf=w_y*MCPF_cf; W_b_cf=w_b_cf*5;
+
+res = struct();
+for i=1:n_c
+    iso=cdata(i).iso;
+    fprintf('  [%2d/%d] %s ', i,n_c,iso);
+    x0_i=[0;0;0;max(cdata(i).theta(1),1e-5);0];
+    fS=cdata(i).S;
+
+    % (a) Observed cost
+    u_obs=[cdata(i).S; cdata(i).FDI; cdata(i).FCP];
+    x_obs=sim_obs(x0_i,u_obs,P);
+    J_obs=eval_J(x_obs,u_obs,w_y,w_d_cf,w_b_cf,W_b_cf,r_S,r_DI,r_CP,P);
+
+    % (b) Conditional A: fix S, theta from model
+    [xcA,ucA,JcA]=solve_ilqr_v7(w_y,w_d_cf,w_b_cf,W_b_cf,r_S,r_DI,r_CP,x0_i,P,fS,[]);
+
+    % (c) Conditional B: fix S, theta from data
+    ft=[cdata(i).theta(1), cdata(i).theta];
+    for kk=10:N, ft(kk+1)=ft(kk)*0.7; end
+    [xcB,ucB,JcB]=solve_ilqr_v7(w_y,w_d_cf,w_b_cf,W_b_cf,r_S,r_DI,r_CP,x0_i,P,fS,ft);
+
+    % (d) Full optimum
+    [xf,uf,Jf]=solve_ilqr_v7(w_y,w_d_cf,w_b_cf,W_b_cf,r_S,r_DI,r_CP,x0_i,P,[],[]);
+
+    res(i).iso=iso;
+    res(i).J_obs=J_obs; res(i).J_cA=JcA; res(i).J_cB=JcB; res(i).J_full=Jf;
+    res(i).x_obs=x_obs; res(i).x_cA=xcA; res(i).x_cB=xcB; res(i).x_full=xf;
+    res(i).u_obs=u_obs; res(i).u_cA=ucA; res(i).u_cB=ucB; res(i).u_full=uf;
+
+    res(i).comp_gap = J_obs - JcA;
+    res(i).cont_gap = JcA - Jf;
+    res(i).total_gap = J_obs - Jf;
+
+    res(i).obs_end_b = x_obs(3,end)*100;
+    res(i).condA_end_b = xcA(3,end)*100;
+    res(i).excess_debt = (x_obs(3,end)-xcA(3,end))*100;
+    res(i).obs_cum_y = mean(x_obs(1,2:10))*100;
+    res(i).condA_cum_y = mean(xcA(1,2:10))*100;
+
+    fprintf('-> ExDebt=%+.1fpp Comp=%.1f Cont=%.1f\n',...
+        res(i).excess_debt, res(i).comp_gap, res(i).cont_gap);
+end
+
+% --- Figure 3: Excess debt ---
+figure('Name','Excess Debt','Color','w','Position',[50 50 1200 500]);
+ed=[res.excess_debt]; [~,si3]=sort(ed,'descend');
+bar(ed(si3),'FaceColor',[.7 .2 .2]); hold on; yline(0,'--k');
+set(gca,'XTick',1:n_c,'XTickLabel',{res(si3).iso},'XTickLabelRotation',55,'FontSize',7);
+ylabel('Excess Debt (pp GDP)');
+title('Stage 2: Excess Debt from Suboptimal Fiscal Composition'); grid on;
+
+% --- Figure 4: Welfare decomposition ---
+figure('Name','Welfare Decomp','Color','w','Position',[50 50 1200 500]);
+cg=[res.comp_gap]; kg=[res.cont_gap]; [~,si4]=sort([res.total_gap],'descend');
+b2=bar([cg(si4)',kg(si4)'],'stacked');
+b2(1).FaceColor=[.8 .3 .3]; b2(2).FaceColor=[.3 .3 .8];
+set(gca,'XTick',1:n_c,'XTickLabel',{res(si4).iso},'XTickLabelRotation',55,'FontSize',7);
+legend('Composition Gap','Containment Gap','Location','NE');
+title('Welfare Decomposition'); ylabel('J units'); grid on;
+
+% --- Figure 5: Countries on frontier ---
+figure('Name','Countries on Frontier','Color','w','Position',[50 50 1200 500]);
+subplot(1,2,1);
+scatter(par.cum_d,par.end_b,50,par.VSL,'filled','MarkerEdgeColor',[.5 .5 .5]); hold on;
+for i=1:n_c
+    od=sum(res(i).x_obs(2,2:end))*100;
+    plot(od,res(i).obs_end_b,'kx','MarkerSize',6,'LineWidth',1);
+end
+xlabel('Cum. Mortality (%)'); ylabel('Terminal Debt (pp GDP)');
+title('Mortality-Debt'); cb=colorbar; cb.Label.String='VSL'; grid on;
+subplot(1,2,2);
+scatter(par.cum_y,par.end_b,50,par.CP_share*100,'filled','MarkerEdgeColor',[.5 .5 .5]); hold on;
+for i=1:n_c
+    plot(res(i).obs_cum_y,res(i).obs_end_b,'kx','MarkerSize',6,'LineWidth',1);
+end
+xlabel('Avg Output Gap (%)'); ylabel('Terminal Debt (pp GDP)');
+title('Output-Debt'); cb=colorbar; cb.Label.String='CP%'; grid on;
+sgtitle('Countries (x) on Pareto Frontier','FontWeight','bold');
+
+
+%% ========================================================================
+%  EXPORT
+% =========================================================================
+Tout=table({res.iso}',[res.obs_cum_y]',[res.condA_cum_y]',...
+    [res.obs_end_b]',[res.condA_end_b]',[res.excess_debt]',...
+    [res.comp_gap]',[res.cont_gap]',...
+    'VariableNames',{'Country','obs_y','condA_y','obs_b','condA_b','excess_debt','comp_gap','cont_gap'});
+writetable(Tout,'v7_country_results.csv');
+writetable(table(par.VSL,par.MCPF,par.cum_y,par.cum_d,par.end_b,par.avg_S,...
+    par.avg_CP,par.avg_DI,par.CP_share,...
+    'VariableNames',{'VSL','MCPF','cum_y','cum_d','end_b','avg_S','avg_CP','avg_DI','CP_share'}),...
+    'v7_pareto_frontier.csv');
+fprintf('\n=== V7 COMPLETE ===\n');
+
+
+%% ========================================================================
+%  SOLVER
+% =========================================================================
+function [x_opt,u_opt,J_opt]=solve_ilqr_v7(w_y,w_d,w_b,W_b,r_S,r_DI,r_CP,x0,P,fS,fTh)
+    N=P.N; nx=P.n_x; nu=P.n_u;
+    Qb=diag([w_y,w_d,w_b,0,0]); QN=diag([0,0,W_b,0,0]); R=diag([r_S,r_DI,r_CP]);
+    doS=~isempty(fS); doTh=~isempty(fTh);
+
+    ftv=@(x,u,k)[ ...
+        P.rho_y*x(1) + P.psi*u(1)*x(1) - P.alpha_S*u(1) + (P.alpha_F_CP + P.eta_tilde*u(1) - P.eta_p*x(1))*u(3) + P.alpha_F_DI*x(5) + P.beta_fear*x(2); ...
+        P.delta_theta_t(k)*x(4); ...
+        (1+P.r_int)*x(3) - P.gamma_y*x(1) + P.kappa_F_CP*u(3) + P.kappa_F_DI*u(2) + P.c_H*x(4); ...
+        P.rho_theta_t(k)*(1 - P.phi_S*u(1))*x(4); ...
+        u(2)];
+    fw=@(x,u,k)ftv(x,u,k)+[P.eps_y_vec(k+1);0;0;P.wave_shock_vec(k+1);0];
+
+    Af=@(x,u,k)[ ...
+        P.rho_y+P.psi*u(1)-P.eta_p*u(3), P.beta_fear, 0, 0, P.alpha_F_DI; ...
+        0, 0, 0, P.delta_theta_t(k), 0; ...
+        -P.gamma_y, 0, 1+P.r_int, P.c_H, 0; ...
+        0, 0, 0, P.rho_theta_t(k)*(1-P.phi_S*u(1)), 0; ...
+        0, 0, 0, 0, 0];
+    Bf=@(x,u,k)[ ...
+        P.psi*x(1)-P.alpha_S+P.eta_tilde*u(3), 0, P.alpha_F_CP+P.eta_tilde*u(1)-P.eta_p*x(1); ...
+        0, 0, 0; ...
+        0, P.kappa_F_DI, P.kappa_F_CP; ...
+        -P.rho_theta_t(k)*P.phi_S*x(4), 0, 0; ...
+        0, 1, 0];
+
+    xb=zeros(nx,N+1); ub=zeros(nu,N); xb(:,1)=x0;
+    for k=1:N
+        if doS,ub(1,k)=fS(k);else,ub(1,k)=max(.05,min(P.S_max,.6-.04*(k-1)));end
+        ub(2,k)=.002; ub(3,k)=max(0,.04-.003*(k-1));
+        xb(:,k+1)=fw(xb(:,k),ub(:,k),k);
+        if doTh,xb(4,k+1)=fTh(k+1);end
+    end
+
+    mxo=25;mxi=50;ti=1e-4;to=1e-4;pp=2.5;rb=1e-4;
+    nc=6;lm=zeros(nc,N);mu=10*ones(nc,N);
+    Cu=[-1 0 0;1 0 0;0 -1 0;0 1 0;0 0 -1;0 0 1];
+    cb=[0;P.S_max;0;P.FDI_max;0;P.FCP_max];
+
+    for oo=1:mxo
+        for ii=1:mxi
+            Ak=cell(N,1);Bk=cell(N,1);
+            for k=1:N,Ak{k}=Af(xb(:,k),ub(:,k),k);Bk{k}=Bf(xb(:,k),ub(:,k),k);end
+            Pm=cell(N+1,1);pm=cell(N+1,1);K=cell(N,1);kf=cell(N,1);
+            Pm{N+1}=QN*P.beta_disc^N; pm{N+1}=QN*P.beta_disc^N*xb(:,N+1);
+            rr=rb;bw=false;
+            while ~bw&&rr<1e6, bw=true;
+                for k=N:-1:1
+                    Qk=Qb*P.beta_disc^(k-1);Rk=R*P.beta_disc^(k-1);
+                    A=Ak{k};B=Bk{k};
+                    cv=Cu*ub(:,k)-cb;act=(cv>0)|(lm(:,k)>0);Im=diag(mu(:,k).*act);
+                    Qx=Qk*xb(:,k)+A'*pm{k+1};
+                    Qxx=Qk+A'*Pm{k+1}*A;Qux=B'*Pm{k+1}*A;
+                    Qu=Rk*ub(:,k)+B'*pm{k+1}+Cu'*(lm(:,k)+Im*cv);
+                    Quu=Rk+B'*Pm{k+1}*B+Cu'*Im*Cu+rr*eye(nu);
+                    [~,pc]=chol(Quu);if pc>0,bw=false;rr=rr*10;break;end
+                    K{k}=Quu\Qux;kf{k}=-Quu\Qu;
+                    if doS,K{k}(1,:)=0;kf{k}(1)=0;end
+                    pm{k}=Qx+K{k}'*Quu*kf{k};Pm{k}=Qxx-K{k}'*Quu*K{k};
+                end
+            end
+            if ~bw,break;end
+            al=1;co=alc(xb,ub,Qb,QN,R,P.beta_disc,N,lm,mu,Cu,cb);ls=false;
+            while al>1e-8
+                xn=zeros(nx,N+1);un=zeros(nu,N);xn(:,1)=x0;
+                for k=1:N
+                    un(:,k)=ub(:,k)+al*kf{k}-K{k}*(xn(:,k)-xb(:,k));
+                    if doS,un(1,k)=fS(k);else,un(1,k)=max(0,min(P.S_max,un(1,k)));end
+                    un(2,k)=max(0,min(P.FDI_max,un(2,k)));
+                    un(3,k)=max(0,min(P.FCP_max,un(3,k)));
+                    xn(:,k+1)=fw(xn(:,k),un(:,k),k);
+                    if doTh,xn(4,k+1)=fTh(k+1);end
+                end
+                cn=alc(xn,un,Qb,QN,R,P.beta_disc,N,lm,mu,Cu,cb);
+                if cn<co,ls=true;break;else,al=al*.5;end
+            end
+            if ~ls,break;end
+            dx=norm(xn-xb,'fro')/(norm(xb,'fro')+1e-12);xb=xn;ub=un;
+            if dx<ti,break;end
+        end
+        mv=0;for k=1:N
+            cv=Cu*ub(:,k)-cb;mv=max(mv,max(cv));
+            lm(:,k)=max(0,lm(:,k)+mu(:,k).*cv);mu(:,k)=mu(:,k)*pp;
+        end
+        if mv<to,break;end
+    end
+    x_opt=xb;u_opt=ub;
+    J_opt=alc(x_opt,u_opt,Qb,QN,R,P.beta_disc,N,zeros(nc,N),zeros(nc,N),Cu,cb);
+end
+
+
+%% HELPERS
+function x=sim_obs(x0,u,P)
+    N=P.N;x=zeros(P.n_x,N+1);x(:,1)=x0;
+    for k=1:N
+        x(1,k+1)=P.rho_y*x(1,k)+P.psi*u(1,k)*x(1,k)-P.alpha_S*u(1,k)...
+            +(P.alpha_F_CP+P.eta_tilde*u(1,k)-P.eta_p*x(1,k))*u(3,k)...
+            +P.alpha_F_DI*x(5,k)+P.beta_fear*x(2,k)+P.eps_y_vec(k+1);
+        x(2,k+1)=P.delta_theta_t(k)*x(4,k);
+        x(3,k+1)=(1+P.r_int)*x(3,k)-P.gamma_y*x(1,k)+P.kappa_F_CP*u(3,k)+P.kappa_F_DI*u(2,k)+P.c_H*x(4,k);
+        x(4,k+1)=P.rho_theta_t(k)*(1-P.phi_S*u(1,k))*x(4,k)+P.wave_shock_vec(k+1);
+        x(5,k+1)=u(2,k);
+    end
+end
+
+function x=sim_noint(x0,P)
+    N=P.N;x=zeros(P.n_x,N+1);x(:,1)=x0;
+    for k=1:N
+        x(1,k+1)=P.rho_y*x(1,k)+P.beta_fear*x(2,k)+P.eps_y_vec(k+1);
+        x(2,k+1)=P.delta_theta_t(k)*x(4,k);
+        x(3,k+1)=(1+P.r_int)*x(3,k)-P.gamma_y*x(1,k)+P.c_H*x(4,k);
+        x(4,k+1)=P.rho_theta_t(k)*x(4,k)+P.wave_shock_vec(k+1);
+        x(5,k+1)=0;
+    end
+end
+
+function J=eval_J(x,u,wy,wd,wb,Wb,rS,rD,rC,P)
+    N=P.N;Q=diag([wy,wd,wb,0,0]);QN=diag([0,0,Wb,0,0]);R=diag([rS,rD,rC]);
+    J=0;for k=1:N,J=J+P.beta_disc^(k-1)*(0.5*x(:,k)'*Q*x(:,k)+0.5*u(:,k)'*R*u(:,k));end
+    J=J+P.beta_disc^N*0.5*x(:,N+1)'*QN*x(:,N+1);
+end
+
+function J=alc(x,u,Qb,QN,R,b,N,lm,mu,Cu,cb)
+    J=0;for k=1:N
+        sc=b^(k-1)*(0.5*x(:,k)'*Qb*x(:,k)+0.5*u(:,k)'*R*u(:,k));
+        cv=Cu*u(:,k)-cb;act=(cv>0)|(lm(:,k)>0);Im=diag(mu(:,k).*act);
+        J=J+sc+lm(:,k)'*cv+0.5*cv'*Im*cv;
+    end
+    J=J+b^N*0.5*x(:,N+1)'*QN*x(:,N+1);
+end
