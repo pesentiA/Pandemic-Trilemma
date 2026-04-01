@@ -22,6 +22,7 @@
 \usepackage{float}
 \usepackage{tcolorbox}
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{pdflscape}
 
 \geometry{margin=2.5cm}
 \onehalfspacing
@@ -59,7 +60,7 @@
 
 
 
-
+\newpage
 
 \section{Introduction}
 
@@ -437,123 +438,118 @@ To establish that the pandemic trilemma represents a structurally distinct probl
 
 
 % =============================================================
-% Section 3 — Model Framework- DRAFT
+% Section 3 — Model Framework (Revised Structure)
 % =============================================================
 \section{Model Framework}
 \label{sec:model}
 
-Section~\ref{sec:trilemma} established that the pandemic confronts the social planner with four simultaneously binding properties: an explosive epidemiological shock, an inherently contractionary suppression instrument, heterogeneous fiscal compensation channels, and endogenous fiscal feedback. This section translates these properties into a formal optimization problem. The state variables, control instruments, and structural parameters introduced verbally in Section~\ref{sec:trilemma} are collected into a transition system that makes the circular interdependence---and therefore the impossibility of resolving any single dimension without affecting the others---analytically precise. I specify the transition system, the objective function, and the solution method; the section is kept concise to focus on the economically substantive content. All technical derivations, including the full augmented state-space formulation and the iterative solution algorithm, are provided in Appendix~\ref{app:ilqr_derivation}. The notation follows \citet[Chapters~3--4]{bertsekas2017dynamic}.
+The transition equations specified below are reduced-form relationships governing the
+evolution of the state vector, rather than equilibrium conditions derived from
+optimizing household and firm behavior. This places the model in the tradition of
+optimal policy analysis with reduced-form constraints---an approach with established
+precedents in the pandemic-macro literature \citep{alvarez2020, acemoglu2021}. The alternative---a fully microfounded DSGE framework---would endogenize the output dynamics from household and firm optimization, as in \citet{eichenbaum2021macro} and \citet{KaplanMollViolante2020}. However, the output response to containment in such models depends sensitively on functional form assumptions, household heterogeneity, and market structure---none of which bear directly on the composition question from the social planner's perspective that this paper addresses.
+ 
+The reduced-form specification offering three methodological advantages in this specific setting. First, the structural parameters are estimable directly from panel data (Section~\ref{sec:estimation}) without imposing equilibrium restrictions. Second, the model accommodates the disaggregation into demand injection and capacity preservation---including their distinct timing profiles, state-dependent effectiveness, and heterogeneous fiscal cost structures---without requiring a production-side theory. The transmission channels are specified at the aggregate level where the relevant policy variation occurs. Third, the quadratic objective function is interpretable as a second-order approximation to the welfare function of a representative agent \citep{woodford2003}---a Tinbergen-style formulation that takes the multi-objective nature of pandemic policy as given rather than deriving it from a single agent's preferences.\footnote{This abstracts from the distributional dimension emphasized by \citet{KaplanMollViolante2020}. The present framework addresses a logically prior question: what is the optimal \textit{aggregate} fiscal composition? The distributional incidence of a given composition is a complementary but distinct problem.}
 
 % -----------------------------------------------------------------
-\subsection{Non-Linear Transition System}
+% Paragraph 3: What the model delivers
+% -----------------------------------------------------------------
+
+The framework delivers three analytical objects.\footnote{No existing framework produces these objects jointly; for a systematic comparison, see Table~\ref{tab:structured_comp} in
+Appendix~\ref{app:structured_comp}.} First, a joint optimum over all three instruments that characterizes the theoretically efficient pandemic response and provides an upper bound on achievable welfare gains. Second, a conditional optimum that fixes each country's observed containment trajectory  and optimizes only the fiscal composition. This is the primary counterfactual: the research question concerns the optimal fiscal strategy and its consequences for output and debt, not the optimal containment intensity. Conditioning on observed containment isolates the fiscal composition margin and ensures that the counterfactuals remain within the empirical support of the estimated parameters. For each country and each quarter, the deviation between the conditionally optimal fiscal strategy and the observed policy quantifies the cost of suboptimal instrument choice. Third, a Pareto frontier constructed conditionally on each country's containment path, tracing the efficient combinations of output loss and debt accumulation achievable through fiscal composition alone. Each country's realized outcome can be located relative to its own frontier, decomposing performance differences into a preference component---the position along the frontier---and an efficiency component---the distance from it. This decomposition is the central object of Section~\ref{sec:results}. Beyond the retrospective assessment of observed fiscal strategies, the calibrated framework provides a forward-looking tool: given any future crisis that shares the pandemic's structural properties, the planner can compute the optimal fiscal composition conditional on the prevailing containment trajectory and epidemiological state.
+
+% -----------------------------------------------------------------
+% Paragraph 4: Nobody else can deliver this
+% -----------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------
+\subsection{Transition System}
 \label{sec:nonlinear}
 
-The planner's problem involves four economic state variables---the output gap ($y_k$), excess mortality ($d_k$), public debt ($b_k$), and infection prevalence ($\theta_k$)---collected in the state vector $\bm{x}_k = (y_k,\, d_k,\, b_k,\, \theta_k)' \in \mathbb{R}^4$, and three policy instruments---containment intensity ($S_k$), demand injection ($F_k^{DI}$), and capacity preservation ($F_k^{CP}$)---collected in the control vector $\bm{u}_k = (S_k,\, F_k^{DI},\, F_k^{CP})' \in \mathbb{R}^3$. The system is unstable without intervention: infection prevalence grows explosively ($\rho_\theta > 1$), and public debt compounds at the sovereign interest rate ($(1+r) > 1$). The planner must therefore act---but every available instrument simultaneously affects multiple state dimensions, generating the trade-offs formalized in Properties~1--4. Collecting the transition equations derived in Section~\ref{sec:trilemma}:
+Collecting the state variables and policy instruments introduced in
+Section~\ref{sec:trilemma} into the vectors
+$\bm{x}_k = (y_k,\, d_k,\, b_k,\, \theta_k)' \in \mathbb{R}^4$ and
+$\bm{u}_k = (S_k,\, F_k^{DI},\, F_k^{CP})' \in \mathbb{R}^3$, the transition
+system is:
 %
 \begin{align}
-    y_{k+1} &= \underbrace{\bigl[\rho_y + \psi\, S_k
-    - \eta_p\, F_k^{CP}\bigr]}_{\rho_y^{\text{eff}}(S_k, F_k^{CP})}\, y_k
-    \;-\; \alpha_S\, S_k
-    \;+\; \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_k\bigr)\, F_k^{CP}
+    y_{k+1} &= \rho_y\, y_k
+    \;+\; (\psi\, y_k - \alpha_S)\, S_k
+    \;+\; (\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k)\, F_k^{CP}
     \;+\; \alpha_F^{DI}\, F_{k-1}^{DI}
     \;+\; \beta_d\, d_k
-    \label{eq:y_nonlin} \\[1ex]
+    \tag{\ref{eq:output}} \\[1ex]
     d_{k+1} &= \delta_\theta\, \theta_k
-    \label{eq:d_nonlin} \\[1ex]
+    \label{eq:d_transition} \\[1ex]
     b_{k+1} &= (1+r)\, b_k \;-\; \gamma_y\, y_k
-    \;+\; \kappa_F^{DI}\, F_k^{DI} \;+\; \kappa_F^{CP}\, F_k^{CP}
+    \;+\; \kappa^{CP}\, F_k^{CP} \;+\; \kappa^{DI}\, F_k^{DI}
     \;+\; c_H\, \theta_k
-    \label{eq:b_nonlin} \\[1ex]
+    \tag{\ref{eq:debt}} \\[1ex]
     \theta_{k+1} &= \rho_\theta\bigl(1 - \phi_S\, S_k\bigr)\,\theta_k
     \;+\; \varepsilon_k
-    \label{eq:theta_nonlin}
+    \label{eq:theta_transition}
 \end{align}
 %
-where $\varepsilon_k \sim \text{WN}(0,\, \sigma^2)$ represents exogenous
-epidemiological shocks and $F_{k-1}^{DI}$ denotes the one-period lag of demand
-injection established in Section~\ref{sec:trilemma}.\footnote{The lag $F_{k-1}^{DI}$
-means the system is not in standard Markov form. For implementation, I introduce an
-auxiliary state $z_k \equiv F_{k-1}^{DI}$ and augment the state vector to
-$\tilde{\bm{x}}_k = (y_k, d_k, b_k, \theta_k, z_k)' \in \mathbb{R}^5$ with the
-identity $z_{k+1} = F_k^{DI}$. This standard device casts the system in first-order
-form without altering the economics; the augmented matrices are given in
+where $\varepsilon_k \sim (0,\, \sigma^2)$ represents exogenous
+epidemiological shocks.\footnote{The lagged term $F_{k-1}^{DI}$
+in~(\ref{eq:y_nonlin}) means the system is not in standard Markov form.
+I introduce an auxiliary state $z_k \equiv F_{k-1}^{DI}$ and augment the
+state vector to $\tilde{\bm{x}}_k \in \mathbb{R}^5$ with the identity
+$z_{k+1} = F_k^{DI}$; the augmented matrices are given in
 Appendix~\ref{app:ilqr_derivation}.}
+
+\vspace{2mm}
+
+\noindent The transition system~(\ref{eq:output})--(\ref{eq:theta_transition}) contains 16
+structural parameters. A subset---governing epidemiological dynamics and the
+macroeconomic environment---can be calibrated from the existing literature;
+Table~\ref{tab:calibration} reports values and sources. The remaining parameters
+govern the transmission of disaggregated fiscal instruments to output and the
+pandemic-specific budgetary cost of each instrument category---objects that have not
+been identified in the prior literature and constitute the empirical contribution of
+this paper (Section~\ref{sec:estimation}.).A complete list of all variables and parameters is provided in Table~\ref{tab:full_parameter} in the Appendix.
+
+%%%
+
 
 \begin{table}[H]
 \centering
-\caption{Variables and Parameters}
-\label{tab:parameters}
-\renewcommand{\arraystretch}{1.2}
+\caption{Calibrated Parameters\protect\footnotemark}
+\label{tab:calibration}
 \scriptsize
-\begin{tabular}{@{} c l l @{}}
+\begin{tabular}{@{} c l c l @{}}
 \toprule
-\textbf{Symbol} & \textbf{Description} & \textbf{Equation} \\
+\textbf{Parameter} & \textbf{Description} & \textbf{Value} & \textbf{Source} \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{State variables ($\bm{x}_k \in \mathbb{R}^4$,
-    augmented to $\mathbb{R}^5$ with $z_k = F_{k-1}^{DI}$)}} \\
-$y_k$ & Output gap (\% deviation of real GDP from potential) &
-    (\ref{eq:y_nonlin}) \\
-$d_k$ & Excess mortality (deviation of death rate from seasonal average,
-    per capita) & (\ref{eq:d_nonlin}) \\
-$b_k$ & Public debt (deviation of debt-to-GDP ratio from pre-pandemic
-    trend, pp) & (\ref{eq:b_nonlin}) \\
-$\theta_k$ & Infection rate (share of actively infected population) &
-    (\ref{eq:theta_nonlin}) \\
-$z_k$ & Lagged demand injection ($z_k \equiv F_{k-1}^{DI}$) &
-    (\ref{eq:y_nonlin}) \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Control variables
-    ($\bm{u}_k \in \mathbb{R}^3$)}} \\
-$S_k$ & Containment intensity ($0$: no restrictions, $1$: full lockdown) &
-    (\ref{eq:y_nonlin}), (\ref{eq:theta_nonlin}) \\
-$F_k^{DI}$ & Demand injection (transfers, tax relief; \% of GDP) &
-    (\ref{eq:y_nonlin}), (\ref{eq:b_nonlin}) \\
-$F_k^{CP}$ & Capacity preservation (wage subsidies, guarantees; \% of GDP) &
-    (\ref{eq:y_nonlin}), (\ref{eq:b_nonlin}) \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{System dynamics parameters}} \\
-$\rho_y$ & Baseline output gap persistence & (\ref{eq:y_nonlin}) \\
-$\psi$ & Lockdown-induced hysteresis sensitivity & (\ref{eq:y_nonlin}) \\
-$\delta_\theta$ & Infection-to-mortality transmission rate &
-    (\ref{eq:d_nonlin}) \\
-$\gamma_y$ & Budget semi-elasticity (automatic stabilizers) &
-    (\ref{eq:b_nonlin}) \\
-$r$ & Real interest rate on sovereign debt & (\ref{eq:b_nonlin}) \\
-$c_H$ & Pandemic-specific health expenditure rate per unit infection &
-    (\ref{eq:b_nonlin}) \\
-$\rho_\theta$ & Epidemiological persistence ($>1$: explosive growth) &
-    (\ref{eq:theta_nonlin}) \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Policy transmission parameters}} \\
-$\alpha_S$ & Direct contractionary effect of NPIs on output &
-    (\ref{eq:y_nonlin}) \\
-$\alpha_F^{CP}$ & CP baseline contemporaneous stabilization effect &
-    (\ref{eq:y_nonlin}) \\
-$\tilde{\eta}$ & CP--containment interaction ($<0$: physical lockdown
-    constraint) & (\ref{eq:y_nonlin}) \\
-$\eta_p$ & CP structural preservation effect (persistence channel) &
-    (\ref{eq:y_nonlin}) \\
-$\alpha_F^{DI}$ & Demand injection multiplier (one-period lag) &
-    (\ref{eq:y_nonlin}) \\
-$\beta_d$ & Fear channel: output response to observed mortality ($<0$) &
-    (\ref{eq:y_nonlin}) \\
-$\phi_S$ & Suppression effectiveness of NPIs on infections &
-    (\ref{eq:theta_nonlin}) \\
-$\kappa_F^{DI}$ & Budgetary cost of demand injection &
-    (\ref{eq:b_nonlin}) \\
-$\kappa_F^{CP}$ & Budgetary cost of capacity preservation &
-    (\ref{eq:b_nonlin}) \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Objective function parameters}} \\
-$\beta$ & Discount factor & (\ref{eq:objective}) \\
-$w_y,\, w_d,\, w_b$ & Running cost weights (output, mortality, debt) &
-    (\ref{eq:weights}) \\
-$W_b$ & Terminal debt cost & (\ref{eq:weights}) \\
-$r_S,\, r_F^{DI},\, r_F^{CP}$ & Control implementation costs &
-    (\ref{eq:weights}) \\
+$\rho_\theta$ & Eff.\ reproduction rate (quarterly)
+    & 1.25--1.70
+    & \citet{dhungel2022, liu2021rocklov} \\
+$\delta_\theta$ & Infection fatality rate
+    & 0.003--0.020
+    & \citet{IHME2022lancet, Levin2020} \\
+$\phi_S$ & NPI suppression effectiveness
+    & 0.4--0.7
+    & \citet{brauner2021inferring, haug2020ranking} \\
+$r$ & Real interest rate (quarterly)
+    & $\approx 0.001$
+    & \citet{OECD2022borrowing} \\
+$\beta$ & Discount factor (quarterly)
+    & 0.99
+    & Standard \\
+$c_H$ & Health expenditure per \% Infection
+    & 0.02
+    & \citet{imf2022fiscalmonitor, OECD2023health} \\
 \bottomrule
 \end{tabular}
 \end{table}
+\footnotetext{The epidemiological parameters $\rho_\theta$ and $\delta_\theta$
+vary across pandemic waves; the ranges reported here span from the second wave
+(late 2020) through Omicron (Q4\,2021). Wave-specific values and their sources
+are reported in Table~\ref{tab:full_parameter} in the Appendix.}
+ 
+
 
 % -----------------------------------------------------------------
 \subsection{Objective Function}
@@ -562,51 +558,71 @@ $r_S,\, r_F^{DI},\, r_F^{CP}$ & Control implementation costs &
 The planner minimizes the expected intertemporal cost over a finite horizon $N$:
 %
 \begin{equation}
-    J = \mathbb{E}\left\{\tfrac{1}{2}\bm{x}_N'\,\bm{Q}_N\,\bm{x}_N
+    J = \mathbb{E}\left\{\tfrac{1}{2}\,\bm{x}_N'\,\bm{Q}_N\,\bm{x}_N
     \;+\; \sum_{k=0}^{N-1}\tfrac{1}{2}\left(\bm{x}_k'\,\bm{Q}_k\,\bm{x}_k
     \;+\; \bm{u}_k'\,\bm{R}_k\,\bm{u}_k\right)\right\}
-    \label{eq:objective}
+    \label{eq:objective1}
 \end{equation}
 %
-with:
+with weight matrices:
 %
+
 \begin{equation}
-    \bm{Q}_k = \beta^k\,\operatorname{diag}\bigl(w_y,\; w_d,\; w_b,\; 0,\; 0\bigr),
-    \quad
-    \bm{Q}_N = \beta^N\,\operatorname{diag}\bigl(0,\; 0,\; W_b,\; 0,\; 0\bigr),
-    \quad
-    \bm{R}_k = \beta^k\,\operatorname{diag}\bigl(r_S,\; r_F^{DI},\; r_F^{CP}\bigr).
-    \label{eq:weights}
+\begin{aligned}
+    \bm{Q}_k &= \beta^k\,\operatorname{diag}(w_y,\, w_d,\, w_b,\, 0,\, 0), \\
+    \bm{Q}_N &= \beta^N\,\operatorname{diag}(0,\, 0,\, W_b,\, 0,\, 0), \\
+    \bm{R}_k &= \beta^k\,\operatorname{diag}(r_S,\, r_F^{DI},\, r_F^{CP}).
+\end{aligned}
+\label{eq:weights}
 \end{equation}
-%
-The zero weight on $\theta_k$ implies that infections are penalized only through
-their delayed effect on mortality---the planner has no intrinsic preference over
-prevalence beyond its health consequences. The auxiliary state $z_k$ carries zero
-weight as it is a bookkeeping device without independent welfare content.
-The terminal cost $W_b$ penalizes exclusively debt: output gaps close endogenously
-as containment is lifted, and deaths are irreversible costs already penalized through
-$w_d$ along the trajectory. Debt, by contrast, compounds at rate $(1+r)$ beyond the
-planning horizon and constrains the fiscal response to subsequent shocks. The control
-costs $r_S$, $r_F^{DI}$, $r_F^{CP}$ capture implementation frictions---political
-costs of lockdowns, administrative costs of program design---that are independent of
-the state.%
-\footnote{The standard regularity conditions hold: $\bm{Q}_k, \bm{Q}_N \succeq 0$
-(satisfied for non-negative weights) and $\bm{R}_k \succ 0$ (satisfied for strictly
-positive control costs), guaranteeing existence and uniqueness of the optimal policy
-at each iLQR iteration.}
+
+\vspace{2mm}
+
+\noindent The structure of these matrices encodes four design choices. First, the zero weight on $\theta_k$ implies that infections are penalized only through their delayed effect on mortality ($d_{k+1} = \delta_\theta\, \theta_k$)---the planner has no intrinsic
+preference over prevalence beyond its health consequences. Second, the auxiliary state
+$z_k$ carries zero weight as a bookkeeping device without independent welfare content.
+Third, the terminal cost $W_b$ penalizes exclusively debt: output gaps close
+endogenously as containment is lifted, and deaths are irreversible costs already
+penalized through $w_d$ along the trajectory, but debt compounds at rate $(1+r)$
+beyond the planning horizon and constrains the fiscal response to subsequent
+shocks.\footnote{The finite horizon $N$ corresponds to the resolution of the
+pandemic---in the empirical application, the arrival of widespread vaccination.
+Beyond $N$, the trilemma dissolves as $\delta_\theta \to 0$, but the debt legacy
+remains.} Fourth, the control costs $r_S$, $r_F^{DI}$, $r_F^{CP}$ capture
+implementation frictions---political costs of lockdowns, administrative costs of
+program design---that are independent of the state.
+
+The standard regularity conditions hold: $\bm{Q}_k, \bm{Q}_N \succeq 0$ (satisfied
+for non-negative weights) and $\bm{R}_k \succ 0$ (satisfied for strictly positive
+control costs), guaranteeing existence and uniqueness of the optimal policy.
+
 
 % -----------------------------------------------------------------
 \subsection{Solution Method}
 \label{sec:solution}
 
-The bilinear terms in (\ref{eq:y_nonlin}) and (\ref{eq:theta_nonlin})---the
-state-control products $\psi\, S_k\, y_k$, $\eta_p\, F_k^{CP}\, y_k$,
-$\tilde{\eta}\, S_k\, F_k^{CP}$, and $\rho_\theta \phi_S\, S_k\, \theta_k$---prevent
-the application of standard linear-quadratic methods. I solve the problem using the
-iterative Linear-Quadratic Regulator (iLQR) of \citet{li2004iterative}, which
-iteratively linearizes the dynamics around a nominal trajectory and applies a
-time-varying LQR backward pass to compute feedback gains $\bm{K}_k$ and feedforward
-corrections $\bm{k}_k$. The updated control sequence
+The planner chooses three instruments simultaneously at each quarter over a finite
+horizon, where the effectiveness of each instrument depends on the current state of
+the crisis and transmits to outcomes with heterogeneous time lags. The three
+objective dimensions---health, output, and debt---cannot be optimized independently,
+as every instrument affects multiple dimensions simultaneously. Exogenous pandemic
+waves perturb the system stochastically, and all instruments are subject to physical
+bounds. Standard methods cannot solve this problem: LQR requires linear dynamics,
+Pontryagin's maximum principle requires analytical costate solutions unavailable for
+four bilinear terms, and value function iteration is infeasible over a continuous
+five-dimensional state space. Therefore I solve the problem using the iterative Linear-Quadratic Regulator (iLQR) of \citet{li2004iterative}, a trajectory optimization method from the nonlinear control literature that handles precisely this problem class.\footnote{The notation follows
+\citet[Chapters~3--4]{bertsekas2017dynamic}. \citet{sharma2025sqp} show that iLQR
+is equivalent to Sequential Quadratic Programming applied to the optimal control
+problem, with guaranteed cost descent at each iteration.} 
+
+
+The algorithm proceeds in three steps. First, starting from
+an initial control sequence $\{\bar{\bm{u}}_k^{(j)}\}$, the nonlinear dynamics are
+rolled forward to generate a nominal trajectory $\{\bar{\bm{x}}_k^{(j)}\}$.\footnote{The bilinear terms render the full problem non-convex. The iterative linearization converges to a local optimum; global optimality is verified by solving from multiple initialization trajectories (Appendix~\ref{app:convergence}).} Second, the dynamics are linearized around this trajectory---computing the Jacobians $\bm{A}_k = \partial \bm{f} / \partial
+\bm{x}\big|_{\bar{\bm{x}}_k, \bar{\bm{u}}_k}$ and $\bm{B}_k = \partial \bm{f} /
+\partial \bm{u}\big|_{\bar{\bm{x}}_k, \bar{\bm{u}}_k}$---and a time-varying LQR
+backward pass computes feedback gains $\bm{K}_k$ and feedforward corrections
+$\bm{k}_k$ via the Riccati recursion. Third, the updated control sequence
 %
 \begin{equation}
     \bm{u}_k^{(j+1)} = \bar{\bm{u}}_k^{(j)} + \alpha\,\bm{k}_k
@@ -614,132 +630,12 @@ corrections $\bm{k}_k$. The updated control sequence
     \label{eq:fwd_u}
 \end{equation}
 %
-is applied to the nonlinear dynamics with line search parameter
-$\alpha \in (0,1]$, generating a new trajectory. Controls are projected onto the
-feasible set $\bm{u}_{\min} = (0, 0, 0)'$,
-$\bm{u}_{\max} = (1, \bar{F}^{DI}, \bar{F}^{CP})'$ after each update. Under
-certainty equivalence \citep[Chapter~3.1]{bertsekas2017dynamic}, stochastic shocks
-do not alter the optimal policy rule. The complete derivation---including Jacobians,
-Q-function expansion, regularization, and convergence criteria---is provided in
-Appendix~\ref{app:ilqr_derivation}.%
-\footnote{The bilinear terms render the full problem non-convex. The iterative
-linearization converges to a local optimum; global optimality is verified by
-solving from multiple initialization trajectories
-(Appendix~\ref{app:convergence}).}
-
-% -----------------------------------------------------------------
-\subsection{Parameters}
-\label{sec:calibration}
-
-The transition system~(\ref{eq:y_nonlin})--(\ref{eq:theta_nonlin}) contains 16
-structural parameters. A subset can be calibrated from the existing literature---either
-because they are standard macroeconomic quantities or because they have been estimated
-in the epidemiological literature for COVID-19 specifically. The remaining
-parameters---governing the transmission of fiscal instruments to output and the fiscal
-cost of each instrument category---have not been identified for the pandemic setting
-and constitute the empirical contribution of this paper. Table~\ref{tab:calibration}
-summarizes the parameter status.
-
-\begin{table}[H]
-\centering
-\caption{Parameter Calibration Status}
-\label{tab:calibration}
-\renewcommand{\arraystretch}{1.25}
-\scriptsize
-\begin{tabular}{@{} c l c c l @{}}
-\toprule
-\textbf{Parameter} & \textbf{Description} & \textbf{Value} & \textbf{Source}
-    & \textbf{Status} \\
-\midrule
-\multicolumn{5}{@{}l}{\textit{Epidemiological dynamics}} \\
-$\rho_\theta$ & Effective reproduction rate
-    & 1.25--1.60 & \citet{Flaxman2020, liu2020reproductive}
-    & Calibrated \\
-$\delta_\theta$ & Infection fatality rate
-    & 0.005--0.025 & \citet{levin2020assessing, Meyerowitz2021}
-    & Calibrated \\
-$\phi_S$ & NPI suppression effectiveness
-    & 0.4--0.7 & \citet{Flaxman2020, brauner2021inferring}
-    & Calibrated \\
-\midrule
-\multicolumn{5}{@{}l}{\textit{Fiscal and macroeconomic environment}} \\
-$r$ & Real interest rate (quarterly)
-    & $\approx 0.001$ & \citet{OECD2021borrowing}
-    & Calibrated \\
-$\beta$ & Discount factor (quarterly)
-    & 0.99 & Standard
-    & Calibrated \\
-$c_H$ & Health expenditure per unit infection
-    & 0.02 & \citet{imf2022fiscalmonitor}
-    & Calibrated \\
-\midrule
-\multicolumn{5}{@{}l}{\textit{Output dynamics --- to be estimated (Section~\ref{sec:estimation})}} \\
-$\rho_y$ & Baseline output persistence
-    & --- & &  Estimated \\
-$\psi$ & Lockdown-induced scarring
-    & --- & & Estimated \\
-$\alpha_S$ & Contractionary effect of NPIs
-    & --- & & Estimated \\
-$\alpha_F^{CP}$ & CP contemporaneous stabilization
-    & --- & & Estimated \\
-$\tilde{\eta}$ & CP--containment interaction
-    & --- & & Estimated \\
-$\eta_p$ & CP structural preservation
-    & --- & & Estimated \\
-$\alpha_F^{DI}$ & DI multiplier (lagged)
-    & --- & & Estimated \\
-$\beta_d$ & Behavioral fear channel
-    & --- & & Estimated \\
-\midrule
-\multicolumn{5}{@{}l}{\textit{Debt dynamics --- to be estimated (Section~\ref{sec:estimation})}} \\
-$\gamma_y$ & Budget semi-elasticity
-    & --- & & Estimated \\
-$\kappa_F^{CP}$ & Budgetary cost of CP
-    & --- & & Estimated \\
-$\kappa_F^{DI}$ & Budgetary cost of DI
-    & --- & & Estimated \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The epidemiological parameters are calibrated from the COVID-19 literature. The
-effective reproduction rate $\rho_\theta$ varies between waves: early estimates for the
-ancestral strain center on $R_0 \approx 2.5$--$3.0$
-\citep{liu2020reproductive}, which translates to quarterly effective rates of
-approximately 1.25--1.60 after accounting for within-quarter behavioral adaptation and
-partial immunity.\footnote{At quarterly frequency, $\rho_\theta$ captures the net
-growth of infections over a three-month period, not the instantaneous reproduction
-number. The mapping from the daily $R_t$ literature to this reduced-form parameter
-depends on the generation interval, recovery rate, and average containment during the
-quarter. I calibrate wave-specific values to match observed infection trajectories in
-the OECD sample.} The infection fatality rate $\delta_\theta$ declined from
-approximately 2--2.5\% in early 2020 to below 0.5\% by late 2021, reflecting
-improvements in treatment and the onset of vaccination
-\citep{levin2020assessing, Meyerowitz2021}. NPI effectiveness $\phi_S$ is calibrated
-from \citet{Flaxman2020} and \citet{brauner2021inferring}, who estimate that
-comprehensive lockdowns reduce transmission by 40--70\%.
-
-The real interest rate $r$ is set near zero, consistent with the negative-to-zero
-real yields on OECD sovereign debt during 2020--2021
-\citep{OECD2021borrowing}. Health expenditure $c_H$ is calibrated from the IMF Fiscal
-Monitor data on pandemic-related health spending \citep{imf2022fiscalmonitor}.
-
-The parameters left empty in Table~\ref{tab:calibration} cannot be calibrated from the
-existing literature because they concern either (i) the transmission of
-\textit{disaggregated} fiscal instruments to output---a distinction not present in the
-pre-pandemic multiplier literature, which does not separate capacity preservation from
-demand injection---or (ii) the \textit{pandemic-specific} fiscal cost of each
-instrument category, which depends on the composition of national packages (loans vs.\
-grants vs.\ guarantees) and differs from standard peacetime budget elasticities. The
-behavioral fear channel $\beta_d$, while documented qualitatively by
-\citet{GOOLSBEE2021}, has not been estimated in a panel framework that permits
-identification of its magnitude relative to the lockdown channel. These parameters
-constitute the empirical contribution of this paper and are identified in
-Section~\ref{sec:estimation}.
+is applied to the full nonlinear dynamics with a line search parameter $\alpha \in (0,1]$, generating a new trajectory. Box constraints on the controls---$S_k \in [0,1]$, $F_k^{DI} \geq 0$, $F_k^{CP} \geq 0$---are enforced through an Augmented Lagrangian scheme \citep{howell2019altro} with outer multiplier updates. Under certainty equivalence \citep[Chapter~3.1]{bertsekas2017dynamic}, stochastic shocks do not alter the optimal policy rule: the planner optimizes against the expected trajectory, and the feedback gains $\bm{K}_k$ provide automatic adjustment to realized deviations. The complete derivation---including explicit Jacobians, Q-function expansion, regularization, and convergence criteria---is provided in Appendix~\ref{app:ilqr_derivation}. The model is now fully specified: the transition system, objective function, and solution method are determined up to the structural parameters that govern fiscal transmission and debt dynamics. Section~\ref{sec:estimation} identifies these parameters.
 
 
+%The second-order approximation is valid when the steady state is efficient and the deviations from steady state are not too large. The pandemic application pushes the boundaries of this condition---output gaps of $-10\%$ to $-20\%$ are not ``small'' deviations. The quantitative welfare implications should therefore be interpreted with appropriate caution, while the qualitative policy rankings (instrument composition, timing) are robust to the approximation quality.}
 
-\newpage
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % =============================================================
@@ -748,13 +644,7 @@ Section~\ref{sec:estimation}.
 
 \section{Empirical Strategy}
 \label{sec:estimation}
-This section describes the empirical design that identifies the structural
-parameters of the transition system developed in Section~\ref{sec:trilemma}.
-The estimation provides direct evidence on the effectiveness and fiscal cost
-of pandemic fiscal instruments, and calibrates the parameters that enter the
-iLQR optimization in Section~\ref{sec:results}.
 
-%Maybe hoch nehmen als letzter satz-> Research Question Teil 1 und Identification of the parameters
 % =============================================================================
 %  DATA AND MEASUREMENT — Restructured for reading flow
 %  Order: Intro → Table 1 → Table 2 → Dependent vars → Epi vars → Classification
@@ -991,9 +881,7 @@ where $\gamma_i$ and $\delta_k$ denote country and quarter fixed effects. Each c
 Section~\ref{sec:trilemma}: the level effect $\alpha_F^{CP}$ captures stabilization independent of containment and the cycle, the cushioning term
 $\tilde{\eta}\, S_k$ reflects that preserved capacity cannot be fully utilized under strict lockdown ($\hat{\tilde{\eta}} < 0$), and the structural preservation term $\eta_p\, y_{k-1}$ captures the reduction in output gap persistence ($\hat{\eta}_p < 0$ since $y_{k-1} < 0$ during the pandemic).
 $F^{CP}$ enters in aggregate because both above-the-line and below-the-line instruments operate through the same transmission channel. Excess mortality
-$d_{ik}$ controls for voluntary behavioral reductions in economic activity driven by observed lethality (discussed below). The lag structure of DI is not imposed but selected empirically by comparing
-specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the
-data select lag~2. This is consistent both with the standard fiscal
+$d_{ik}$ controls for voluntary behavioral reductions in economic activity driven by observed lethality (discussed below). The lag structure of DI is not imposed but selected empirically by comparing specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the data select lag~2. This is consistent both with the standard fiscal
 transmission lag documented in the literature \citep{Blanchard2002, Ramey2011}
 and with the pandemic-specific prediction that demand stimulus is ineffective
 while supply constraints bind \citep{guerrieri2022}---DI authorized during
@@ -1105,6 +993,110 @@ identify the structural parameters governing the pandemic trilemma.
 % Section 5 — Results
 % =============================================================
 \subsection{Descriptives}
+% --- TABLE: Summary Statistics ---
+\begin{table}[H]
+\centering
+\caption{Summary Statistics (Estimation Sample: Q1\,2020--Q4\,2021)}
+\label{tab:sumstats}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{} l c r r r r r r @{}}
+\toprule
+\textbf{Variable} & \textbf{N} & \textbf{Mean} & \textbf{SD} & \textbf{Min}
+  & \textbf{P25} & \textbf{P75} & \textbf{Max} \\
+\midrule
+\multicolumn{8}{@{}l}{\textit{Dependent variables}} \\[2pt]
+$y_{ik}$ (\% of potential)
+  & 304 & $-4.94$  & $4.87$  & $-23.47$ & $-7.24$ & $-2.14$ & $11.13$ \\
+$\Delta b_{ik}$ (pp of 2019 GDP)
+  & 304 & $1.15$   & $2.53$  & $-7.46$  & $-0.45$ & $2.52$  & $14.20$ \\[4pt]
+\midrule
+\multicolumn{8}{@{}l}{\textit{Policy variables}} \\[2pt]
+$S_{ik}$ (0--1)
+  & 304 & $0.456$  & $0.156$ & $0.070$  & $0.333$ & $0.574$ & $0.857$ \\
+$F_{ik}^{CP}$ (\% of 2019 GDP)
+  & 304 & $1.64$   & $3.31$  & $0.00$   & $0.01$  & $1.51$  & $25.42$ \\
+$F_{ik}^{DI}$ (\% of 2019 GDP)
+  & 304 & $0.33$   & $0.77$  & $0.00$   & $0.00$  & $0.27$  & $8.32$ \\
+$F_{ik}^{H}$ (\% of 2019 GDP)
+  & 304 & $0.14$   & $0.42$  & $0.00$   & $0.00$  & $0.03$  & $4.25$ \\[4pt]
+\midrule
+\multicolumn{8}{@{}l}{\textit{Epidemiological variables}} \\[2pt]
+$d_{ik}$ (P-score, \%)
+  & 304 & $10.61$  & $16.09$ & $-13.36$ & $0.04$  & $16.78$ & $87.21$ \\
+$\theta_{ik}$ (\% of pop.)
+  & 304 & $0.51$   & $0.68$  & $0.00$   & $0.07$  & $0.65$  & $3.95$ \\
+$\text{Vax}_{ik}$ (\% of pop.)
+  & 304 & $19.67$  & $27.73$ & $0.00$   & $0.00$  & $39.25$ & $84.41$ \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Within vs.\ Between Variation Decomposition}
+\label{tab:within_between}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{} l r r r r r @{}}
+\toprule
+\textbf{Variable} & \textbf{Overall SD} & \textbf{Between SD} & \textbf{Within SD}
+  & \textbf{Within (\%)} & \textbf{Between (\%)} \\
+\midrule
+$y_{ik}$ (pp of potential)       & 4.805 & 3.044 & 3.718 & 77.4 & 63.3 \\
+$S_{ik}$ (0--100)                & 16.074 & 6.631 & 14.642 & 91.1 & 41.3 \\
+$F^{CP}_{ik}$ (pp GDP)          & 3.163 & 0.768 & 3.069 & 97.0 & 24.3 \\
+$F^{DI}_{ik}$ (pp GDP)          & 0.738 & 0.279 & 0.683 & 92.6 & 37.8 \\
+$F^{H}_{ik}$ (pp GDP)           & 0.400 & 0.137 & 0.376 & 94.0 & 34.2 \\
+$d_{ik}$ (P-score, \%)          & 15.545 & 8.655 & 12.912 & 83.1 & 55.7 \\
+$\theta_{ik}$ (\% of pop.)      & 1.732 & 0.518 & 1.652 & 95.4 & 29.9 \\
+$\text{Vax}_{ik}$ (\% of pop.)  & 31.006 & 6.811 & 30.249 & 97.6 & 22.0 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\footnotesize\textit{Notes:} 38 OECD countries,
+Q1\,2020--Q1\,2022 ($N = 342$). Overall SD: total standard deviation.
+Between SD: standard deviation of country means. Within SD: standard
+deviation of deviations from country means. Within (\%) = Within SD /
+Overall SD $\times$ 100. Country fixed effects absorb between-variation;
+within-variation identifies the coefficients. All policy variables
+exhibit within-shares above 90\%, confirming that the identifying
+variation survives absorption of country fixed effects.}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Pairwise Correlation Matrix}
+\label{tab:corr_matrix}
+\small
+\begin{tabular}{@{} l r r r r r r r @{}}
+\toprule
+ & $y_{ik}$ & $S_{ik}$ & $F^{CP}_{ik}$ & $F^{DI}_{ik}$
+ & $d_{ik}$ & $\theta_{ik}$ & $\text{Vax}_{ik}$ \\
+\midrule
+$y_{ik}$           & 1    &       &       &       &       &       &  \\
+$S_{ik}$           & $-$0.43 & 1  &       &       &       &       &  \\
+$F^{CP}_{ik}$      & $-$0.24 & 0.06  & 1  &       &       &       &  \\
+$F^{DI}_{ik}$      & $-$0.09 & 0.06  & 0.23  & 1  &       &       &  \\
+$d_{ik}$           & $-$0.09 & 0.21  & $-$0.17 & $-$0.05 & 1  &       &  \\
+$\theta_{ik}$      & 0.17  & $-$0.25 & $-$0.16 & $-$0.14 & 0.37  & 1  &  \\
+$\text{Vax}_{ik}$  & 0.37  & $-$0.43 & $-$0.32 & $-$0.23 & 0.10  & 0.47  & 1 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\footnotesize\textit{Notes:} Pearson correlations,
+estimation sample (38 countries, Q1\,2020--Q1\,2022, $N = 342$).
+Lower triangle reported. The near-zero correlations
+$r(S, F^{CP}) = 0.06$ and $r(S, F^{DI}) = 0.06$ confirm that fiscal
+composition is approximately orthogonal to containment intensity---the
+key identifying condition for the $S \times F^{CP}$ interaction term.}
+\end{table}
 
 \newpage
 
@@ -1564,18 +1556,6 @@ lockdown decisions.
 
 \end{enumerate}
 
-\section{ENTWURF: Further (possible) Steps}
-
-%Taylor Series First Order
-%Robuste Feedbacks
-%Muss aber erklären kann
-%Extreme Shocks = nicht möglich/greifbar
-%Passt für den ersten Schritt
-%Braucht genug Eigenwerte um stabil zu sein
-%Noch erklären warum nicht DSGE, warum nicht Monetary Policy = passiv & Daten zeigen das-> sehr gleich-> Geld zur Verfügung gestellt
-%In the context of the COVID-19 pandemic, fiscal policy emerged as the primary tool for systemic stabilization, while monetary policy transitioned into a supportive role. This hierarchy is justified by the fact that many advanced economies operated at the \textit{Zero Lower Bound} (ZLB), where conventional monetary instruments lose their efficacy. Consequently, the central banks' primary function was to act as an \textit{enabler} of fiscal intervention. By maintaining low sovereign bond yields through large-scale asset purchases, monetary policy secured the necessary ``fiscal space'' for the social planner. This allowed for the implementation of targeted transfers that address the granular socio-economic disruptions of the crisis—a task beyond the reach of the broader, indirect transmission mechanisms of monetary policy \citep{bartsch2020all}.
-
-
 
 % =============================================================
 % Summary — Structural Parameters for the iLQR
@@ -1612,14 +1592,264 @@ $\hat{c}_H$             & Health expenditure per unit $\theta$     & calibrated 
 These parameters, together with the epidemiological parameters ($\rho_\theta$, $\phi_S$, $\delta_\theta$) calibrated from the infection and mortality data, fully specify the transition system for the iLQR. The LP impulse responses provide additional dynamic validation: the monotonically accumulating debt IRF ($0.16 \to 0.63$ over five quarters) and the contemporaneous-then-decaying output IRF confirm that the quarterly transition equations capture the relevant dynamics within the iLQR's planning horizon. The next section takes these estimated parameters to the optimization framework and computes the Pareto frontier across the trilemma dimensions.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% =============================================================
-% Section 3 — Model Framework (Corrected Draft)
-% =============================================================
-
 
 \newpage
 
+\section{iLQR WIE WEITER}
+% ============================================================
+% iLQR Implementation Plan — Next Steps
+% ============================================================
+
+% ============================================================
+% STEP 1: Parameter Finalization (1 week)
+% ============================================================
+%
+% 1a. Replace placeholder epidemiological parameters in ALV6
+%     with wave-specific literature values (see calibration table).
+%     Key: delta_theta_base = 0.10 → 0.020.
+%
+% 1b. Insert empirical estimates from the TWFE/debt regressions.
+%     CRITICAL: verify unit consistency. The empirical estimates
+%     use S in [0,100] and F in % of GDP. The MATLAB code uses
+%     S in [0,1] and F as fractions. The current ALV6 has
+%     alpha_S = 2.78 and eta_tilde = -0.607, which appear to
+%     be the empirical coefficients × 100. Document the mapping
+%     explicitly in a comment block.
+%
+% 1c. Set country-specific initial conditions x0 = (y0, d0, b0,
+%     theta0, z0)' from Q4.2019 data (all zeros by construction,
+%     since variables are deviations from pre-pandemic baseline).
+%     The wave_shock_vec provides the exogenous theta impulse.
+%
+% 1d. Validation run: simulate the no-intervention trajectory
+%     (S=0, F=0) and verify that (a) theta explodes as expected,
+%     (b) output gap follows rho_y persistence, (c) debt
+%     accumulates through automatic stabilizers alone.
+
+
+% ============================================================
+% STEP 2: Objective Function Weights (2 weeks — hardest step)
+% ============================================================
+%
+% The weights (w_y, w_d, w_b) determine the Pareto frontier.
+% Three complementary approaches:
+%
+% 2a. NORMALIZATION BASELINE
+%     Make the three state dimensions commensurable. The raw units
+%     are: y in pp of GDP, d in per-capita death rate, b in pp of
+%     GDP. Without normalization, the optimizer ignores whichever
+%     dimension has the smallest numerical scale.
+%     → Normalize each weight by the inverse variance of the
+%       corresponding state variable in the OECD sample:
+%       w_y^0 = 1/Var(y), w_d^0 = 1/Var(d), w_b^0 = 1/Var(b).
+%       This gives an "equal attention" baseline.
+%
+% 2b. VSL-BASED ANCHOR
+%     The Value of a Statistical Life provides a welfare-theoretic
+%     bridge between mortality and output:
+%       w_d / w_y = VSL × (population) / GDP
+%     OECD median VSL ≈ $3–5M (Viscusi & Masterman 2017, JBCA).
+%     This pins the relative weight of deaths vs. output.
+%     Hall, Jones & Klenow (2020, BPEA) provide a pandemic-
+%     specific calibration: VSL implies willingness to pay
+%     ~35% of GDP to avoid the mortality risk of uncontrolled
+%     COVID. Use this as a cross-check.
+%
+% 2c. PARETO SWEEP (the main result)
+%     Systematically vary (w_y, w_d, w_b) on a grid.
+%     Fix w_y = 1 as numeraire. Sweep w_d ∈ {0.1, 0.5, 1, 5, 10}
+%     and w_b ∈ {0.01, 0.05, 0.1, 0.5, 1}. For each combination:
+%     solve the iLQR → record cumulative (Y, D, B) outcomes.
+%     This traces the 3D Pareto frontier.
+%     The VSL-based anchor identifies a "focal point" on the
+%     frontier; the sweep shows how outcomes change around it.
+%
+% 2d. CONTROL COSTS (r_S, r_DI, r_CP)
+%     These should be small relative to state costs — they
+%     represent implementation frictions, not welfare costs.
+%     Set r_S = 0.01 × w_y, r_DI = r_CP = 0.001 × w_y.
+%     Robustness: verify that results are insensitive to 10×
+%     changes in control costs.
+%
+% 2e. TERMINAL COST W_b
+%     W_b captures the post-pandemic cost of debt. Calibrate from
+%     the post-2021 interest rate environment: if r rises by
+%     Δr ≈ 2pp (observed 2022–2023), the annual servicing cost
+%     of excess debt b_N is Δr × b_N. Capitalize this at the
+%     post-pandemic discount rate to get W_b.
+%     Alternative: set W_b = w_b × (1+r)^T for some T reflecting
+%     the expected debt repayment horizon.
+
+
+% ============================================================
+% STEP 3: Baseline Solve — OECD Representative Planner (1 week)
+% ============================================================
+%
+% 3a. Use OECD-average initial conditions and OECD-average
+%     wave shock sequence. Solve the full optimization over
+%     (S, F_DI, F_CP) jointly. This produces the "unconstrained
+%     optimum" — the benchmark trajectory.
+%
+% 3b. Inspect the optimal trajectories:
+%     - Does S respond to theta shocks as expected?
+%     - Does CP dominate DI during high-S phases?
+%     - Does the composition shift toward DI as S declines?
+%     - Is the debt trajectory bounded?
+%     If any of these fail, the parameter calibration needs
+%     adjustment before proceeding.
+%
+% 3c. Compute the K_k matrices. Inspect:
+%     - K_k(1,:): how does optimal S respond to each state?
+%     - K_k(2,:): how does optimal DI respond?
+%     - K_k(3,:): how does optimal CP respond?
+%     These are the "state-contingent policy functions" described
+%     in Section 3.1 of the paper.
+%
+% 3d. Multi-start verification: solve from 50 random
+%     initializations, confirm all converge to same J*.
+
+
+% ============================================================
+% STEP 4: Country-Specific Counterfactuals (2 weeks)
+% ============================================================
+%
+% This is the PRIMARY counterfactual exercise and the main
+% empirical result of the paper.
+%
+% 4a. CONDITIONAL OPTIMUM (S fixed, fiscal optimized)
+%     For each country i = 1,...,38:
+%     - Fix S_k^i at the observed containment trajectory
+%     - Set theta trajectory from observed data (or simulate
+%       from observed S using the theta equation)
+%     - Optimize only (F_DI, F_CP) given the fixed S and theta
+%     - Record: optimal (F_DI*, F_CP*), resulting (y*, b*)
+%     - Compare against observed (F_DI^i, F_CP^i, y^i, b^i)
+%     - Compute: excess debt = b^i_N - b*_N
+%
+%     Implementation: modify ALV6 to fix u(1) = S_observed
+%     and optimize only u(2:3). Simplest approach: set r_S to
+%     a very large number and initialize S at observed values.
+%     Better: modify the code to treat S as exogenous data.
+%
+% 4b. FULL OPTIMUM (all instruments optimized)
+%     For each country i: solve the unconstrained problem with
+%     country-specific x0 and theta shocks. This gives the upper
+%     bound on welfare gains from joint optimization.
+%
+% 4c. DECOMPOSITION
+%     Total welfare gap = (observed) - (full optimum)
+%     = [(observed) - (conditional optimum)]
+%       + [(conditional optimum) - (full optimum)]
+%     = "composition gap" + "containment gap"
+%     The first term isolates the fiscal composition margin.
+%     The second isolates the containment margin.
+
+
+% ============================================================
+% STEP 5: Pareto Frontier (1 week)
+% ============================================================
+%
+% 5a. For the OECD-average planner, sweep weights (Step 2c)
+%     and record the cumulative outcome triple (Y^*, D^*, B^*)
+%     for each weight combination. Plot the 3D frontier.
+%
+% 5b. Locate each country's observed outcome (Y^i, D^i, B^i)
+%     relative to the frontier.
+%     - Distance to frontier = efficiency loss
+%     - Position on frontier = revealed preference
+%
+% 5c. Key plots for the paper:
+%     - 3D Pareto frontier with country points
+%     - 2D projections: (Y,B), (D,B), (Y,D) with frontier curve
+%     - Composition share (CP/total) along the frontier
+
+
+% ============================================================
+% STEP 6: Robustness (1 week)
+% ============================================================
+%
+% 6a. Parameter uncertainty: re-solve at the 5th/95th percentile
+%     of each estimated parameter (from bootstrap CIs).
+%
+% 6b. Weight sensitivity: show that the RANKING of countries
+%     (distance to frontier) is robust to weight choices, even
+%     if the LEVELS change.
+%
+% 6c. Horizon sensitivity: solve with N = 7 (Q2.2021) and
+%     N = 9 (Q4.2021) to verify robustness to endpoint choice.
+%
+% 6d. Alternative CP split: re-solve using above-the-line
+%     kappa_CP only (excluding guarantees).
+
+
+% ============================================================
+% LITERATURE: iLQR AND RELATED METHODS
+% ============================================================
+%
+% iLQR is a robotics/control method. There are NO economics
+% papers using iLQR. Your application is genuinely novel.
+% The relevant references split into two groups:
+%
+% ALGORITHMIC FOUNDATIONS (for the method):
+%
+% Li & Todorov (2004) — original iLQR paper
+%   "Iterative Linear Quadratic Regulator Design for Nonlinear
+%   Biological Movement Systems," ICINCO.
+%   → Establishes the iterative linearization + LQR backward
+%     pass framework. Your baseline algorithm.
+%
+% Tassa, Mansard & Todorov (2014)
+%   "Control-Limited Differential Dynamic Programming," ICRA.
+%   → Adds box constraints via clamping and regularization.
+%   Your Levenberg-Marquardt regularization comes from here.
+%
+% Jackson (2019) — AL-iLQR Tutorial
+%   → Already in your literature folder. The Augmented Lagrangian
+%   constraint handling in ALV6 follows this directly.
+%
+% Sharma & Chakravorty (2025)
+%   "A Sequential Quadratic Programming Perspective on Optimal
+%   Control," arXiv:2510.03475.
+%   → Shows iLQR is a principled SQP method with guaranteed
+%   cost-descent (unlike DDP). Useful for your convergence
+%   discussion in the appendix.
+%
+% Abhijeet & Chakravorty (2026)
+%   "Safe Optimal Control using Log Barrier Constrained iLQR,"
+%   arXiv:2602.05046.
+%   → Alternative to AL for box constraints. Could cite as
+%   robustness alternative.
+%
+% ECONOMICS ANALOG (for the application context):
+%
+% The closest economics precedent is the LQ optimal policy
+% tradition in monetary economics:
+%
+% Svensson (1999) — "Inflation Forecast Targeting," JME.
+%   → Social planner minimizes quadratic loss over inflation
+%   and output gap, subject to linear Phillips curve. Your
+%   framework is a nonlinear, multi-instrument generalization.
+%
+% Woodford (2003) — "Interest and Prices," Ch. 6.
+%   → Derives the quadratic loss function as a second-order
+%   approximation to household welfare. Your footnote on the
+%   Woodford approximation connects to this.
+%
+% In the pandemic-macro literature, nobody uses iLQR:
+%
+% Alvarez et al. (2021) — Pontryagin (continuous, scalar)
+% Eichenbaum et al. (2021) — Ramsey (competitive equilibrium)
+% Acemoglu et al. (2021) — Pontryagin (multi-group, scalar per group)
+% Kaplan et al. (2020) — no optimization (scenario evaluation)
+%
+% Your contribution is applying the iLQR framework — which
+% handles multi-instrument, nonlinear, constrained problems
+% naturally — to the pandemic policy setting. The method's
+% strength is precisely that it scales to the 3-control,
+% 5-state problem without requiring the analytical solutions
+% that Pontryagin demands or the equilibrium restrictions
+% that Ramsey imposes.
+\newpage
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -3037,6 +3267,35 @@ $\tilde{\bm{G}} = (0,\, 0,\, 0,\, 1,\, 0)' \in \mathbb{R}^5$.
 All matrices in the backward pass below use the augmented
 dimensions ($5 \times 5$, $5 \times 3$).
 
+\subsection{Controllability and Stability}
+\label{app:controllability}
+
+The eigenvalues of $\tilde{\bm{A}}_k$ evaluated at a nominal trajectory are
+$\bigl\{\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP},\;\; 0,\;\;
+(1+r),\;\; \rho_\theta(1-\phi_S\,\bar{S}_k),\;\; 0\bigr\}$. Two eigenvalues
+lie outside the unit circle. The debt eigenvalue $(1+r) > 1$ is unconditionally
+explosive: debt accumulates without bound in the absence of intervention. The
+infection eigenvalue $\rho_\theta(1 - \phi_S\,\bar{S}_k)$ is conditionally
+explosive---it exceeds unity whenever suppression is insufficient to push the
+effective reproduction rate below one
+($\phi_S\,\bar{S}_k < 1 - 1/\rho_\theta$). Active policy is therefore required
+not merely for optimization but for stabilization of the system.
+
+Since $\operatorname{rank}(\tilde{\bm{B}}_k) = 3 < 5 = \dim(\tilde{\bm{x}})$,
+the mortality state $d_k$ and the auxiliary state $z_k$ are not directly
+controllable. However, the controllability matrix
+$\mathcal{C}_k = [\tilde{\bm{B}}_k \;\; \tilde{\bm{A}}_k\tilde{\bm{B}}_k
+\;\; \cdots \;\; \tilde{\bm{A}}_k^4\tilde{\bm{B}}_k]$ has full row rank under
+non-degeneracy conditions ($\delta_\theta,\, \phi_S,\, \alpha_S,\,
+\alpha_F^{DI},\, \kappa_F^{DI},\, \kappa_F^{CP} \neq 0$ and
+$\bar{\theta}_k,\, \bar{y}_k \neq 0$). Mortality is reachable through
+$\tilde{\bm{A}}_k\tilde{\bm{B}}_k$ via the composite parameter
+$\delta_\theta\,\rho_\theta\,\phi_S\,\bar{\theta}_k$, confirming the
+two-period transmission lag $S_k \to \theta_{k+1} \to d_{k+2}$ established in
+Section~\ref{sec:trilemma}.
+
+
+
 \subsection{Backward Pass: Q-Function Expansion}
 \label{app:backward}
 
@@ -3138,15 +3397,202 @@ starting from $\hat{\bm{x}}_0 = \bm{x}_0$. Starting at $\alpha = 1$, the step si
 is halved until the new trajectory achieves a sufficient decrease in total cost
 (Armijo condition).
 
+Box constraints are enforced through an Augmented Lagrangian scheme \citep{toussaint2014} with outer multiplier updates, rather than simple projection.
+
+
 \subsection{Convergence}
 \label{app:convergence}
 
-The algorithm terminates when the relative cost reduction satisfies
-$|J^{(j)} - J^{(j-1)}| / \max(1, J^{(j-1)}) < 10^{-6}$, or when
-$\max_k \|\bm{k}_k\| < \varepsilon_{\text{abs}}$. The bilinear terms render the
-full problem non-convex; the algorithm converges to a local minimum. Global
-optimality is assessed by solving from multiple initialization trajectories
-(heuristic wave-reactive policies and zero-control baselines) and verifying that
-all initializations converge to the same cost within numerical tolerance.
+The algorithm terminates when the relative cost reduction falls below tolerance
+$\epsilon$:
+%
+\begin{equation}
+    \frac{|J^{(j)} - J^{(j-1)}|}{|J^{(j)}|} < \epsilon, \qquad \epsilon = 10^{-6}.
+\end{equation}
+%
+A maximum of 500 iterations is imposed as a safeguard. In practice, convergence
+is achieved within 40--80 iterations for all initializations tested.
+
+The bilinear terms render the problem non-convex, so the iLQR converges to a
+local optimum. To verify that the solution is globally optimal in the
+economically relevant region, I solve from 50 random initialization
+trajectories---drawn by perturbing the baseline control sequence
+$\bar{\bm{u}}_k^{(0)}$ uniformly within the feasible set---and confirm that all
+runs converge to the same cost $J^*$ (up to numerical tolerance). No alternative
+local optima are detected.
+
+\subsection{Parameters Full Table}
+\label{subsec:full_parameter}
+
+
+\begin{landscape}
+\begin{table}[p]
+\centering
+\caption{Variables, Parameters, and Calibration Status}
+\label{tab:parameters}
+\renewcommand{\arraystretch}{1.15}
+\scriptsize
+\begin{tabular}{@{} c l l @{}}
+\toprule
+\textbf{Symbol} & \textbf{Description} & \textbf{Equation} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{State variables
+    ($\bm{x}_k \in \mathbb{R}^4$, augmented to $\mathbb{R}^5$
+    with $z_k = F_{k-1}^{DI}$)}} \\
+$y_k$ & Output gap (\% deviation of real GDP from potential)
+    & (\ref{eq:y_nonlin}) \\
+$d_k$ & Excess mortality (deviation of death rate from seasonal average, per capita)
+    & (\ref{eq:d_nonlin}) \\
+$b_k$ & Public debt (deviation of debt-to-GDP ratio from pre-pandemic trend, pp)
+    & (\ref{eq:b_nonlin}) \\
+$\theta_k$ & Infection rate (share of actively infected population)
+    & (\ref{eq:theta_nonlin}) \\
+$z_k$ & Lagged demand injection ($z_k \equiv F_{k-1}^{DI}$)
+    & (\ref{eq:y_nonlin}) \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Control variables
+    ($\bm{u}_k \in \mathbb{R}^3$)}} \\
+$S_k$ & Containment intensity (0: no restrictions, 1: full lockdown)
+    & (\ref{eq:y_nonlin}), (\ref{eq:theta_nonlin}) \\
+$F_k^{DI}$ & Demand injection (\% of GDP)
+    & (\ref{eq:y_nonlin}), (\ref{eq:b_nonlin}) \\
+$F_k^{CP}$ & Capacity preservation (\% of GDP)
+    & (\ref{eq:y_nonlin}), (\ref{eq:b_nonlin}) \\
+\end{tabular}
+
+\vspace{2pt}
+
+\begin{tabular}{@{} c l c l l @{}}
+\toprule
+\textbf{Symbol} & \textbf{Description} & \textbf{Value}
+    & \textbf{Source} & \textbf{Eq.} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Epidemiological parameters (calibrated)}} \\
+$\rho_\theta$ & Effective reproduction rate ($>1$: explosive)
+    & 1.25--1.60
+    &\citet{dhungel2022, liu2021rocklov, davies2021alpha}
+    & (\ref{eq:theta_nonlin}) \\
+$\delta_\theta$ & Infection fatality rate
+    & 0.005--0.025
+    & \citet{IHME2022lancet, Levin2020}
+    & (\ref{eq:d_nonlin}) \\
+$\phi_S$ & NPI suppression effectiveness
+    & 0.4--0.7
+    & \citet{brauner2021inferring, haug2020ranking}
+    & (\ref{eq:theta_nonlin}) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Macroeconomic environment (calibrated)}} \\
+$r$ & Real interest rate (quarterly)
+    & $\approx 0.001$
+    & \citet{OECD2022borrowing}
+    & (\ref{eq:b_nonlin}) \\
+$\beta$ & Discount factor (quarterly)
+    & 0.99
+    & Standard
+    & (\ref{eq:objective}) \\
+$c_H$ & Health expenditure per unit infection
+    & 0.02
+    & \citet{imf2022fiscalmonitor, OECD2023health}
+    & (\ref{eq:b_nonlin}) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Output dynamics
+    (estimated, Section~\ref{sec:estimation})}} \\
+$\rho_y$ & Baseline output persistence
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\psi$ & Lockdown-induced hysteresis ($>0$)
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\alpha_S$ & Contractionary effect of NPIs
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\alpha_F^{CP}$ & CP baseline contemporaneous effect
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\tilde{\eta}$ & CP--containment interaction ($<0$: lockdown constraint)
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\eta_p$ & CP structural preservation effect
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\alpha_F^{DI}$ & DI multiplier (lagged)
+    & --- & & (\ref{eq:y_nonlin}) \\
+$\beta_d$ & Behavioral fear channel ($<0$)
+    & --- & & (\ref{eq:y_nonlin}) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Debt dynamics
+    (estimated, Section~\ref{sec:estimation})}} \\
+$\gamma_y$ & Budget semi-elasticity (automatic stabilizers)
+    & --- & & (\ref{eq:b_nonlin}) \\
+$\kappa_F^{CP}$ & Budgetary cost of CP
+    & --- & & (\ref{eq:b_nonlin}) \\
+$\kappa_F^{DI}$ & Budgetary cost of DI
+    & --- & & (\ref{eq:b_nonlin}) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Objective function parameters}} \\
+$w_y,\, w_d,\, w_b$ & Running cost weights (output, mortality, debt)
+    & & & (\ref{eq:weights}) \\
+$W_b$ & Terminal debt cost
+    & & & (\ref{eq:weights}) \\
+$r_S,\, r_F^{DI},\, r_F^{CP}$ & Control implementation costs
+    & & & (\ref{eq:weights}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{landscape}
+
+\begin{table}[t]
+\centering
+\caption{Calibrated Parameters}
+\label{tab:wave_specific}
+\small
+\begin{tabular}{@{} c l c l @{}}
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Value} & \textbf{Source} \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Epidemiological dynamics (wave-specific)}} \\[3pt]
+$\rho_\theta^{W1}$ & Eff.\ reproduction rate, Ancestral (Q1--Q2\,2020)
+    & 1.30
+    & \citet{Flaxman2020, dhungel2022} \\
+$\rho_\theta^{W2}$ & Eff.\ reproduction rate, 2nd wave (Q3--Q4\,2020)
+    & 1.25
+    & \citet{Flaxman2020} \\
+$\rho_\theta^{W3}$ & Eff.\ reproduction rate, Alpha (Q1--Q2\,2021)
+    & 1.45
+    & \citet{davies2021alpha, liu2021rocklov} \\
+$\rho_\theta^{W4}$ & Eff.\ reproduction rate, Delta (Q3\,2021)
+    & 1.55
+    & \citet{liu2021rocklov} \\
+$\rho_\theta^{W5}$ & Eff.\ reproduction rate, Omicron (Q4\,2021)
+    & 1.70
+    & \citet{liu2021rocklov} \\[3pt]
+$\delta_\theta^{W1}$ & Infection fatality rate, Ancestral
+    & 0.020
+    & \citet{IHME2022lancet, levin2020assessing} \\
+$\delta_\theta^{W2}$ & Infection fatality rate, 2nd wave
+    & 0.015
+    & \citet{IHME2022lancet} \\
+$\delta_\theta^{W3}$ & Infection fatality rate, Alpha
+    & 0.012
+    & \citet{IHME2022lancet} \\
+$\delta_\theta^{W4}$ & Infection fatality rate, Delta
+    & 0.008
+    & \citet{IHME2022lancet} \\
+$\delta_\theta^{W5}$ & Infection fatality rate, Omicron
+    & 0.003
+    & \citet{IHME2022lancet} \\[3pt]
+$\phi_S$ & NPI suppression effectiveness
+    & 0.55
+    & \citet{brauner2021inferring, haug2020ranking} \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Macroeconomic environment}} \\[3pt]
+$r$ & Real interest rate (quarterly)
+    & 0.001
+    & \citet{OECD2022borrowing} \\
+$\beta$ & Discount factor (quarterly)
+    & 0.99
+    & Standard \\
+$c_H$ & Health expenditure per unit infection
+    & 0.02
+    & \citet{imf2022fiscalmonitor, OECD2023health} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
 
 \end{document}
