@@ -449,7 +449,7 @@ optimizing household and firm behavior. This places the model in the tradition o
 optimal policy analysis with reduced-form constraints---an approach with established
 precedents in the pandemic-macro literature \citep{alvarez2020, acemoglu2021}. The alternative---a fully microfounded DSGE framework---would endogenize the output dynamics from household and firm optimization, as in \citet{eichenbaum2021macro} and \citet{KaplanMollViolante2020}. However, the output response to containment in such models depends sensitively on functional form assumptions, household heterogeneity, and market structure---none of which bear directly on the composition question from the social planner's perspective that this paper addresses.
  
-The reduced-form specification offering three methodological advantages in this specific setting. First, the structural parameters are estimable directly from panel data (Section~\ref{sec:estimation}) without imposing equilibrium restrictions. Second, the model accommodates the disaggregation into demand injection and capacity preservation---including their distinct timing profiles, state-dependent effectiveness, and heterogeneous fiscal cost structures---without requiring a production-side theory. The transmission channels are specified at the aggregate level where the relevant policy variation occurs. Third, the quadratic objective function is interpretable as a second-order approximation to the welfare function of a representative agent \citep{woodford2003}---a Tinbergen-style formulation that takes the multi-objective nature of pandemic policy as given rather than deriving it from a single agent's preferences.\footnote{This abstracts from the distributional dimension emphasized by \citet{KaplanMollViolante2020}. The present framework addresses a logically prior question: what is the optimal \textit{aggregate} fiscal composition? The distributional incidence of a given composition is a complementary but distinct problem.}
+The reduced-form specification offers three methodological advantages in this specific setting. First, the structural parameters are estimable directly from panel data (Section~\ref{sec:estimation}) without imposing equilibrium restrictions. Second, the model accommodates the disaggregation into demand injection and capacity preservation---including their distinct timing profiles, state-dependent effectiveness, and heterogeneous fiscal cost structures---without requiring a production-side theory. The transmission channels are specified at the aggregate level where the relevant policy variation occurs. Third, the quadratic objective function is interpretable as a second-order approximation to the welfare function of a representative agent \citep{woodford2003}---a Tinbergen-style formulation that takes the multi-objective nature of pandemic policy as given rather than deriving it from a single agent's preferences.\footnote{This abstracts from the distributional dimension emphasized by \citet{KaplanMollViolante2020}. The present framework addresses a logically prior question: what is the optimal \textit{aggregate} fiscal composition? The distributional incidence of a given composition is a complementary but distinct problem.}
 
 % -----------------------------------------------------------------
 % Paragraph 3: What the model delivers
@@ -509,8 +509,9 @@ Table~\ref{tab:calibration} reports values and sources. The remaining parameters
 govern the transmission of disaggregated fiscal instruments to output and the
 pandemic-specific budgetary cost of each instrument category---objects that have not
 been identified in the prior literature and constitute the empirical contribution of
-this paper (Section~\ref{sec:estimation}.).A complete list of all variables and parameters is provided in Table~\ref{tab:full_parameter} in the Appendix.
+this paper (Section~\ref{sec:estimation}).A complete list of all variables and parameters is provided in Table~\ref{tab:full_parameter} in the Appendix.
 
+%Di Lag in Debt: The contemporaneous fiscal cost in the debt equation reflects budget commitment at authorization, while the lagged output effect captures the disbursement-to-spending delay identified empirically in Section~\ref{sec:estimation}."
 %%%
 
 
@@ -843,21 +844,16 @@ $r(S, F^{DI}) = -0.087$, $r(F^{CP}, F^{DI}) = 0.082$,
 $r(S \times F^{CP},\, S \times F^{DI}) = -0.010$. The near-zero
 TWFE-demeaned correlations confirm that the identifying variation in
 fiscal composition is orthogonal to containment intensity.} ruling out
-the concern that stricter containment induces larger fiscal compensation. Countries
-that were structurally comparable along many dimensions and faced similar pandemic
-intensity chose fundamentally different strategies for supporting their economies: the
-cross-country coefficient of variation of quarterly fiscal deployment is 1.39,
-compared to a CV of 0.22 in containment responses measured by the population weighted Stringency-Index \citep{Hale2021}---a variation ratio of $6.3\times$. While the containment response was initially largely synchronized---with a cross-country correlation of quarterly time series of $r = 0.90$ during the first wave (March--May 2020), declining to $r = 0.56$ by 2021---the fiscal composition of the response differed from the outset, with a cross-country co-movement of only $r = 0.32$ during the same first wave.  This compositional heterogeneity reflects differences in government preferences and pre-existing institutional frameworks---factors determined long before the pandemic and absorbed by country fixed effects insofar as they correlate with economic outcomes. This near-orthogonality shifts the analytical focus from the aggregate size of the fiscal response to its composition, timing, and
+the concern that stricter containment induces larger fiscal compensation. Countries that were structurally comparable along many dimensions and faced similar pandemic intensity chose fundamentally different strategies for supporting their economies: the cross-country coefficient of variation of quarterly fiscal deployment is 1.39, compared to a CV of 0.22 in containment responses measured by the population weighted Stringency-Index \citep{Hale2021}---a variation ratio of $6.3\times$. While the containment response was initially largely synchronized---with a cross-country correlation of quarterly time series of $r = 0.90$ during the first wave (March--May 2020), declining to $r = 0.56$ by 2021---the fiscal composition of the response differed from the outset, with a cross-country co-movement of only $r = 0.32$ during the same first wave.  This compositional heterogeneity reflects differences in government preferences and pre-existing institutional frameworks---factors determined long before the pandemic and absorbed by country fixed effects insofar as they correlate with economic outcomes. This near-orthogonality shifts the analytical focus from the aggregate size of the fiscal response to its composition, timing, and
 state-contingency (Section~\ref{sec:trilemma})---and to the question which
-strategy delivered more stabilization per unit of debt incurred.
+strategy delivered more stabilization per unit of debt incurred. \footnote{Tables~\ref{tab:within_between} and~\ref{tab:corr_matrix} in Appendix~\ref{sec:correlation_matrix} report the full within-between variance decomposition and pairwise correlation matrix for the full data sample confirming these patterns.}
 
 % -----------------------------------------------------------------
 %  3. ESTIMATING EQUATIONS
 % -----------------------------------------------------------------
 
 The estimating equations map directly onto the transition system in
-Section~\ref{sec:trilemma}. The output equation corresponds to a linearized version
-of~(\ref{eq:y_nonlin}):
+Section~\ref{sec:trilemma}. The output equation corresponds to a linearized version of~(\ref{eq:y_nonlin}):
 
 
 %% OUTPUT — empirisch, konsistent mit Section 2 und 3
@@ -877,21 +873,9 @@ of~(\ref{eq:y_nonlin}):
 
 
 where $\gamma_i$ and $\delta_k$ denote country and quarter fixed effects. Each coefficient has a structural interpretation: $\alpha_S < 0$ is the direct output cost of containment; $\rho_y$ captures the baseline persistence of the output gap; $\psi > 0$ governs the lockdown-induced hysteresis; and $\alpha_F^{DI}$ is the demand injection multiplier. The total marginal effect of CP is $\partial y / \partial F^{CP} = \alpha_F^{CP} + \tilde{\eta}\, S_k
-+ \eta_p\, y_{k-1}$, combining three channels from
-Section~\ref{sec:trilemma}: the level effect $\alpha_F^{CP}$ captures stabilization independent of containment and the cycle, the cushioning term
-$\tilde{\eta}\, S_k$ reflects that preserved capacity cannot be fully utilized under strict lockdown ($\hat{\tilde{\eta}} < 0$), and the structural preservation term $\eta_p\, y_{k-1}$ captures the reduction in output gap persistence ($\hat{\eta}_p < 0$ since $y_{k-1} < 0$ during the pandemic).
-$F^{CP}$ enters in aggregate because both above-the-line and below-the-line instruments operate through the same transmission channel. Excess mortality
-$d_{ik}$ controls for voluntary behavioral reductions in economic activity driven by observed lethality (discussed below). The lag structure of DI is not imposed but selected empirically by comparing specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the data select lag~2. This is consistent both with the standard fiscal
-transmission lag documented in the literature \citep{Blanchard2002, Ramey2011}
-and with the pandemic-specific prediction that demand stimulus is ineffective
-while supply constraints bind \citep{guerrieri2022}---DI authorized during
-active containment reaches spending only after restrictions are eased.
-Section~\ref{subsec:robustness} reports all lag specifications.
-As a complement to the static TWFE specification, Section~\ref{subsec:results}
-reports local projection impulse responses \citep{JordaTaylor2025} to illustrate the
-dynamic transmission profile of each instrument over a four-quarter horizon.
++ \eta_p\, y_{k-1}$, combining three channels from Section~\ref{sec:trilemma}: the level effect $\alpha_F^{CP}$ captures stabilization independent of containment and the cycle, the cushioning term $\tilde{\eta}\, S_k$ reflects that preserved capacity cannot be fully utilized under strict lockdown ($\hat{\tilde{\eta}} < 0$), and the structural preservation term $\eta_p\, y_{k-1}$ captures the reduction in output gap persistence ($\hat{\eta}_p < 0$ since $y_{k-1} < 0$ during the pandemic). $F^{CP}$ enters in aggregate because both above-the-line and below-the-line instruments operate through the same transmission channel. Excess mortality $d_{ik}$ controls for voluntary behavioral reductions in economic activity driven by observed lethality (discussed below). The lag structure of DI is not imposed but selected empirically by comparing specifications with $F_{k}^{DI}$, $F_{k-1}^{DI}$, and $F_{k-2}^{DI}$; the data select lag~2. This is consistent both with the standard fiscal transmission lag documented in the literature \citep{blanchard2002, ramey2018} and with the pandemic-specific prediction that demand stimulus is ineffective while supply constraints bind \citep{guerrieri2022}---DI authorized during active containment reaches spending only after restrictions are eased. Section~\ref{subsec:robustness} reports all lag specifications. As a complement to the static TWFE specification, Section~\ref{subsec:results} reports local projection impulse responses \citep{JordaTaylor2025} to illustrate the dynamic transmission profile of each instrument over a four-quarter horizon.
 
-The debt equation corresponds to~(\ref{eq:b_nonlin}):
+The debt equation corresponds to~(\ref{eq:debt}):
 
 %%%
 %% DEBT — empirisch, mit Health und Theta
@@ -949,8 +933,7 @@ the output channel.
 %  4. THREATS TO IDENTIFICATION
 % -----------------------------------------------------------------
 \vspace{5mm}
-
-
+%from where comes the variation-> state it more clear
 Causal interpretation of equations~(\ref{eq:output_est}) and~(\ref{eq:debt_est}) requires $E[\varepsilon_{ik} \mid \cdot] = 0$ and $E[u_{ik} \mid \cdot] = 0$. The most immediate concern is endogeneity. Stringency $S_k$ is a policy choice responding to epidemiological conditions, raising the possibility that unobserved pandemic severity drives both containment and economic outcomes simultaneously. Quarter fixed effects absorb the common pandemic cycle generating the co-movement of $S_k$ across countries; the residual within-quarter variation reflects country-specific policy choices that exhibit the near-orthogonality to fiscal composition documented above. The identifying condition is not that $S_k$ is exogenous in general, but that containment was chosen independently of fiscal composition---that the decision to lock down did not depend on whether the economy would be supported primarily through wage subsidies or through transfers. The reverse dependence---fiscal deployment responding to the containment level---is not a threat but the mechanism the model captures: the interaction $S_k \cdot F_k^{CP}$ in equation~(\ref{eq:output_est}) explicitly conditions on this relationship. Similarly, CP instruments were activated in response to the lockdown decision, not to observed GDP data, which became available only with substantial publication delay; the lag structure of DI rules out contemporaneous feedback by construction. 
 
 Unemployment is not included as a control because it is an outcome of the same process---CP, particularly short-time work, directly prevents unemployment by design. Conditioning on it would absorb part of the treatment effect; indeed, the robustness analysis confirms that CP significantly reduces unemployment (Section~\ref{subsec:robustness}).
@@ -989,367 +972,285 @@ Under these conditions, equations~(\ref{eq:output_est}) and~(\ref{eq:debt_est})
 identify the structural parameters governing the pandemic trilemma.
 
 
+
 % =============================================================
 % Section 5 — Results
 % =============================================================
 \subsection{Descriptives}
-% --- TABLE: Summary Statistics ---
-\begin{table}[H]
-\centering
-\caption{Summary Statistics (Estimation Sample: Q1\,2020--Q4\,2021)}
-\label{tab:sumstats}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{} l c r r r r r r @{}}
-\toprule
-\textbf{Variable} & \textbf{N} & \textbf{Mean} & \textbf{SD} & \textbf{Min}
-  & \textbf{P25} & \textbf{P75} & \textbf{Max} \\
-\midrule
-\multicolumn{8}{@{}l}{\textit{Dependent variables}} \\[2pt]
-$y_{ik}$ (\% of potential)
-  & 304 & $-4.94$  & $4.87$  & $-23.47$ & $-7.24$ & $-2.14$ & $11.13$ \\
-$\Delta b_{ik}$ (pp of 2019 GDP)
-  & 304 & $1.15$   & $2.53$  & $-7.46$  & $-0.45$ & $2.52$  & $14.20$ \\[4pt]
-\midrule
-\multicolumn{8}{@{}l}{\textit{Policy variables}} \\[2pt]
-$S_{ik}$ (0--1)
-  & 304 & $0.456$  & $0.156$ & $0.070$  & $0.333$ & $0.574$ & $0.857$ \\
-$F_{ik}^{CP}$ (\% of 2019 GDP)
-  & 304 & $1.64$   & $3.31$  & $0.00$   & $0.01$  & $1.51$  & $25.42$ \\
-$F_{ik}^{DI}$ (\% of 2019 GDP)
-  & 304 & $0.33$   & $0.77$  & $0.00$   & $0.00$  & $0.27$  & $8.32$ \\
-$F_{ik}^{H}$ (\% of 2019 GDP)
-  & 304 & $0.14$   & $0.42$  & $0.00$   & $0.00$  & $0.03$  & $4.25$ \\[4pt]
-\midrule
-\multicolumn{8}{@{}l}{\textit{Epidemiological variables}} \\[2pt]
-$d_{ik}$ (P-score, \%)
-  & 304 & $10.61$  & $16.09$ & $-13.36$ & $0.04$  & $16.78$ & $87.21$ \\
-$\theta_{ik}$ (\% of pop.)
-  & 304 & $0.51$   & $0.68$  & $0.00$   & $0.07$  & $0.65$  & $3.95$ \\
-$\text{Vax}_{ik}$ (\% of pop.)
-  & 304 & $19.67$  & $27.73$ & $0.00$   & $0.00$  & $39.25$ & $84.41$ \\
-\bottomrule
-\end{tabular}
-\vspace{4pt}
-
-\end{table}
-
 
 \begin{table}[H]
 \centering
-\caption{Within vs.\ Between Variation Decomposition}
-\label{tab:within_between}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{} l r r r r r @{}}
+\caption{Summary Statistics}
+\label{tab:descriptives}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r r r r r r @{}}
 \toprule
-\textbf{Variable} & \textbf{Overall SD} & \textbf{Between SD} & \textbf{Within SD}
-  & \textbf{Within (\%)} & \textbf{Between (\%)} \\
+ & Mean (SD) & Median & Min & P25 & P75 & Max \\
 \midrule
-$y_{ik}$ (pp of potential)       & 4.805 & 3.044 & 3.718 & 77.4 & 63.3 \\
-$S_{ik}$ (0--100)                & 16.074 & 6.631 & 14.642 & 91.1 & 41.3 \\
-$F^{CP}_{ik}$ (pp GDP)          & 3.163 & 0.768 & 3.069 & 97.0 & 24.3 \\
-$F^{DI}_{ik}$ (pp GDP)          & 0.738 & 0.279 & 0.683 & 92.6 & 37.8 \\
-$F^{H}_{ik}$ (pp GDP)           & 0.400 & 0.137 & 0.376 & 94.0 & 34.2 \\
-$d_{ik}$ (P-score, \%)          & 15.545 & 8.655 & 12.912 & 83.1 & 55.7 \\
-$\theta_{ik}$ (\% of pop.)      & 1.732 & 0.518 & 1.652 & 95.4 & 29.9 \\
-$\text{Vax}_{ik}$ (\% of pop.)  & 31.006 & 6.811 & 30.249 & 97.6 & 22.0 \\
+\multicolumn{7}{@{}l}{\textbf{Panel A: Quarterly observations ($N = 380$ country-quarters)}} \\[4pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Outcome variables}}} \\[2pt]
+Output gap, pp of potential GDP
+  & $-4.36\;(4.77)$  & $-3.74$ & $-23.47$ & $-6.34$ & $-1.74$ & $11.13$ \\[2pt]
+Change in public debt, pp of 2019 GDP
+  & $0.85\;(2.48)$   & $0.46$  & $-7.46$  & $-0.61$ & $2.00$  & $14.20$ \\[3pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Policy instruments}}} \\[2pt]
+Containment stringency index (0--100)
+  & $40.19\;(18.70)$ & $39.80$ & $0.00$   & $28.24$ & $54.45$ & $85.66$ \\[2pt]
+Capacity preservation $F^{CP}$, \% of 2019 GDP
+  & $1.31\;(3.03)$   & $0.12$  & $0.00$   & $0.00$  & $1.09$  & $25.42$ \\[2pt]
+Demand injection $F^{DI}$, \% of 2019 GDP
+  & $0.26\;(0.71)$   & $0.00$  & $0.00$   & $0.00$  & $0.14$  & $8.32$  \\[2pt]
+Health expenditures $F^{H}$, \% of 2019 GDP$^{\dagger}$
+  & $0.12\;(0.38)$   & $0.00$  & $0.00$   & $0.00$  & $0.00$  & $4.25$  \\[3pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Epidemiological controls}}} \\[2pt]
+Excess mortality, P-score (\%)
+  & $10.23\;(14.87)$  & $5.51$  & $-13.36$ & $0.57$  & $15.30$ & $87.21$ \\[2pt]
+Infection prevalence, \% of population
+  & $1.18\;(1.89)$    & $0.41$  & $0.00$   & $0.10$  & $1.43$  & $11.45$ \\[2pt]
+Cum.\ vaccination rate, \% of pop.
+  & $31.35\;(33.04)$  & $12.46$ & $0.00$   & $0.00$  & $66.52$ & $89.68$ \\[6pt]
+\midrule
+\multicolumn{7}{@{}l}{\textbf{Panel B: Cross-country totals ($N = 38$ countries)}} \\[4pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Outcome variables}}} \\[2pt]
+Avg.\ output gap, pp of potential GDP
+  & $-4.36\;(3.05)$    & $-4.22$  & $-10.58$ & $-5.96$  & $-2.58$  & $5.99$   \\[2pt]
+Cum.\ change in public debt, pp of 2019 GDP
+  & $8.55\;(5.44)$     & $8.47$   & $-2.21$  & $5.31$   & $12.31$  & $20.64$  \\[3pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Policy instruments}}} \\[2pt]
+Avg.\ containment stringency (0--100)
+  & $40.19\;(6.22)$    & $40.25$  & $27.66$  & $36.51$  & $43.65$  & $56.09$  \\[2pt]
+Cum.\ capacity preservation $F^{CP}$, \% of 2019 GDP
+  & $13.11\;(6.99)$    & $11.02$  & $0.88$   & $8.01$   & $17.86$  & $29.79$  \\[2pt]
+Cum.\ demand injection $F^{DI}$, \% of 2019 GDP
+  & $2.61\;(2.54)$     & $1.89$   & $0.11$   & $0.95$   & $3.83$   & $11.89$  \\[2pt]
+Cum.\ health expenditures $F^{H}$, \% of 2019 GDP$^{\dagger}$
+  & $1.15\;(1.24)$     & $0.73$   & $0.00$   & $0.31$   & $1.70$   & $4.73$   \\[3pt]
+\multicolumn{7}{@{}l}{\textit{\textbf{Epidemiological outcomes}}} \\[2pt]
+Cum.\ excess mortality, P-score (\%)
+  & $102.25\;(76.95)$  & $88.74$  & $-13.59$ & $49.54$  & $131.05$ & $355.59$ \\[2pt]
+Cum.\ infection prevalence, \% of pop.
+  & $11.82\;(5.39)$    & $10.88$  & $3.33$   & $8.13$   & $15.11$  & $31.28$  \\[2pt]
+Cum.\ vaccination rate, \% of pop.
+  & $73.31\;(9.47)$    & $74.50$  & $45.67$  & $67.49$  & $80.31$  & $89.68$  \\
 \bottomrule
-\end{tabular}
-\vspace{4pt}
+\end{tabular*}
 
-\parbox{\textwidth}{\footnotesize\textit{Notes:} 38 OECD countries,
-Q1\,2020--Q1\,2022 ($N = 342$). Overall SD: total standard deviation.
-Between SD: standard deviation of country means. Within SD: standard
-deviation of deviations from country means. Within (\%) = Within SD /
-Overall SD $\times$ 100. Country fixed effects absorb between-variation;
-within-variation identifies the coefficients. All policy variables
-exhibit within-shares above 90\%, confirming that the identifying
-variation survives absorption of country fixed effects.}
+\vspace{4pt}
+\parbox{\textwidth}{\footnotesize \textit{Notes:} Standard deviations in parentheses. Panel~A reports the distribution of quarterly country-level observations; Panel~B reports the cross-country distribution of period averages (output gap, stringency) and cumulative totals (all other variables) over Q1\,2020--Q2\,2022. All variables defined in Section~\ref{subsec:data}. $^{\dagger}$Health expenditures enter the debt equation only; excluded from the output equation. The gap between mean and median for $F^{CP}$ and $F^{DI}$ in Panel~A reflects the temporal concentration of fiscal deployment, with $F^{CP} = 0$ in 143 country-quarters (37.6\%). $S = 0$ in five country-quarters (Q2\,2022 only). Infection prevalence enters the iLQR calibration (Section~\ref{sec:results}), not the main specification.}
 \end{table}
 
+The table~\ref{tab:descriptives} provides descriptive statistics for the key variables of interest at the country-quarter (Panel~A) and country level (Panel~B), respectively. The average OECD country experienced an output gap of $-4.4$~pp over the sample period, with the deepest contraction reaching $-23.5$~pp in a single country-quarter and the worst cumulative outcome at $-10.6$~pp. Cumulative debt accumulation averaged $8.6$~pp of 2019 GDP, ranging from $-2.2$~pp (net debt reduction) to $20.6$~pp---a ninefold range that reflects the high differences between countries. Containment stringency was relatively synchronized across countries: the cross-country standard deviation of period-average stringency is $6.2$, compared to a within-country quarterly standard deviation of $18.7$---most of the variation is temporal, not cross-sectional. Fiscal composition exhibits the opposite pattern. The quarterly distributions of both $F^{CP}$ and $F^{DI}$ are strongly right-skewed: the mean of $F^{CP}$ ($1.31$\% of GDP) exceeds the median ($0.12$\%) by an order of magnitude, with $F^{CP} = 0$ in $37.6$\% of country-quarters, reflecting the concentrated deployment of capacity preservation during the acute containment phase of 2020. Cumulatively, CP ($13.1$\% of 2019 GDP) dominated DI ($2.6$\%) by a factor of five, but the cross-country coefficient of variation is substantially larger for DI---countries that deployed demand injection at all did so at very different scales. This compositional heterogeneity, combined with the near-orthogonality to containment intensity documented in Section~\ref{subsec:identification}, constitutes the identifying variation.
 
-\begin{table}[H]
-\centering
-\caption{Pairwise Correlation Matrix}
-\label{tab:corr_matrix}
-\small
-\begin{tabular}{@{} l r r r r r r r @{}}
-\toprule
- & $y_{ik}$ & $S_{ik}$ & $F^{CP}_{ik}$ & $F^{DI}_{ik}$
- & $d_{ik}$ & $\theta_{ik}$ & $\text{Vax}_{ik}$ \\
-\midrule
-$y_{ik}$           & 1    &       &       &       &       &       &  \\
-$S_{ik}$           & $-$0.43 & 1  &       &       &       &       &  \\
-$F^{CP}_{ik}$      & $-$0.24 & 0.06  & 1  &       &       &       &  \\
-$F^{DI}_{ik}$      & $-$0.09 & 0.06  & 0.23  & 1  &       &       &  \\
-$d_{ik}$           & $-$0.09 & 0.21  & $-$0.17 & $-$0.05 & 1  &       &  \\
-$\theta_{ik}$      & 0.17  & $-$0.25 & $-$0.16 & $-$0.14 & 0.37  & 1  &  \\
-$\text{Vax}_{ik}$  & 0.37  & $-$0.43 & $-$0.32 & $-$0.23 & 0.10  & 0.47  & 1 \\
-\bottomrule
-\end{tabular}
-\vspace{4pt}
+The epidemiological variables display comparably wide cross-country dispersion. Cumulative excess mortality ranges from $-13.6$ P-score points---reflecting the net reduction in non-COVID mortality from reduced traffic, elective surgeries, and respiratory infections during lockdowns---to $355.6$ points, a cumulative mortality burden more than three times the projected baseline. Infection prevalence and vaccination rates follow similar patterns of cross-country divergence.
 
-\parbox{\textwidth}{\footnotesize\textit{Notes:} Pearson correlations,
-estimation sample (38 countries, Q1\,2020--Q1\,2022, $N = 342$).
-Lower triangle reported. The near-zero correlations
-$r(S, F^{CP}) = 0.06$ and $r(S, F^{DI}) = 0.06$ confirm that fiscal
-composition is approximately orthogonal to containment intensity---the
-key identifying condition for the $S \times F^{CP}$ interaction term.}
-\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{fig_ts_key_variables_v2.pdf}
+    \caption{OECD Pandemic Trajectories by Quarter}
+    \label{fig:trajectories}
+    \vspace{4pt}
+    \parbox{\textwidth}{\footnotesize \textit{Notes:} Each panel plots the cross-country median (solid line) and interquartile range (P25--P75, shaded band) across 38 OECD countries per quarter, Q1\,2020--Q2\,2022. All variables are quarterly country-level observations as defined in Section~\ref{subsec:data}. The narrow interquartile range for containment stringency relative to the wide bands for capacity preservation and demand injection reflects the compositional heterogeneity that identifies the dispersions that is used for the identification.}
+\end{figure}
+ 
+
+%%%%%%%%%%%%%%%%
+
+
 
 \newpage
 
 \section{Results}
 \label{sec:results_empirical}
-Both equations are estimated on Q1.2020--Q1.2022 ($T = 9$ per country,
-$N \times T = 342$) as the main specification. Extension through Q4.2022
-is reported as a robustness check (Section~\ref{subsec:robustness}).
-
-\footnote{In the data, $S_k > 0$ throughout the sample period, so the two channels are not separately identified at $S_k = 0$. The level effect is identified from variation in $F^{CP}$ at low stringency; the interaction from the differential effect at high versus low stringency.}
 
 
-Finally, the lagged dependent variable $y_{i,k-1}$ under fixed effects introduces
-Nickell bias of order $O(1/T) \approx 11\%$. With $\rho_y \approx 0.06$, the
-absolute bias is below $0.007$---an order of magnitude smaller than the standard
-error. GMM (Arellano--Bond) confirms that $\psi$ and $\eta$ are quantitatively
-unchanged (Section~\ref{subsec:robustness}).
-
-Robustness-> Stringency Index Spatial berechnen-> Trade weighted
-
-
-
-\label{sec:results}
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
-\caption{Output Equation: Panel Estimation Results}
-\label{tab:output_equation}
-\small
-\begin{tabular}{lcccc}
+\caption{Main Results: Output Gap Equation}
+\label{tab:main_results}
+\scriptsize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{} l c c c c c @{}}
 \toprule
- & (1) & (2) & (3) & (4) \\
- & Pooled OLS & Country FE & Two-Way FE & Two-Way FE \\
+ & (1) & (2) & (3) & (4) & (5) \\
+ & OLS & Country FE & TWFE & + Hysteresis & Full \\
 \midrule
-$S_k$ ($-\alpha_S$)
-  & $-0.071^{**}$  & $-0.106^{***}$ & $-0.028^{*}$   & $-0.028^{*}$   \\
-  & (0.024)        & (0.018)        & (0.014)        & (0.013)        \\[4pt]
-$y_{k-1}$ ($\rho_y$)
-  & $0.622^{***}$  & $0.192^{*}$    & $0.064$        & $0.061$        \\
-  & (0.117)        & (0.087)        & (0.105)        & (0.106)        \\[4pt]
-$F^{CP}_k$ ($\alpha^{CP}_F$)
-  & $0.293^{*}$    & $0.438^{**}$   & $0.253^{***}$  & $0.252^{***}$  \\
-  & (0.145)        & (0.146)        & (0.074)        & (0.074)        \\[4pt]
-$S_k \cdot y_{k-1}$ ($\psi$)
-  & $-0.002$       & $-0.000$       & $0.004^{**}$   & $0.004^{**}$   \\
-  & (0.003)        & (0.002)        & (0.001)        & (0.001)        \\[4pt]
-$S_k \cdot F^{CP}_k$ ($\gamma$)
-  & $-0.018^{***}$ & $-0.019^{***}$ & $-0.006^{**}$  & $-0.006^{**}$  \\
-  & (0.004)        & (0.003)        & (0.002)        & (0.002)        \\[4pt]
-$F^{DI}_{k-2}$
-  & $0.828^{***}$  & $0.503^{***}$  & $0.244^{*}$    &                \\
-  & (0.203)        & (0.101)        & (0.119)        &                \\[4pt]
-$F^{DI}_{k-1}$
-  &                &                &                & $-0.017$       \\
-  &                &                &                & (0.095)        \\[4pt]
+$S_{ik}$
+  & $-0.066$*** & $-0.105$*** & $-0.043$*** & $-0.036$*** & $-0.023$* \\
+  & (0.013)     & (0.012)     & (0.012)     & (0.012)     & (0.013) \\[4pt]
+$y_{i,k-1}$
+  & $0.543$***  & $0.200$***  & $0.362$***  & $0.273$***  & $0.260$*** \\
+  & (0.081)     & (0.041)     & (0.056)     & (0.091)     & (0.093) \\[4pt]
+$F^{CP}_{ik}$
+  & $-0.424$*** & $-0.314$*** & $0.017$     & $0.020$     & $0.262$*** \\
+  & (0.072)     & (0.069)     & (0.047)     & (0.047)     & (0.089) \\[4pt]
+$F^{DI}_{i,k-2}$
+  & $0.938$***  & $0.570$***  & $0.209$     & $0.204$     & $0.195$* \\
+  & (0.213)     & (0.104)     & (0.124)     & (0.123)     & (0.114) \\[4pt]
+$d_{ik}$ (fear)
+  & $-0.014$    & $0.001$     & $-0.023$**  & $-0.021$**  & $-0.020$** \\
+  & (0.017)     & (0.014)     & (0.009)     & (0.009)     & (0.009) \\[4pt]
+$S_{ik} \times y_{i,k-1}$ \; [$\psi$]
+  &             &             &             & $0.002$     & $0.003$* \\
+  &             &             &             & (0.001)     & (0.001) \\[4pt]
+$S_{ik} \times F^{CP}_{ik}$ \; [$\tilde{\eta}$]
+  &             &             &             &             & $-0.008$** \\
+  &             &             &             &             & (0.003) \\[4pt]
+$F^{CP}_{ik} \times y_{i,k-1}$ \; [$-\eta_p$]
+  &             &             &             &             & $-0.023$ \\
+  &             &             &             &             & (0.014) \\[4pt]
 \midrule
-Country FE       & No  & Yes & Yes & Yes \\
-Quarter FE       & No  & No  & Yes & Yes \\
-SE               & HC1 & HC1 & HC1 & HC1 \\
-Observations     & 342 & 342 & 342 & 342 \\
-Countries        & 38  & 38  & 38  & 38  \\
+Country FE       &       & \checkmark & \checkmark & \checkmark & \checkmark \\
+Quarter FE       &       &            & \checkmark & \checkmark & \checkmark \\
+Observations     & 380   & 380        & 380        & 380        & 380 \\
+Within $R^2$     &       &            & 0.252      & 0.259      & 0.281 \\
 \bottomrule
-\multicolumn{5}{p{12cm}}{\footnotesize \textit{Notes:} Dependent variable is the real output gap $y_k$ (pp deviation from HP-filtered potential). $S_k$ is the Oxford Stringency Index (0--100). $F^{CP}_k$ and $F^{DI}_k$ are fiscal flows in \% of 2019 GDP. Column (3) is the main specification. HC1 cluster-robust standard errors (clustered by country) in parentheses. Sample: 38 OECD countries, Q1.2020--Q1.2022. $^{*}p<0.10$; $^{**}p<0.05$; $^{***}p<0.01$.} \\
 \end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable:
+output gap $y_{ik}$ (pp of potential GDP). 38 OECD countries,
+Q1\,2020--Q2\,2022 (10~quarters). Standard errors clustered by country
+in parentheses. Column~(1): pooled OLS. Column~(2): country fixed
+effects. Column~(3): two-way fixed effects (country + quarter), additive
+specification. Column~(4): adds the lockdown hysteresis interaction
+$S \times y_{k-1}$. Column~(5): full specification with all three
+interaction terms from Section~\ref{sec:trilemma}. $F^{CP}$ is
+insignificant without the $S \times F^{CP}$ interaction (cols.~3--4) but
+highly significant in the full specification (col.~5), confirming that
+capacity preservation operates through the state-dependent channels
+formalized in Property~3. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
-\begin{table}[htbp]
+
+\begin{table}[H]
 \centering
-\caption{Debt Equation: Panel Estimation Results}
-\label{tab:debt_equation}
-\small
-\begin{tabular}{lcccc}
+\caption{Main Results: Debt Equation}
+\label{tab:debt_main}
+\scriptsize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{} l c c c c c @{}}
 \toprule
- & (1) & (2) & (3) & (4) \\
- & Pooled OLS & Country FE & Country FE & First Diff. \\
- &            & (pooled CP)& (split CP) &  (split CP) \\
+ & (1) & (2) & (3) & (4) & (5) \\
+ & OLS & Country FE & \multicolumn{3}{c}{Country FE --- CP decomposition} \\
+ \cmidrule(lr){4-6}
+ &     & Pooled & Raw & Adj.\ 35\% & Three-way \\
 \midrule
-$y_k$ ($-\gamma_y$)
-  & $-0.131^{***}$ & $-0.206^{***}$ & $-0.191^{***}$ & $-0.188^{***}$ \\
-  & (0.030)        & (0.049)        & (0.050)        & (0.045)        \\[4pt]
-$F^{CP}_k$ ($\kappa^{CP}$)
-  & $0.243^{***}$  & $0.193^{**}$   &                &                \\
-  & (0.058)        & (0.066)        &                &                \\[4pt]
-$F^{CP,above}_k$ ($\kappa^{CP}_{above}$)
-  &                &                & $0.521^{.}$    & $0.628^{*}$    \\
-  &                &                & (0.267)        & (0.274)        \\[4pt]
-$F^{CP,below}_k$ ($\kappa^{CP}_{below}$)
-  &                &                & $0.466^{**}$   & $0.507^{*}$    \\
-  &                &                & (0.168)        & (0.202)        \\[4pt]
-$F^{DI}_{k-1}$ ($\kappa^{DI}$)
-  & $0.551^{.}$    & $0.475^{.}$    & $0.468^{.}$    & $0.521^{*}$    \\
-  & (0.313)        & (0.262)        & (0.276)        & (0.218)        \\[4pt]
-Linear trend
-  & $-0.090$       & $-0.069$       & $-0.072$       &                \\
-  & (0.070)        & (0.070)        & (0.072)        &                \\[4pt]
+$y_{ik}$ [$-\gamma_y$]
+  & $-0.147$*** & $-0.219$*** & $-0.215$*** & $-0.215$*** & $-0.210$*** \\
+  & (0.029)     & (0.036)     & (0.036)     & (0.036)     & (0.037) \\[4pt]
+$F^{CP}_{ik}$ (pooled) [$\kappa^{CP}$]
+  & $0.186$***  & $0.167$**   &             &             &  \\
+  & (0.049)     & (0.048)     &             &             &  \\[4pt]
+$F^{CP}$ above-the-line [$\kappa^{\text{above}}$]
+  &             &             & $0.401$*    & $0.401$*    & $0.423$* \\
+  &             &             & (0.176)     & (0.176)     & (0.174) \\[4pt]
+$F^{CP}$ below-the-line [$\kappa^{\text{below}}$]
+  &             &             & $0.112$*    &             &  \\
+  &             &             & (0.045)     &             &  \\[4pt]
+$F^{CP}$ below-the-line (adj.) [$\kappa^{\text{below}}$]
+  &             &             &             & $0.321$*    &  \\
+  &             &             &             & (0.127)     &  \\[4pt]
+$F^{CP}$ loans [$\kappa^{\text{loans}}$]
+  &             &             &             &             & $0.352$*** \\
+  &             &             &             &             & (0.083) \\[4pt]
+$F^{CP}$ guarantees (adj.) [$\kappa^{\text{guar}}$]
+  &             &             &             &             & $0.095$ \\
+  &             &             &             &             & (0.164) \\[4pt]
+$F^{DI}_{i,k-1}$ [$\kappa^{DI}$]
+  & $0.508$.    & $0.379$     & $0.385$     & $0.385$     & $0.370$ \\
+  & (0.294)     & (0.249)     & (0.260)     & (0.260)     & (0.262) \\[4pt]
 \midrule
-Country FE       & No  & Yes & Yes & (FD) \\
-Quarter FE       & No  & No  & No  & No   \\
-SE               & HC1 & HC1 & HC1 & HC1  \\
-Observations     & 418 & 418 & 418 & 380  \\
-Countries        & 38  & 38  & 38  & 38   \\
+Country FE           &       & \checkmark & \checkmark & \checkmark & \checkmark \\
+Guarantee adjustment & ---   & ---        & No         & 35\%       & 35\% \\
+Observations         & 380   & 380        & 380        & 380        & 380 \\
+Within $R^2$         &       & 0.220      & 0.228      & 0.228      & 0.238 \\
 \bottomrule
-\multicolumn{5}{p{12cm}}{\footnotesize \textit{Notes:} Dependent variable is the real debt change $\Delta b^R_k$ (pp of 2019 GDP per quarter). $F^{CP,above}_k$ denotes above-the-line CP (short-time work, direct grants) and $F^{CP,below}_k$ denotes below-the-line CP (loan guarantees, adjusted to 35\% estimated take-up rate). Column (3) is the main specification. HC1 cluster-robust standard errors (clustered by country) in parentheses. The Mundlak (1978) auxiliary regression rejects the unrelated effects assumption ($p = 0.006$), confirming that country fixed effects are required. Sample: 38 OECD countries, Q1.2020--Q4.2022. $^{.}p<0.10$; $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
 \end{tabular}
-\end{table}
+\vspace{4pt}
 
-\begin{table}[htbp]
-\centering
-\caption{Policy Efficiency Matrix: Output Stabilization vs.\ Fiscal Costs}
-\label{tab:policy_matrix}
-\small
-\begin{tabular}{lccc}
-\toprule
- & Output Effect & Debt Cost & Output per \\
- & $\hat{\alpha}_F$ & $\hat{\kappa}_F$ & Debt Unit \\
-\midrule
-\textit{Capacity Preservation} \\[2pt]
-\quad Pooled CP
-  & $0.253^{***}$ & $0.193^{**}$  & 1.31 \\
-  & (0.074)       & (0.066)       &      \\[4pt]
-\quad Above-the-line (STW)
-  & ---           & $0.521^{.}$   & ---  \\
-  &               & (0.267)       &      \\[4pt]
-\quad Below-the-line (Guarantees, adj.)
-  & ---           & $0.466^{**}$  & ---  \\
-  &               & (0.168)       &      \\[6pt]
-\textit{Demand Injection} \\[2pt]
-\quad $F^{DI}_{k-2}$ on output
-  & $0.244^{*}$   &               &      \\
-  & (0.119)       &               &      \\[4pt]
-\quad $F^{DI}_{k-1}$ on debt
-  &               & $0.468^{.}$   & 0.52 \\
-  &               & (0.276)       &      \\[6pt]
-\midrule
-\multicolumn{4}{p{10cm}}{\footnotesize \textit{Notes:} Output effects from Table~\ref{tab:output_equation}, Column (3) (Two-Way FE). Debt costs from Table~\ref{tab:debt_equation}, Columns (2)--(3) (Country FE). ``Output per Debt Unit'' is the ratio $\hat{\alpha}_F / \hat{\kappa}_F$; values $>1$ indicate that the output stabilization exceeds the fiscal cost. The DI ratio uses $\hat{\alpha}^{DI}_F = 0.244$ (lag 2) and $\hat{\kappa}^{DI}_F = 0.468$ (lag 1), reflecting the asymmetric transmission timing. CP is reported pooled in the output equation (both components contribute to stabilization as a package) and split in the debt equation (budgetary costs differ by instrument type). $^{.}p<0.10$; $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
-\end{tabular}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable:
+$\Delta b_{ik}$ (quarterly first difference of real public debt, pp of
+2019 GDP). 38 OECD countries, Q1\,2020--Q2\,2022 (380 observations).
+Standard errors clustered by country in parentheses. All fiscal
+variables in \% of 2019 GDP. Column~(1): pooled OLS. Column~(2):
+country fixed effects, pooled capacity preservation. Column~(3): CP
+disaggregated into above-the-line (wage subsidies, grants) and
+below-the-line (loans, guarantees) at face value. Column~(4):
+below-the-line adjusted for 35\% guarantee take-up rate
+\citep{imf2022fiscalmonitor}. Column~(5): three-way decomposition into
+above-the-line, government loans (actual disbursements), and credit
+guarantees (contingent liabilities, adjusted at 35\%). Loans are highly
+significant ($\hat{\kappa}^{\text{loans}} = 0.35$***, $p < 0.001$)
+while guarantees are insignificant ($p = 0.57$), consistent with the
+``whatever it takes'' logic: guarantees preserve capacity through
+announcement effects but most are never drawn, generating no realized
+debt. $F^{DI}$ enters at lag~1. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
 
-\label{sec:results}
-\begin{table}[htbp]
+%5NEXT STEPS
+%Fix Identification-> no linear trend anymore
+%Do the interpretation, what do I find? DI is nothing (both sphere)
+%Total fiscal mal noch hinzu-> schauen ob ich mit CP einen Effekt identifizieren kann und sonst nicht
+%MatLab 10 and 9 are the right Version-> See claude for conversation
+
+
+\newpage
+\begin{table}[H]
 \centering
-\caption{Output Equation: Panel Estimation Results}
-\label{tab:output_equation}
+\caption{Aggregate vs.\ Disaggregated Fiscal Policy}
+\label{tab:total_fiscal}
 \small
-\begin{tabular}{lcccc}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{} l c c c c c c @{}}
 \toprule
- & (1) & (2) & (3) & (4) \\
- & Pooled OLS & Country FE & Two-Way FE & Two-Way FE \\
+ & \multicolumn{3}{c}{Output gap ($y_{ik}$)} & \multicolumn{3}{c}{Debt change ($\Delta b_{ik}$)} \\
+ \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+ & (1) & (2) & (3) & (4) & (5) & (6) \\
+ & Disagg. & Total & Total & Disagg. & Total & Total \\
+ & (main) & + interact. & additive & (main) & contemp. & lag 1 \\
 \midrule
-$S_k$ ($-\alpha_S$)
-  & $-0.071^{**}$  & $-0.106^{***}$ & $-0.028^{*}$   & $-0.028^{*}$   \\
-  & (0.024)        & (0.018)        & (0.014)        & (0.013)        \\[4pt]
-$y_{k-1}$ ($\rho_y$)
-  & $0.622^{***}$  & $0.192^{*}$    & $0.064$        & $0.061$        \\
-  & (0.117)        & (0.087)        & (0.105)        & (0.106)        \\[4pt]
-$F^{CP}_k$ ($\alpha^{CP}_F$)
-  & $0.293^{*}$    & $0.438^{**}$   & $0.253^{***}$  & $0.252^{***}$  \\
-  & (0.145)        & (0.146)        & (0.074)        & (0.074)        \\[4pt]
-$S_k \cdot y_{k-1}$ ($\psi$)
-  & $-0.002$       & $-0.000$       & $0.004^{**}$   & $0.004^{**}$   \\
-  & (0.003)        & (0.002)        & (0.001)        & (0.001)        \\[4pt]
-$S_k \cdot F^{CP}_k$ ($\gamma$)
-  & $-0.018^{***}$ & $-0.019^{***}$ & $-0.006^{**}$  & $-0.006^{**}$  \\
-  & (0.004)        & (0.003)        & (0.002)        & (0.002)        \\[4pt]
-$F^{DI}_{k-2}$
-  & $0.828^{***}$  & $0.503^{***}$  & $0.244^{*}$    &                \\
-  & (0.203)        & (0.101)        & (0.119)        &                \\[4pt]
-$F^{DI}_{k-1}$
-  &                &                &                & $-0.017$       \\
-  &                &                &                & (0.095)        \\[4pt]
+$F^{CP}_{ik}$
+  & $0.262$** &         &         & $0.159$** &         &  \\
+  & (0.089)   &         &         & (0.048)   &         &  \\[3pt]
+$S \times F^{CP}_{ik}$
+  & $-0.008$* &         &         &           &         &  \\
+  & (0.003)   &         &         &           &         &  \\[3pt]
+$F^{DI}_{i,k-2}$
+  & $0.195$.  &         &         & $-0.022$  &         &  \\
+  & (0.114)   &         &         & (0.197)   &         &  \\[3pt]
+$F^{\text{total}}_{ik}$
+  &           & $0.242$**& $0.014$ &           & $0.147$***& $0.068$ \\
+  &           & (0.085) & (0.043) &           & (0.039)  & (0.046) \\[3pt]
+$S \times F^{\text{total}}_{ik}$
+  &           & $-0.007$**&        &           &          &  \\
+  &           & (0.003)  &        &           &          &  \\[3pt]
 \midrule
-Country FE       & No  & Yes & Yes & Yes \\
-Quarter FE       & No  & No  & Yes & Yes \\
-SE               & HC1 & HC1 & HC1 & HC1 \\
-Observations     & 342 & 342 & 342 & 342 \\
-Countries        & 38  & 38  & 38  & 38  \\
+Interactions    & Yes & Yes & No  & No  & No  & No \\
+Within $R^2$    & 0.281 & 0.280 & 0.246 & 0.210 & 0.212 & 0.182 \\
+Observations    & 380 & 380 & 380 & 380 & 380 & 380 \\
 \bottomrule
-\multicolumn{5}{p{12cm}}{\footnotesize \textit{Notes:} Dependent variable is the real output gap $y_k$ (pp deviation from HP-filtered potential). $S_k$ is the Oxford Stringency Index (0--100). $F^{CP}_k$ and $F^{DI}_k$ are fiscal flows in \% of 2019 GDP. Column (3) is the main specification. HC1 cluster-robust standard errors (clustered by country) in parentheses. Sample: 38 OECD countries, Q1.2020--Q1.2022. $^{*}p<0.10$; $^{**}p<0.05$; $^{***}p<0.01$.} \\
 \end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\footnotesize\textit{Notes:} Columns (1)--(3):
+dependent variable is the output gap $y_{ik}$ (pp of potential GDP),
+TWFE (country + quarter FE). Columns (4)--(6): dependent variable is
+$\Delta b_{ik}$ (pp of 2019 GDP), country FE. All specifications
+include $y_{ik}$, $y_{i,k-1}$, and the fear term (cols.\ 1--3). Column
+(1): main specification with disaggregated CP and DI. Column (2):
+aggregate fiscal with $S \times F^{\text{total}}$ interaction. Column
+(3): aggregate fiscal, additive (no interactions). Column (4): main
+debt specification. Columns (5)--(6): aggregate fiscal at different
+lags. Aggregate fiscal is insignificant for output without the
+interaction structure (col.\ 3) and loses significance at lag~1 for
+debt (col.\ 6). Standard errors clustered by country. . $p<0.1$,
+* $p<0.05$, ** $p<0.01$, *** $p<0.001$.}
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Debt Equation: Panel Estimation Results}
-\label{tab:debt_equation}
-\small
-\begin{tabular}{lcccc}
-\toprule
- & (1) & (2) & (3) & (4) \\
- & Pooled OLS & Country FE & Country FE & First Diff. \\
- &            & (pooled CP)& (split CP) &  (split CP) \\
-\midrule
-$y_k$ ($-\gamma_y$)
-  & $-0.131^{***}$ & $-0.206^{***}$ & $-0.191^{***}$ & $-0.188^{***}$ \\
-  & (0.030)        & (0.049)        & (0.050)        & (0.045)        \\[4pt]
-$F^{CP}_k$ ($\kappa^{CP}$)
-  & $0.243^{***}$  & $0.193^{**}$   &                &                \\
-  & (0.058)        & (0.066)        &                &                \\[4pt]
-$F^{CP,above}_k$ ($\kappa^{CP}_{above}$)
-  &                &                & $0.521^{.}$    & $0.628^{*}$    \\
-  &                &                & (0.267)        & (0.274)        \\[4pt]
-$F^{CP,below}_k$ ($\kappa^{CP}_{below}$)
-  &                &                & $0.466^{**}$   & $0.507^{*}$    \\
-  &                &                & (0.168)        & (0.202)        \\[4pt]
-$F^{DI}_{k-1}$ ($\kappa^{DI}$)
-  & $0.551^{.}$    & $0.475^{.}$    & $0.468^{.}$    & $0.521^{*}$    \\
-  & (0.313)        & (0.262)        & (0.276)        & (0.218)        \\[4pt]
-Linear trend
-  & $-0.090$       & $-0.069$       & $-0.072$       &                \\
-  & (0.070)        & (0.070)        & (0.072)        &                \\[4pt]
-\midrule
-Country FE       & No  & Yes & Yes & (FD) \\
-Quarter FE       & No  & No  & No  & No   \\
-SE               & HC1 & HC1 & HC1 & HC1  \\
-Observations     & 418 & 418 & 418 & 380  \\
-Countries        & 38  & 38  & 38  & 38   \\
-\bottomrule
-\multicolumn{5}{p{12cm}}{\footnotesize \textit{Notes:} Dependent variable is the real debt change $\Delta b^R_k$ (pp of 2019 GDP per quarter). $F^{CP,above}_k$ denotes above-the-line CP (short-time work, direct grants) and $F^{CP,below}_k$ denotes below-the-line CP (loan guarantees, adjusted to 35\% estimated take-up rate). Column (3) is the main specification. HC1 cluster-robust standard errors (clustered by country) in parentheses. The Mundlak (1978) auxiliary regression rejects the unrelated effects assumption ($p = 0.006$), confirming that country fixed effects are required. Sample: 38 OECD countries, Q1.2020--Q4.2022. $^{.}p<0.10$; $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
-\end{tabular}
-\end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Policy Efficiency Matrix: Output Stabilization vs.\ Fiscal Costs}
-\label{tab:policy_matrix}
-\small
-\begin{tabular}{lccc}
-\toprule
- & Output Effect & Debt Cost & Output per \\
- & $\hat{\alpha}_F$ & $\hat{\kappa}_F$ & Debt Unit \\
-\midrule
-\textit{Capacity Preservation} \\[2pt]
-\quad Pooled CP
-  & $0.253^{***}$ & $0.193^{**}$  & 1.31 \\
-  & (0.074)       & (0.066)       &      \\[4pt]
-\quad Above-the-line (STW)
-  & ---           & $0.521^{.}$   & ---  \\
-  &               & (0.267)       &      \\[4pt]
-\quad Below-the-line (Guarantees, adj.)
-  & ---           & $0.466^{**}$  & ---  \\
-  &               & (0.168)       &      \\[6pt]
-\textit{Demand Injection} \\[2pt]
-\quad $F^{DI}_{k-2}$ on output
-  & $0.244^{*}$   &               &      \\
-  & (0.119)       &               &      \\[4pt]
-\quad $F^{DI}_{k-1}$ on debt
-  &               & $0.468^{.}$   & 0.52 \\
-  &               & (0.276)       &      \\[6pt]
-\midrule
-\multicolumn{4}{p{10cm}}{\footnotesize \textit{Notes:} Output effects from Table~\ref{tab:output_equation}, Column (3) (Two-Way FE). Debt costs from Table~\ref{tab:debt_equation}, Columns (2)--(3) (Country FE). ``Output per Debt Unit'' is the ratio $\hat{\alpha}_F / \hat{\kappa}_F$; values $>1$ indicate that the output stabilization exceeds the fiscal cost. The DI ratio uses $\hat{\alpha}^{DI}_F = 0.244$ (lag 2) and $\hat{\kappa}^{DI}_F = 0.468$ (lag 1), reflecting the asymmetric transmission timing. CP is reported pooled in the output equation (both components contribute to stabilization as a package) and split in the debt equation (budgetary costs differ by instrument type). $^{.}p<0.10$; $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
-\end{tabular}
-\end{table}
-
+\newpage
 
 \section{Conclusion}
 
@@ -1595,261 +1496,6 @@ These parameters, together with the epidemiological parameters ($\rho_\theta$, $
 
 \newpage
 
-\section{iLQR WIE WEITER}
-% ============================================================
-% iLQR Implementation Plan — Next Steps
-% ============================================================
-
-% ============================================================
-% STEP 1: Parameter Finalization (1 week)
-% ============================================================
-%
-% 1a. Replace placeholder epidemiological parameters in ALV6
-%     with wave-specific literature values (see calibration table).
-%     Key: delta_theta_base = 0.10 → 0.020.
-%
-% 1b. Insert empirical estimates from the TWFE/debt regressions.
-%     CRITICAL: verify unit consistency. The empirical estimates
-%     use S in [0,100] and F in % of GDP. The MATLAB code uses
-%     S in [0,1] and F as fractions. The current ALV6 has
-%     alpha_S = 2.78 and eta_tilde = -0.607, which appear to
-%     be the empirical coefficients × 100. Document the mapping
-%     explicitly in a comment block.
-%
-% 1c. Set country-specific initial conditions x0 = (y0, d0, b0,
-%     theta0, z0)' from Q4.2019 data (all zeros by construction,
-%     since variables are deviations from pre-pandemic baseline).
-%     The wave_shock_vec provides the exogenous theta impulse.
-%
-% 1d. Validation run: simulate the no-intervention trajectory
-%     (S=0, F=0) and verify that (a) theta explodes as expected,
-%     (b) output gap follows rho_y persistence, (c) debt
-%     accumulates through automatic stabilizers alone.
-
-
-% ============================================================
-% STEP 2: Objective Function Weights (2 weeks — hardest step)
-% ============================================================
-%
-% The weights (w_y, w_d, w_b) determine the Pareto frontier.
-% Three complementary approaches:
-%
-% 2a. NORMALIZATION BASELINE
-%     Make the three state dimensions commensurable. The raw units
-%     are: y in pp of GDP, d in per-capita death rate, b in pp of
-%     GDP. Without normalization, the optimizer ignores whichever
-%     dimension has the smallest numerical scale.
-%     → Normalize each weight by the inverse variance of the
-%       corresponding state variable in the OECD sample:
-%       w_y^0 = 1/Var(y), w_d^0 = 1/Var(d), w_b^0 = 1/Var(b).
-%       This gives an "equal attention" baseline.
-%
-% 2b. VSL-BASED ANCHOR
-%     The Value of a Statistical Life provides a welfare-theoretic
-%     bridge between mortality and output:
-%       w_d / w_y = VSL × (population) / GDP
-%     OECD median VSL ≈ $3–5M (Viscusi & Masterman 2017, JBCA).
-%     This pins the relative weight of deaths vs. output.
-%     Hall, Jones & Klenow (2020, BPEA) provide a pandemic-
-%     specific calibration: VSL implies willingness to pay
-%     ~35% of GDP to avoid the mortality risk of uncontrolled
-%     COVID. Use this as a cross-check.
-%
-% 2c. PARETO SWEEP (the main result)
-%     Systematically vary (w_y, w_d, w_b) on a grid.
-%     Fix w_y = 1 as numeraire. Sweep w_d ∈ {0.1, 0.5, 1, 5, 10}
-%     and w_b ∈ {0.01, 0.05, 0.1, 0.5, 1}. For each combination:
-%     solve the iLQR → record cumulative (Y, D, B) outcomes.
-%     This traces the 3D Pareto frontier.
-%     The VSL-based anchor identifies a "focal point" on the
-%     frontier; the sweep shows how outcomes change around it.
-%
-% 2d. CONTROL COSTS (r_S, r_DI, r_CP)
-%     These should be small relative to state costs — they
-%     represent implementation frictions, not welfare costs.
-%     Set r_S = 0.01 × w_y, r_DI = r_CP = 0.001 × w_y.
-%     Robustness: verify that results are insensitive to 10×
-%     changes in control costs.
-%
-% 2e. TERMINAL COST W_b
-%     W_b captures the post-pandemic cost of debt. Calibrate from
-%     the post-2021 interest rate environment: if r rises by
-%     Δr ≈ 2pp (observed 2022–2023), the annual servicing cost
-%     of excess debt b_N is Δr × b_N. Capitalize this at the
-%     post-pandemic discount rate to get W_b.
-%     Alternative: set W_b = w_b × (1+r)^T for some T reflecting
-%     the expected debt repayment horizon.
-
-
-% ============================================================
-% STEP 3: Baseline Solve — OECD Representative Planner (1 week)
-% ============================================================
-%
-% 3a. Use OECD-average initial conditions and OECD-average
-%     wave shock sequence. Solve the full optimization over
-%     (S, F_DI, F_CP) jointly. This produces the "unconstrained
-%     optimum" — the benchmark trajectory.
-%
-% 3b. Inspect the optimal trajectories:
-%     - Does S respond to theta shocks as expected?
-%     - Does CP dominate DI during high-S phases?
-%     - Does the composition shift toward DI as S declines?
-%     - Is the debt trajectory bounded?
-%     If any of these fail, the parameter calibration needs
-%     adjustment before proceeding.
-%
-% 3c. Compute the K_k matrices. Inspect:
-%     - K_k(1,:): how does optimal S respond to each state?
-%     - K_k(2,:): how does optimal DI respond?
-%     - K_k(3,:): how does optimal CP respond?
-%     These are the "state-contingent policy functions" described
-%     in Section 3.1 of the paper.
-%
-% 3d. Multi-start verification: solve from 50 random
-%     initializations, confirm all converge to same J*.
-
-
-% ============================================================
-% STEP 4: Country-Specific Counterfactuals (2 weeks)
-% ============================================================
-%
-% This is the PRIMARY counterfactual exercise and the main
-% empirical result of the paper.
-%
-% 4a. CONDITIONAL OPTIMUM (S fixed, fiscal optimized)
-%     For each country i = 1,...,38:
-%     - Fix S_k^i at the observed containment trajectory
-%     - Set theta trajectory from observed data (or simulate
-%       from observed S using the theta equation)
-%     - Optimize only (F_DI, F_CP) given the fixed S and theta
-%     - Record: optimal (F_DI*, F_CP*), resulting (y*, b*)
-%     - Compare against observed (F_DI^i, F_CP^i, y^i, b^i)
-%     - Compute: excess debt = b^i_N - b*_N
-%
-%     Implementation: modify ALV6 to fix u(1) = S_observed
-%     and optimize only u(2:3). Simplest approach: set r_S to
-%     a very large number and initialize S at observed values.
-%     Better: modify the code to treat S as exogenous data.
-%
-% 4b. FULL OPTIMUM (all instruments optimized)
-%     For each country i: solve the unconstrained problem with
-%     country-specific x0 and theta shocks. This gives the upper
-%     bound on welfare gains from joint optimization.
-%
-% 4c. DECOMPOSITION
-%     Total welfare gap = (observed) - (full optimum)
-%     = [(observed) - (conditional optimum)]
-%       + [(conditional optimum) - (full optimum)]
-%     = "composition gap" + "containment gap"
-%     The first term isolates the fiscal composition margin.
-%     The second isolates the containment margin.
-
-
-% ============================================================
-% STEP 5: Pareto Frontier (1 week)
-% ============================================================
-%
-% 5a. For the OECD-average planner, sweep weights (Step 2c)
-%     and record the cumulative outcome triple (Y^*, D^*, B^*)
-%     for each weight combination. Plot the 3D frontier.
-%
-% 5b. Locate each country's observed outcome (Y^i, D^i, B^i)
-%     relative to the frontier.
-%     - Distance to frontier = efficiency loss
-%     - Position on frontier = revealed preference
-%
-% 5c. Key plots for the paper:
-%     - 3D Pareto frontier with country points
-%     - 2D projections: (Y,B), (D,B), (Y,D) with frontier curve
-%     - Composition share (CP/total) along the frontier
-
-
-% ============================================================
-% STEP 6: Robustness (1 week)
-% ============================================================
-%
-% 6a. Parameter uncertainty: re-solve at the 5th/95th percentile
-%     of each estimated parameter (from bootstrap CIs).
-%
-% 6b. Weight sensitivity: show that the RANKING of countries
-%     (distance to frontier) is robust to weight choices, even
-%     if the LEVELS change.
-%
-% 6c. Horizon sensitivity: solve with N = 7 (Q2.2021) and
-%     N = 9 (Q4.2021) to verify robustness to endpoint choice.
-%
-% 6d. Alternative CP split: re-solve using above-the-line
-%     kappa_CP only (excluding guarantees).
-
-
-% ============================================================
-% LITERATURE: iLQR AND RELATED METHODS
-% ============================================================
-%
-% iLQR is a robotics/control method. There are NO economics
-% papers using iLQR. Your application is genuinely novel.
-% The relevant references split into two groups:
-%
-% ALGORITHMIC FOUNDATIONS (for the method):
-%
-% Li & Todorov (2004) — original iLQR paper
-%   "Iterative Linear Quadratic Regulator Design for Nonlinear
-%   Biological Movement Systems," ICINCO.
-%   → Establishes the iterative linearization + LQR backward
-%     pass framework. Your baseline algorithm.
-%
-% Tassa, Mansard & Todorov (2014)
-%   "Control-Limited Differential Dynamic Programming," ICRA.
-%   → Adds box constraints via clamping and regularization.
-%   Your Levenberg-Marquardt regularization comes from here.
-%
-% Jackson (2019) — AL-iLQR Tutorial
-%   → Already in your literature folder. The Augmented Lagrangian
-%   constraint handling in ALV6 follows this directly.
-%
-% Sharma & Chakravorty (2025)
-%   "A Sequential Quadratic Programming Perspective on Optimal
-%   Control," arXiv:2510.03475.
-%   → Shows iLQR is a principled SQP method with guaranteed
-%   cost-descent (unlike DDP). Useful for your convergence
-%   discussion in the appendix.
-%
-% Abhijeet & Chakravorty (2026)
-%   "Safe Optimal Control using Log Barrier Constrained iLQR,"
-%   arXiv:2602.05046.
-%   → Alternative to AL for box constraints. Could cite as
-%   robustness alternative.
-%
-% ECONOMICS ANALOG (for the application context):
-%
-% The closest economics precedent is the LQ optimal policy
-% tradition in monetary economics:
-%
-% Svensson (1999) — "Inflation Forecast Targeting," JME.
-%   → Social planner minimizes quadratic loss over inflation
-%   and output gap, subject to linear Phillips curve. Your
-%   framework is a nonlinear, multi-instrument generalization.
-%
-% Woodford (2003) — "Interest and Prices," Ch. 6.
-%   → Derives the quadratic loss function as a second-order
-%   approximation to household welfare. Your footnote on the
-%   Woodford approximation connects to this.
-%
-% In the pandemic-macro literature, nobody uses iLQR:
-%
-% Alvarez et al. (2021) — Pontryagin (continuous, scalar)
-% Eichenbaum et al. (2021) — Ramsey (competitive equilibrium)
-% Acemoglu et al. (2021) — Pontryagin (multi-group, scalar per group)
-% Kaplan et al. (2020) — no optimization (scenario evaluation)
-%
-% Your contribution is applying the iLQR framework — which
-% handles multi-instrument, nonlinear, constrained problems
-% naturally — to the pandemic policy setting. The method's
-% strength is precisely that it scales to the 3-control,
-% 5-state problem without requiring the analytical solutions
-% that Pontryagin demands or the equilibrium restrictions
-% that Ramsey imposes.
-\newpage
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -2066,59 +1712,370 @@ Let economic output $Y_k$ be a decreasing function of suppression $S_k$. The pol
     Therefore, the planner is forced to accept economic costs (set $S_k > 0$) solely because $\delta_\theta > 0$. The trade-off is conditional on the simultaneous existence of lethality and transmissibility.
 \end{proof}
 
-\section{Analyticial Analysis: A.1 System Definition}
+%%%Numerical Solution
 
-The nonlinear discrete-time system is defined by the state vector $x_k = (y_k, d_k, b_k, \theta_k)'$ and the control vector $u_k = (S_k, F_k^{DI}, F_k^{CP})'$. The transition equations are:
+% =============================================================================
+%  CONSOLIDATED APPENDIX: Analytical Framework and iLQR Derivation
+%  Replaces: "Analyticial Analysis" (old, single-channel)
+%            + "Derivation of the Optimal Control Law" (generic LQR)
+%            + "iLQR Derivation for the Augmented System" (correct but partial)
+%  Aligned with: main.tex Section 3 and pandemic_sequentialALV6.m
+%  Last updated: April 2026
+% =============================================================================
+
+\section{Analytical Framework}
+\label{app:analytical}
+
+% -----------------------------------------------------------------------------
+\subsection{Transition System and Augmented State Space}
+\label{app:system}
+
+The transition system from Section~\ref{sec:nonlinear} contains the lagged term
+$F_{k-1}^{DI}$ in the output equation, which violates the first-order Markov
+property required by the iLQR algorithm. Introducing the auxiliary state
+$z_k \equiv F_{k-1}^{DI}$ and the augmented state vector
+$\tilde{\bm{x}}_k = (y_k,\, d_k,\, b_k,\, \theta_k,\, z_k)' \in \mathbb{R}^5$,
+the system becomes:
 %
 \begin{align}
-    y_{k+1} &= \left[\rho_y + \psi \, S_k - \eta \, F_k^{CP}\right] y_k
-      - \alpha_S \, S_k + \alpha_F^{DI} \, F_k^{DI}
-    \label{eq:y_trans} \\[6pt]
-    d_{k+1} &= \delta_\theta \, \theta_k
-    \label{eq:d_trans} \\[6pt]
-    b_{k+1} &= (1+r) \, b_k - \gamma_y \, y_k
-      + \kappa_F^{DI} \, F_k^{DI} + \kappa_F^{CP} \, F_k^{CP} + c_k^{H}
-    \label{eq:b_trans} \\[6pt]
-    \theta_{k+1} &= \rho_\theta (1 - \phi_S \, S_k) \, \theta_k + \varepsilon_k
-    \label{eq:theta_trans}
+    y_{k+1} &= \rho_y\, y_k
+              + (\psi\, y_k - \alpha_S)\, S_k
+              + (\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k)\, F_k^{CP}
+              + \alpha_F^{DI}\, z_k
+              + \beta_d\, d_k
+    \label{eq:y_aug} \\[1ex]
+    d_{k+1} &= \delta_\theta(k)\, \theta_k
+    \label{eq:d_aug} \\[1ex]
+    b_{k+1} &= (1+r)\, b_k - \gamma_y\, y_k
+              + \kappa^{CP}\, F_k^{CP}
+              + \kappa^{DI}\, F_k^{DI}
+              + c_H\, \theta_k
+    \label{eq:b_aug} \\[1ex]
+    \theta_{k+1} &= \rho_\theta(k)\bigl(1 - \phi_S\, S_k\bigr)\,\theta_k
+              + \varepsilon_k
+    \label{eq:theta_aug} \\[1ex]
+    z_{k+1} &= F_k^{DI}
+    \label{eq:z_aug}
 \end{align}
 %
-with exogenous health expenditures $c_k^H$ and stochastic shock $\varepsilon_k$ with $E[\varepsilon_k] = 0$.
+The disturbance selection vector is
+$\tilde{\bm{G}} = (0,\, 0,\, 0,\, 1,\, 0)' \in \mathbb{R}^5$, so that
+$\tilde{\bm{x}}_{k+1} = f(\tilde{\bm{x}}_k,\, \bm{u}_k,\, k) +
+\tilde{\bm{G}}\,\varepsilon_k$. The epidemiological parameters $\rho_\theta(k)$
+and $\delta_\theta(k)$ are time-varying across pandemic waves; their
+wave-specific values are reported in Table~\ref{tab:wave_specific}.
 
-\subsection*{A.2 Jacobian Matrices}
+The asymmetry in the timing of fiscal instruments---$\kappa^{DI}\, F_k^{DI}$
+(contemporaneous) in the debt equation versus $\alpha_F^{DI}\, z_k =
+\alpha_F^{DI}\, F_{k-1}^{DI}$ (lagged) in the output equation---reflects the
+institutional sequence: demand injection commits the budget at authorization
+($k$), but reaches aggregate spending with a disbursement-to-expenditure delay
+identified empirically as approximately two quarters
+(Section~\ref{sec:estimation}).
 
-The linearization around a trajectory $(\bar{x}_k, \bar{u}_k)$ yields the time-varying system $\delta x_{k+1} \approx A_k \, \delta x_k + B_k \, \delta u_k$, where:
+% -----------------------------------------------------------------------------
+\subsection{Jacobian Matrices}
+\label{app:jacobians}
+
+The linearization around a nominal trajectory
+$(\bar{\bm{x}}_k,\, \bar{\bm{u}}_k)$ yields the time-varying affine
+approximation
+$\delta\bm{x}_{k+1} \approx \tilde{\bm{A}}_k\,\delta\bm{x}_k +
+\tilde{\bm{B}}_k\,\delta\bm{u}_k$, where:
 %
 \begin{equation}
-    A_k = \frac{\partial f}{\partial x_k} \bigg|_{(\bar{x}_k, \bar{u}_k)} =
-    \begin{pmatrix}
-        \rho_y + \psi \bar{S}_k - \eta \bar{F}_k^{CP} & 0 & 0 & 0 \\
-        0 & 0 & 0 & \delta_\theta \\
-        -\gamma_y & 0 & (1+r) & 0 \\
-        0 & 0 & 0 & \rho_\theta(1 - \phi_S \bar{S}_k)
-    \end{pmatrix}
-    \label{eq:A_k}
+\tilde{\bm{A}}_k =
+\frac{\partial f}{\partial \bm{x}_k}\bigg|_{(\bar{\bm{x}}_k,\,\bar{\bm{u}}_k)}
+= \begin{pmatrix}
+\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP}
+    & \beta_d & 0 & 0 & \alpha_F^{DI} \\[3pt]
+0 & 0 & 0 & \delta_\theta(k) & 0 \\[3pt]
+-\gamma_y & 0 & (1+r) & c_H & 0 \\[3pt]
+0 & 0 & 0 & \rho_\theta(k)(1-\phi_S\,\bar{S}_k) & 0 \\[3pt]
+0 & 0 & 0 & 0 & 0
+\end{pmatrix}
+\label{eq:Ak_aug}
 \end{equation}
 %
 \begin{equation}
-    B_k = \frac{\partial f}{\partial u_k} \bigg|_{(\bar{x}_k, \bar{u}_k)} =
-    \begin{pmatrix}
-        \psi \bar{y}_k - \alpha_S & \alpha_F^{DI} & -\eta \bar{y}_k \\
-        0 & 0 & 0 \\
-        0 & \kappa_F^{DI} & \kappa_F^{CP} \\
-        -\phi_S \rho_\theta \bar{\theta}_k & 0 & 0
-    \end{pmatrix}
-    \label{eq:B_k}
+\tilde{\bm{B}}_k =
+\frac{\partial f}{\partial \bm{u}_k}\bigg|_{(\bar{\bm{x}}_k,\,\bar{\bm{u}}_k)}
+= \begin{pmatrix}
+\psi\,\bar{y}_k - \alpha_S + \tilde{\eta}\,\bar{F}_k^{CP}
+    & 0
+    & \alpha_F^{CP} + \tilde{\eta}\,\bar{S}_k - \eta_p\,\bar{y}_k \\[3pt]
+0 & 0 & 0 \\[3pt]
+0 & \kappa^{DI} & \kappa^{CP} \\[3pt]
+-\rho_\theta(k)\,\phi_S\,\bar{\theta}_k & 0 & 0 \\[3pt]
+0 & 1 & 0
+\end{pmatrix}
+\label{eq:Bk_aug}
 \end{equation}
-
-\paragraph{Rank and controllability.} Since $\text{rank}(B_k) = 3 < 4 = \dim(x)$, the mortality state $d_k$ is not directly controllable. It is reachable through the chain $S_k \to \theta_{k+1} \to d_{k+2}$ via the compound $A_k B_k$, which has a nonzero entry in the second row equal to $-\delta_\theta \phi_S \rho_\theta \bar{\theta}_k$. The full controllability matrix $\mathcal{C} = [B_k \; A_k B_k \; A_k^2 B_k \; A_k^3 B_k]$ has full row rank under the non-degeneracy conditions $\delta_\theta, \phi_S, \rho_\theta, \alpha_S, \alpha_F^{DI}, \kappa_F^{DI}, \theta_k \neq 0$.
-
-% ============================================================
-\subsection*{A.3 Three-Period Forward Iteration}
-\label{subsec:iteration}
-% ============================================================
-
 %
+The output row of $\tilde{\bm{B}}_k$ encodes the three CP channels
+established in Property~3:
+$\partial y_{k+1}/\partial F_k^{CP} =
+\alpha_F^{CP} + \tilde{\eta}\,\bar{S}_k - \eta_p\,\bar{y}_k$, where
+$\alpha_F^{CP}$ is the level effect (Section~\ref{subsec:property3_level}),
+$\tilde{\eta}\,\bar{S}_k$ is the contemporaneous cushioning channel
+(Section~\ref{subsec:property3_cushioning}), and
+$-\eta_p\,\bar{y}_k$ is the structural persistence reduction
+(Section~\ref{subsec:property3_persistence}). The containment column
+$\tilde{\bm{B}}_k[\cdot, 1]$ similarly contains the cushioning interaction
+$\tilde{\eta}\,\bar{F}_k^{CP}$: the marginal output cost of lockdown is
+reduced when CP is deployed, formalizing the enabling role of capacity
+preservation for containment policy.
+
+% -----------------------------------------------------------------------------
+\subsection{Eigenvalue Structure and Stability}
+\label{app:stability}
+
+The augmented system matrix $\tilde{\bm{A}}_k$ is block-triangular, so its
+eigenvalues coincide with the diagonal entries:
+%
+\begin{align}
+    \lambda_1^k &= \rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP}
+        && \text{(output persistence)}
+    \label{eq:lam1} \\[3pt]
+    \lambda_2   &= 0
+        && \text{(mortality: memoryless)}
+    \label{eq:lam2} \\[3pt]
+    \lambda_3   &= 1 + r
+        && \text{(debt: unconditionally unstable)}
+    \label{eq:lam3} \\[3pt]
+    \lambda_4^k &= \rho_\theta(k)\bigl(1 - \phi_S\,\bar{S}_k\bigr)
+        && \text{(epidemiology: conditionally unstable)}
+    \label{eq:lam4} \\[3pt]
+    \lambda_5   &= 0
+        && \text{(auxiliary state: bookkeeping)}
+    \label{eq:lam5}
+\end{align}
+
+\paragraph{Unconditionally unstable: debt.}
+For any positive real interest rate, $\lambda_3 = 1 + r > 1$ lies outside the
+unit circle regardless of the planner's policy choices. No element of the control
+vector enters $\tilde{\bm{A}}_k[3,3]$. During the pandemic, both off-diagonal
+forces---the automatic stabilizer channel ($-\gamma_y\, y_k > 0$ when
+$y_k < 0$) and discretionary fiscal support
+($\kappa^{DI}\, F_k^{DI} + \kappa^{CP}\, F_k^{CP} > 0$)---reinforce the
+explosive tendency.
+
+\paragraph{Conditionally unstable: epidemiology.}
+The infection eigenvalue exceeds unity when suppression is insufficient:
+%
+\begin{equation}
+    \lambda_4^k \geq 1
+    \quad\Longleftrightarrow\quad
+    S_k < \underline{S} \equiv
+    \frac{1 - 1/\rho_\theta(k)}{\phi_S}
+    \label{eq:S_threshold}
+\end{equation}
+%
+Below this threshold the epidemic grows despite intervention. The threshold
+is time-variant across waves (through $\rho_\theta(k)$) but independent of
+the current prevalence $\theta_k$: the \textit{level} of infections determines
+the death toll, while the \textit{stability} of the epidemiological state depends
+only on the structural parameters $\rho_\theta$ and $\phi_S$.
+
+\paragraph{Conditionally unstable: output.}
+In the absence of a pandemic ($S_k = 0$, $F_k^{CP} = 0$), $\lambda_1 = \rho_y
+< 1$ and the economy is self-stabilizing. Containment increases the eigenvalue
+by $\psi\, S_k$ (hysteresis); capacity preservation reduces it by
+$\eta_p\, F_k^{CP}$ (persistence reduction). The critical condition is:
+%
+\begin{equation}
+    \lambda_1^k \geq 1
+    \quad\Longleftrightarrow\quad
+    F_k^{CP} < \underline{F}^{CP}(S_k) \equiv
+    \frac{\psi\, S_k - (1 - \rho_y)}{\eta_p}
+    \label{eq:CP_threshold}
+\end{equation}
+%
+This threshold is positive only when $\psi\, S_k > 1 - \rho_y$, i.e., when the
+lockdown overcomes the economy's natural stability margin. A stricter lockdown
+requires more capacity preservation to prevent the output state from becoming
+explosive.
+
+\paragraph{Cascading instabilities.}
+The planner faces a cascading stabilization problem:
+\begin{enumerate}
+    \item The epidemiological instability ($\lambda_4 > 1$) necessitates
+    containment ($S_k > \underline{S}$).
+
+    \item Containment destabilizes the output dimension ($\lambda_1$ increases
+    toward and potentially beyond unity), necessitating capacity preservation
+    ($F_k^{CP} > \underline{F}^{CP}(S_k)$).
+
+    \item The resulting output gap ($y_k < 0$) widens the deficit through
+    automatic stabilizers ($-\gamma_y\, y_k > 0$), necessitating demand
+    injection ($F_k^{DI} > 0$) to close the gap.
+
+    \item Both fiscal instruments augment the unconditionally unstable debt
+    state, which cannot be stabilized by any available control.
+\end{enumerate}
+%
+Each stabilizing action on one dimension contributes to the instability of at
+least one other. This cascade formalizes the trilemma as a dynamical systems
+problem.
+
+% -----------------------------------------------------------------------------
+\subsection{Controllability}
+\label{app:controllability}
+
+Since $\operatorname{rank}(\tilde{\bm{B}}_k) = 3 < 5 =
+\dim(\tilde{\bm{x}})$, the mortality state $d_k$ and the auxiliary state $z_k$
+are not directly controllable. However, the controllability matrix
+$\mathcal{C}_k = [\tilde{\bm{B}}_k \;\;
+\tilde{\bm{A}}_k\tilde{\bm{B}}_k \;\; \cdots \;\;
+\tilde{\bm{A}}_k^4\tilde{\bm{B}}_k]$ has full row rank under non-degeneracy
+conditions ($\delta_\theta,\, \phi_S,\, \alpha_S,\, \alpha_F^{DI},\,
+\kappa^{DI},\, \kappa^{CP} \neq 0$ and $\bar{\theta}_k,\, \bar{y}_k \neq 0$).
+Mortality is reachable through $\tilde{\bm{A}}_k\tilde{\bm{B}}_k$ via the
+composite parameter $\delta_\theta\,\rho_\theta\,\phi_S\,\bar{\theta}_k$,
+confirming the two-period transmission lag $S_k \to \theta_{k+1} \to d_{k+2}$.
+
+% -----------------------------------------------------------------------------
+\subsection{Optimality Conditions}
+\label{app:optimality}
+
+The planner minimizes the intertemporal cost~(\ref{eq:objective1}) subject to the
+augmented transition~(\ref{eq:y_aug})--(\ref{eq:z_aug}). The Bellman equation for
+the cost-to-go $V_k(\bm{x}_k)$ is:
+%
+\begin{equation}
+    V_k(\bm{x}_k) = \min_{\bm{u}_k}\left\{
+    \tfrac{1}{2}\bm{x}_k'\,\bm{Q}_k\,\bm{x}_k
+    + \tfrac{1}{2}\bm{u}_k'\,\bm{R}_k\,\bm{u}_k
+    + \mathbb{E}\bigl[V_{k+1}\bigl(
+    f(\bm{x}_k,\, \bm{u}_k) + \tilde{\bm{G}}\,\varepsilon_k
+    \bigr)\bigr]\right\}
+    \label{eq:bellman_aug}
+\end{equation}
+%
+with terminal condition $V_N(\bm{x}_N) = \tfrac{1}{2}\bm{x}_N'\,\bm{Q}_N\,\bm{x}_N$
+and weight matrices as in~(\ref{eq:weights}). The first-order condition yields:
+%
+\begin{equation}
+    \bm{R}_k\, \bm{u}_k + \tilde{\bm{B}}_k'\,
+    \nabla_{\bm{x}} V_{k+1}\big|_{\bm{x}_{k+1} = f(\bm{x}_k,\,\bm{u}_k)} = 0
+    \label{eq:foc_aug}
+\end{equation}
+%
+Defining the costate vector
+$\bm{p}_{k+1} = \nabla_{\bm{x}} V_{k+1}(\bm{x}_{k+1})$ with components
+$(p_{k+1}^y,\, p_{k+1}^d,\, p_{k+1}^b,\, p_{k+1}^\theta,\, p_{k+1}^z)'$
+and expanding~(\ref{eq:foc_aug}) using the structure of $\tilde{\bm{B}}_k$:
+
+\medskip
+\noindent\textit{Optimal lockdown intensity:}
+%
+\begin{equation}
+    S_k^* = -\frac{1}{2\, r_S}\left[
+    \bigl(\psi\, y_k - \alpha_S + \tilde{\eta}\, F_k^{CP}\bigr)\, p_{k+1}^y
+    \;-\; \rho_\theta\,\phi_S\,\theta_k\, p_{k+1}^\theta
+    \right]
+    \label{eq:opt_S_corr}
+\end{equation}
+%
+The lockdown balances the output cost against the epidemiological benefit. The
+term $\tilde{\eta}\, F_k^{CP}$ in the output channel reflects the enabling
+role of capacity preservation: at higher CP deployment, the marginal output
+cost of containment is reduced (since $\tilde{\eta} < 0$), permitting stricter
+lockdowns at lower welfare cost.
+
+\medskip
+\noindent\textit{Optimal demand injection:}
+%
+\begin{equation}
+    F_k^{DI*} = -\frac{1}{2\, r_{DI}}\left[
+    \kappa^{DI}\, p_{k+1}^b
+    \;+\; p_{k+1}^z
+    \right]
+    \label{eq:opt_DI_corr}
+\end{equation}
+%
+In the augmented system, DI does not affect output contemporaneously but
+operates through the auxiliary state $z_{k+1} = F_k^{DI}$. The shadow price
+$p_{k+1}^z$ captures the discounted future output benefit of current DI
+(transmitted via $\alpha_F^{DI}\, z_{k+1}$ in the next period's output
+equation). The debt cost $\kappa^{DI}\, p_{k+1}^b$ provides the counterweight.
+
+\medskip
+\noindent\textit{Optimal capacity preservation:}
+%
+\begin{equation}
+    F_k^{CP*} = -\frac{1}{2\, r_{CP}}\left[
+    \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k\bigr)\, p_{k+1}^y
+    \;+\; \kappa^{CP}\, p_{k+1}^b
+    \right]
+    \label{eq:opt_CP_corr}
+\end{equation}
+%
+The output benefit of CP operates through all three channels simultaneously.
+The level effect $\alpha_F^{CP}\, p_{k+1}^y$ is state-independent and provides
+a baseline rationale for CP deployment in any recession. The cushioning channel
+$\tilde{\eta}\, S_k\, p_{k+1}^y$ is activated by active containment---CP is
+more valuable when lockdowns are in force. The persistence channel
+$-\eta_p\, y_k\, p_{k+1}^y$ scales with the depth of the recession: in a
+deeper downturn ($y_k \ll 0$), $-\eta_p\, y_k > 0$ is larger, increasing the
+marginal value of CP. The debt cost $\kappa^{CP}\, p_{k+1}^b$ restrains
+deployment.
+
+\paragraph{Optimal fiscal composition.}
+From~(\ref{eq:opt_DI_corr}) and~(\ref{eq:opt_CP_corr}), the relative
+deployment at the optimum satisfies:
+%
+\begin{equation}
+    \frac{F_k^{DI*}}{F_k^{CP*}} =
+    \frac{r_{CP}}{r_{DI}} \cdot
+    \frac{\kappa^{DI}\, p_{k+1}^b + p_{k+1}^z}
+    {(\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k)\, p_{k+1}^y
+    + \kappa^{CP}\, p_{k+1}^b}
+    \label{eq:ratio_corr}
+\end{equation}
+%
+Since the CP output benefit
+$(\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k)$ is increasing in
+$|y_k|$ (via the $-\eta_p\, y_k$ term when $y_k < 0$) while the DI benefit
+$p_{k+1}^z$ is approximately constant in $y_k$, the ratio is decreasing in
+the depth of the recession: the optimal fiscal mix shifts toward capacity
+preservation as the crisis deepens. This confirms the result derived from the
+transition structure in Section~\ref{sec:trilemma}: CP becomes relatively more
+valuable under deep recessions with active containment, while DI provides
+constant marginal returns regardless of the state.
+
+\paragraph{Complementarity.}
+The optimal lockdown~(\ref{eq:opt_S_corr}) depends on $p_{k+1}^y$ and
+$p_{k+1}^\theta$, which are themselves functions of the entire future
+trajectory---including future fiscal policy. Through the costate recursion,
+higher expected future CP reduces $\lambda_1^k$ toward the stable region
+(via $\eta_p$), lowering the cost-to-go associated with a given output gap
+and thereby reducing $|p_{k+1}^y|$. This permits stricter lockdowns at lower
+welfare cost, formalizing the enabling role of CP for containment policy.
+
+
+% =============================================================================
+%  THREE-PERIOD FORWARD ITERATION (Corrected, Three-Channel CP)
+%  Replaces old A.3 and A.4
+%  Consistent with: eq:output (Section 3), pandemic_sequentialALV6.m
+%  Last updated: April 2026
+% =============================================================================
+
+\subsection{Three-Period Forward Iteration}
+\label{app:iteration}
+
+This section iterates the augmented transition
+system~(\ref{eq:y_aug})--(\ref{eq:z_aug}) forward for three periods from the
+pre-pandemic steady state. The exercise makes the temporal transmission of each
+instrument visible and identifies the period at which each channel first
+contributes to each state variable. To isolate the mechanism, I suppress the
+health expenditure term $c_H\,\theta_k$ (it enters additively and does not
+interact with any control), the fear channel $\beta_d\, d_k$ (it enters as a
+predetermined state-to-state coupling), and set $\varepsilon_k = 0$.
+
+Table~\ref{tab:transmission_overview} summarizes the marginal effects before
+the algebraic derivation.
+
 \begin{center}
 \small
 \begin{tabular}{lccc}
@@ -2126,1184 +2083,492 @@ The linearization around a trajectory $(\bar{x}_k, \bar{u}_k)$ yields the time-v
  & $k+1$ & $k+2$ & $k+3$ \\
 \midrule
 \textit{Containment} $S_k$ \\
-\quad Output & $\psi y_k - \alpha_S$ & propagated $\times\, \rho^{eff}$ & $+\beta_d \delta_\theta \rho_\theta \phi_S \theta_k$ \\
-\quad Debt & via $-\gamma_y y_{k+1}$ & via $-\gamma_y y_{k+2}$ & partial offset via fear \\[4pt]
+\quad Output
+  & $\psi\, y_k - \alpha_S$
+  & propagated $\times\, \rho^{\mathrm{eff}}$
+  & propagated $\times\, (\rho^{\mathrm{eff}})^2$ \\
+\quad Debt
+  & via $-\gamma_y\, y_{k+1}$
+  & via $-\gamma_y\, y_{k+2}$
+  & cumulative \\[4pt]
 \textit{Capacity Preservation} $F^{CP}_k$ \\
-\quad Output & $\alpha^{CP}_F + \tilde{\eta} S_k - \eta_p y_k$ & propagated $\times\, \rho^{eff}$ & propagated $\times\, (\rho^{eff})^2$ \\
-\quad Debt & $+\kappa^{CP}$ & via $-\gamma_y y_{k+1}$ & via $-\gamma_y y_{k+2}$ \\[4pt]
+\quad Output
+  & $\alpha_F^{CP} + \tilde{\eta}\, S_k - \eta_p\, y_k$
+  & propagated $\times\, \rho^{\mathrm{eff}}$
+  & propagated $\times\, (\rho^{\mathrm{eff}})^2$ \\
+\quad Debt
+  & $+\kappa^{CP}$
+  & $(1{+}r)\kappa^{CP} - \gamma_y\,[\text{output effect}]$
+  & cumulative \\[4pt]
 \textit{Demand Injection} $F^{DI}_k$ \\
-\quad Output & --- & $+\alpha^{DI}_F$ & propagated $\times\, \rho^{eff}$ \\
-\quad Debt & $+\kappa^{DI}$ & $+(1+r)\kappa^{DI}$ & via $-\gamma_y y_{k+2}$ \\
+\quad Output
+  & $0$ (stored as $z_{k+1}$)
+  & $+\alpha_F^{DI}$
+  & propagated $\times\, \rho^{\mathrm{eff}}$ \\
+\quad Debt
+  & $+\kappa^{DI}$
+  & $(1{+}r)\,\kappa^{DI}$
+  & $(1{+}r)^2\kappa^{DI} - \gamma_y\,\alpha_F^{DI}$ \\
 \bottomrule
 \end{tabular}
+\label{tab:transmission_overview}
 \end{center}
 
-We initialize at the pre-pandemic steady state $x_0 = (0, 0, 0, \theta_0)'$, where $\theta_0 > 0$ represents the initial outbreak. We iterate forward deterministically ($\varepsilon_k = 0$) for $k = 0, 1, 2$ and suppress $c_k^H$ for clarity (it enters additively and does not interact with any control).
+\medskip
 
+\noindent I initialize at the pre-pandemic steady state
+$\tilde{\bm{x}}_0 = (0,\, 0,\, 0,\, \theta_0,\, 0)'$, where $\theta_0 > 0$
+represents the initial outbreak and $z_0 = 0$ reflects the absence of prior
+fiscal deployment.
+
+% -----------------------------------------------------------------
 \subsubsection*{Period 0 $\to$ 1}
 
-From $y_0 = 0$, $b_0 = 0$:
+From $y_0 = 0$, $b_0 = 0$, $z_0 = 0$:
 %
 \begin{align}
-    y_1 &= -\alpha_S \, S_0 + \alpha_F^{DI} \, F_0^{DI}
-    \label{eq:y1} \\[4pt]
-    d_1 &= \delta_\theta \, \theta_0
-    \label{eq:d1} \\[4pt]
-    b_1 &= \kappa_F^{DI} \, F_0^{DI} + \kappa_F^{CP} \, F_0^{CP}
-    \label{eq:b1} \\[4pt]
-    \theta_1 &= \rho_\theta (1 - \phi_S \, S_0) \, \theta_0
-    \label{eq:theta1}
+    y_1 &= -\alpha_S\, S_0
+          \;+\; \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)\, F_0^{CP}
+    \label{eq:y1_corr} \\[4pt]
+    d_1 &= \delta_\theta\, \theta_0
+    \label{eq:d1_corr} \\[4pt]
+    b_1 &= \kappa^{DI}\, F_0^{DI} \;+\; \kappa^{CP}\, F_0^{CP}
+    \label{eq:b1_corr} \\[4pt]
+    \theta_1 &= \rho_\theta\bigl(1 - \phi_S\, S_0\bigr)\, \theta_0
+    \label{eq:theta1_corr} \\[4pt]
+    z_1 &= F_0^{DI}
+    \label{eq:z1_corr}
 \end{align}
 
-\paragraph{Interpretation.} The persistence terms vanish because $y_0 = 0$: neither the hysteresis channel ($\psi S_0 y_0 = 0$) nor the capacity preservation channel ($\eta F_0^{CP} y_0 = 0$) is operative when the economy starts at potential. The initial output gap is determined entirely by the direct contractionary shock ($-\alpha_S S_0$) and the demand injection ($\alpha_F^{DI} F_0^{DI}$). Capacity preservation enters only through the debt equation ($\kappa_F^{CP} F_0^{CP}$)---in the first period, CP has \textit{no output effect}, only a fiscal cost. Its value materializes in subsequent periods through the persistence channel.
+\paragraph{Interpretation.}
+The hysteresis channel ($\psi\, S_0\, y_0 = 0$) and the persistence-reduction
+channel ($\eta_p\, y_0\, F_0^{CP} = 0$) are both inoperative when the economy
+starts at potential---they activate only when an output gap exists. However,
+unlike the single-channel specification, the \textit{level effect}
+$\alpha_F^{CP}$ and the \textit{cushioning channel}
+$\tilde{\eta}\, S_0$ are operative from the first period. These
+channels transmit contemporaneously: CP deployed alongside a lockdown partially
+offsets the contractionary impact within the same quarter. This is the
+empirical content of Property~3: at the estimated
+$\tilde{\eta} < 0$, the cushioning channel \textit{reduces} the net CP
+effect under strict containment (the physical constraint on economic activity
+limits how much CP can achieve), while the level effect provides a baseline
+output benefit regardless of the containment regime.
 
-Mortality in period 1 is predetermined: $d_1 = \delta_\theta \theta_0$ is independent of all controls. The planner's first-period actions cannot prevent deaths that are already determined by the initial infection level---the irreducible policy lag.
+Demand injection has no output effect in period~1 ($\alpha_F^{DI}\, z_0 = 0$)
+because no prior DI exists. Its output effect materializes with a two-period
+lag: $F_0^{DI}$ is stored as $z_1$ and enters $y_2$ in the next transition. DI
+does, however, commit the budget immediately ($\kappa^{DI}\, F_0^{DI}$
+in~(\ref{eq:b1_corr})), reflecting the institutional reality that fiscal
+authorization precedes disbursement.
 
+Mortality in period~1 is predetermined: $d_1 = \delta_\theta\, \theta_0$
+depends only on the initial infection level and is independent of all controls.
+
+% -----------------------------------------------------------------
 \subsubsection*{Period 1 $\to$ 2}
 
-Substituting (\ref{eq:y1})--(\ref{eq:theta1}):
+Substituting~(\ref{eq:y1_corr})--(\ref{eq:z1_corr}) into the transition system
+and defining $\rho_1^{\mathrm{eff}} \equiv \rho_y + \psi\, S_1 -
+\eta_p\, F_1^{CP}$:
 %
 \begin{align}
-    y_2 &= \left[\rho_y + \psi S_1 - \eta F_1^{CP}\right] y_1
-      - \alpha_S S_1 + \alpha_F^{DI} F_1^{DI}
+    y_2 &= \rho_1^{\mathrm{eff}}\, y_1
+          \;-\; \alpha_S\, S_1
+          \;+\; \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_1\bigr)\, F_1^{CP}
+          \;+\; \alpha_F^{DI}\, F_0^{DI}
     \notag \\[4pt]
-    &= \left[\rho_y + \psi S_1 - \eta F_1^{CP}\right]
-      \left(-\alpha_S S_0 + \alpha_F^{DI} F_0^{DI}\right)
-      - \alpha_S S_1 + \alpha_F^{DI} F_1^{DI}
-    \label{eq:y2}
+    &= \rho_1^{\mathrm{eff}}\left[
+      -\alpha_S\, S_0
+      + \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)\, F_0^{CP}
+    \right]
+    \;-\; \alpha_S\, S_1
+    \;+\; \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_1\bigr)\, F_1^{CP}
+    \;+\; \alpha_F^{DI}\, F_0^{DI}
+    \label{eq:y2_corr}
 \end{align}
 %
 \begin{align}
-    d_2 &= \delta_\theta \, \theta_1
-      = \delta_\theta \rho_\theta (1 - \phi_S S_0) \, \theta_0
-    \label{eq:d2}
+    d_2 &= \delta_\theta\, \theta_1
+         = \delta_\theta\, \rho_\theta\bigl(1 - \phi_S\, S_0\bigr)\, \theta_0
+    \label{eq:d2_corr}
 \end{align}
 %
 \begin{align}
-    b_2 &= (1+r) b_1 - \gamma_y y_1
-      + \kappa_F^{DI} F_1^{DI} + \kappa_F^{CP} F_1^{CP}
+    b_2 &= (1+r)\, b_1 \;-\; \gamma_y\, y_1
+          \;+\; \kappa^{DI}\, F_1^{DI}
+          \;+\; \kappa^{CP}\, F_1^{CP}
     \notag \\[4pt]
-    &= (1+r)\left[\kappa_F^{DI} F_0^{DI} + \kappa_F^{CP} F_0^{CP}\right]
-      - \gamma_y \left[-\alpha_S S_0 + \alpha_F^{DI} F_0^{DI}\right]
-      + \kappa_F^{DI} F_1^{DI} + \kappa_F^{CP} F_1^{CP}
-    \notag \\[4pt]
-    &= (1+r)\kappa_F^{DI} F_0^{DI} + (1+r)\kappa_F^{CP} F_0^{CP}
-      + \gamma_y \alpha_S S_0 - \gamma_y \alpha_F^{DI} F_0^{DI}
-      + \kappa_F^{DI} F_1^{DI} + \kappa_F^{CP} F_1^{CP}
-    \label{eq:b2}
+    &= (1+r)\bigl[\kappa^{DI}\, F_0^{DI} + \kappa^{CP}\, F_0^{CP}\bigr]
+       \;-\; \gamma_y\left[
+       -\alpha_S\, S_0
+       + \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)\, F_0^{CP}
+       \right]
+       \;+\; \kappa^{DI}\, F_1^{DI}
+       \;+\; \kappa^{CP}\, F_1^{CP}
+    \label{eq:b2_corr}
 \end{align}
 %
 \begin{align}
-    \theta_2 &= \rho_\theta(1 - \phi_S S_1) \, \theta_1
-      = \rho_\theta^2 (1 - \phi_S S_0)(1 - \phi_S S_1) \, \theta_0
-    \label{eq:theta2}
+    \theta_2 &= \rho_\theta^2\bigl(1 - \phi_S\, S_0\bigr)
+               \bigl(1 - \phi_S\, S_1\bigr)\, \theta_0
+    \label{eq:theta2_corr}
 \end{align}
 
 \paragraph{Interpretation.}
 
-\textit{Output gap.} The persistence channel is now active: the term $[\rho_y + \psi S_1 - \eta F_1^{CP}] \cdot y_1$ propagates the period-1 output gap forward, modulated by the current lockdown (hysteresis amplification) and current CP (recovery acceleration). Note that the period-0 CP ($F_0^{CP}$) still has no output effect---it is the \textit{current} CP ($F_1^{CP}$) that modulates the persistence of the \textit{inherited} gap. This confirms the one-period activation lag of the capacity preservation channel.
+\textit{Output gap.} Three mechanisms now shape $y_2$. First, the inherited gap
+$y_1$ propagates forward through $\rho_1^{\mathrm{eff}}$---modulated by
+period-1 containment (hysteresis amplification via $\psi\, S_1$) and period-1
+CP (persistence reduction via $\eta_p\, F_1^{CP}$). Second, the period-1 flow
+terms contribute directly: the lockdown cost $-\alpha_S\, S_1$ and the
+contemporaneous CP effect
+$(\alpha_F^{CP} + \tilde{\eta}\, S_1)\, F_1^{CP}$.
+Third, the period-0 DI effect materializes:
+$\alpha_F^{DI}\, F_0^{DI}$, transmitted through the auxiliary state
+$z_1 = F_0^{DI}$. This is the first period in which DI contributes to output,
+confirming the two-period lag from deployment to effect:
+$F_0^{DI} \to z_1 \to y_2$.
 
-\textit{Mortality.} Period-2 mortality reflects the period-0 lockdown decision: $d_2 = \delta_\theta \rho_\theta (1 - \phi_S S_0) \theta_0$. This is the first period in which the planner's containment choice has a visible effect on mortality. The two-period lag $S_0 \to \theta_1 \to d_2$ is explicitly visible.
+Note that the period-0 CP ($F_0^{CP}$) continues to affect $y_2$ through two
+channels: its direct effect on $y_1$ (via
+$\alpha_F^{CP} + \tilde{\eta}\, S_0$) propagates forward at rate
+$\rho_1^{\mathrm{eff}}$. This is a substantive difference from the
+single-channel specification, where $F_0^{CP}$ had no output effect and
+therefore did not propagate.
 
-\textit{Debt.} Rearranging (\ref{eq:b2}) by period-0 controls:
+\textit{Mortality.} Period-2 mortality reflects the period-0 lockdown
+decision: $d_2 = \delta_\theta\, \rho_\theta(1 - \phi_S\, S_0)\, \theta_0$.
+This is the first period in which the planner's containment choice has a
+visible effect on mortality. The two-period lag
+$S_0 \to \theta_1 \to d_2$ is explicitly visible.
+
+\textit{Debt.} Rearranging~(\ref{eq:b2_corr}) by period-0 controls:
 %
 \begin{align}
-    b_2 &= \underbrace{\gamma_y \alpha_S \, S_0}_{\substack{\text{Indirect lockdown} \\ \text{cost via } \gamma_y}}
-    + \underbrace{\left[(1+r)\kappa_F^{DI} - \gamma_y \alpha_F^{DI}\right] F_0^{DI}}_{\text{Net DI cost (constant)}}
-    + \underbrace{(1+r)\kappa_F^{CP} \, F_0^{CP}}_{\substack{\text{Gross CP cost} \\ \text{(no offset in period 2)}}}
-    + \underbrace{\kappa_F^{DI} F_1^{DI} + \kappa_F^{CP} F_1^{CP}}_{\text{Period-1 interventions}}
-    \label{eq:b2_grouped}
+    b_2 &= \underbrace{\gamma_y\, \alpha_S\, S_0}_{\substack{
+      \text{Indirect lockdown} \\ \text{cost via } \gamma_y}}
+    \;+\; \underbrace{(1+r)\, \kappa^{DI}\, F_0^{DI}}_{\substack{
+      \text{Gross DI cost} \\ \text{(no output offset yet)}}}
+    \notag \\[4pt]
+    &\quad+\; \underbrace{\left[(1+r)\, \kappa^{CP}
+    - \gamma_y\bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)\right]
+    F_0^{CP}}_{\text{Net CP cost (with partial offset)}}
+    \;+\; \underbrace{\kappa^{DI}\, F_1^{DI}
+    + \kappa^{CP}\, F_1^{CP}}_{\text{Period-1 interventions}}
+    \label{eq:b2_grouped_corr}
 \end{align}
 %
-The lockdown has no direct debt cost but generates an indirect cost $\gamma_y \alpha_S S_0$ through the automatic stabilizer channel. DI exhibits the fiscal dividend: its net cost is $(1+r)\kappa_F^{DI} - \gamma_y \alpha_F^{DI}$, which is below the gross cost whenever $\gamma_y \alpha_F^{DI} > 0$. Period-0 CP has no fiscal dividend visible yet in $b_2$, because its output effect (via $\rho_y^{\effd}$) only materializes in $y_2$, which feeds into $b_3$.
+Two features distinguish this from the single-channel specification. First,
+DI deployed in period~0 has no output effect until $y_2$, so its net cost in
+$b_2$ is the gross cost $(1+r)\, \kappa^{DI}$ without any automatic stabilizer
+offset. The DI fiscal dividend appears one period later, in $b_3$.
+Second, CP now generates a partial fiscal dividend already in $b_2$:
+the term $-\gamma_y(\alpha_F^{CP} + \tilde{\eta}\, S_0)$ captures the
+automatic stabilizer savings from the improved $y_1$ attributable to
+period-0 CP. Under strict containment ($S_0$ large and
+$\tilde{\eta} < 0$), the cushioning channel reduces the offset---the fiscal
+dividend of CP is smaller precisely when the physical constraint on economic
+activity is tightest.
 
+
+% -----------------------------------------------------------------
 \subsubsection*{Period 2 $\to$ 3}
 
-The full expansion becomes algebraically extensive. We present the key components grouped by economic mechanism.
+Defining $\rho_2^{\mathrm{eff}} \equiv \rho_y + \psi\, S_2 -
+\eta_p\, F_2^{CP}$:
 
 \paragraph{Output gap.}
 %
 \begin{align}
-    y_3 &= \left[\rho_y + \psi S_2 - \eta F_2^{CP}\right] y_2
-      - \alpha_S S_2 + \alpha_F^{DI} F_2^{DI}
-    \label{eq:y3}
+    y_3 &= \rho_2^{\mathrm{eff}}\, y_2
+          \;-\; \alpha_S\, S_2
+          \;+\; \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_2\bigr)\, F_2^{CP}
+          \;+\; \alpha_F^{DI}\, F_1^{DI}
+    \label{eq:y3_corr}
 \end{align}
 %
-Substituting (\ref{eq:y2}):
-%
-\begin{align}
-    y_3 &= \left[\rho_y + \psi S_2 - \eta F_2^{CP}\right]
-    \left\{
-      \left[\rho_y + \psi S_1 - \eta F_1^{CP}\right]
-      \left(-\alpha_S S_0 + \alpha_F^{DI} F_0^{DI}\right)
-      - \alpha_S S_1 + \alpha_F^{DI} F_1^{DI}
-    \right\}
-    \notag \\
-    &\quad - \alpha_S S_2 + \alpha_F^{DI} F_2^{DI}
-    \label{eq:y3_full}
-\end{align}
-%
-Defining $\rho_k^{\effd} \equiv \rho_y + \psi S_k - \eta F_k^{CP}$ for notational compactness:
+Substituting~(\ref{eq:y2_corr}) and defining the per-period flow contribution
+$\Phi_k \equiv -\alpha_S\, S_k
++ (\alpha_F^{CP} + \tilde{\eta}\, S_k)\, F_k^{CP}
++ \alpha_F^{DI}\, z_k$:
 %
 \begin{equation}
-    y_3 = \rho_2^{\effd} \rho_1^{\effd} (-\alpha_S S_0 + \alpha_F^{DI} F_0^{DI})
-      + \rho_2^{\effd} (-\alpha_S S_1 + \alpha_F^{DI} F_1^{DI})
-      + (-\alpha_S S_2 + \alpha_F^{DI} F_2^{DI})
-    \label{eq:y3_compact}
+    y_3 = \rho_2^{\mathrm{eff}}\, \rho_1^{\mathrm{eff}}\, \Phi_0
+        + \rho_2^{\mathrm{eff}}\, \Phi_1
+        + \Phi_2
+    \label{eq:y3_compact_corr}
 \end{equation}
 %
-This reveals the recursive structure: the output gap in period 3 is the sum of all past net shocks $(-\alpha_S S_j + \alpha_F^{DI} F_j^{DI})$, each discounted by the product of effective persistence parameters from $j+1$ to 2. The effect of period-0 controls on $y_3$ is attenuated by $\rho_2^{\effd} \cdot \rho_1^{\effd}$---which is where CP exerts its leverage. Higher $F_1^{CP}$ and $F_2^{CP}$ reduce $\rho_1^{\effd}$ and $\rho_2^{\effd}$, causing past output gaps to dissipate faster.
+This reveals the recursive structure: the output gap at any period $K+1$ is the
+sum of all past net flow contributions $\Phi_k$, each attenuated by the product
+of effective persistence parameters from $k+1$ to $K$:
+%
+\begin{equation}
+    y_{K+1} = \sum_{k=0}^{K} \left[\prod_{j=k+1}^{K}
+    \rho_j^{\mathrm{eff}}\right] \Phi_k
+    \label{eq:y_recursive}
+\end{equation}
+%
+CP enters this expression through two distinct mechanisms. First, it
+contributes to $\Phi_k$ through the level and cushioning channels
+($\alpha_F^{CP} + \tilde{\eta}\, S_k$), directly improving the output gap in
+the period of deployment. Second, it reduces the effective persistence
+$\rho_j^{\mathrm{eff}}$ through $\eta_p$, causing \textit{all} past output
+gaps---whether generated by lockdowns, insufficient DI, or prior
+shocks---to dissipate faster. The first mechanism is contemporaneous and
+state-independent; the second is intertemporal and scales with $|y_k|$. It is
+the second mechanism that makes CP increasingly valuable as the crisis deepens.
 
 \paragraph{Mortality.}
 %
 \begin{equation}
-    d_3 = \delta_\theta \theta_2
-      = \delta_\theta \rho_\theta^2 (1 - \phi_S S_0)(1 - \phi_S S_1) \, \theta_0
-    \label{eq:d3}
+    d_3 = \delta_\theta\, \theta_2
+        = \delta_\theta\, \rho_\theta^2\bigl(1 - \phi_S\, S_0\bigr)
+          \bigl(1 - \phi_S\, S_1\bigr)\, \theta_0
+    \label{eq:d3_corr}
 \end{equation}
 %
-Mortality in period 3 depends on containment decisions in periods 0 and 1, each through the multiplicative suppression factor $(1 - \phi_S S_j)$. The period-2 lockdown $S_2$ does not yet affect $d_3$---it will affect $d_4$.
+Period-3 mortality depends on containment decisions in periods~0 and~1, each
+through the multiplicative suppression factor $(1 - \phi_S\, S_j)$. The
+period-2 lockdown $S_2$ does not yet affect $d_3$; it enters $d_4$. The product
+structure implies that lockdowns are complementary over time: the marginal
+effectiveness of $S_1$ depends on $S_0$.
 
 \paragraph{Debt.}
 %
 \begin{align}
-    b_3 &= (1+r) b_2 - \gamma_y y_2
-      + \kappa_F^{DI} F_2^{DI} + \kappa_F^{CP} F_2^{CP}
-    \label{eq:b3_recursive}
+    b_3 &= (1+r)\, b_2 \;-\; \gamma_y\, y_2
+          \;+\; \kappa^{DI}\, F_2^{DI}
+          \;+\; \kappa^{CP}\, F_2^{CP}
+    \label{eq:b3_recursive_corr}
 \end{align}
 %
-Substituting (\ref{eq:b2}) and (\ref{eq:y2}) and collecting terms by period-0 controls:
+Differentiating with respect to each period-0 control, holding period-1 and
+period-2 controls constant:
 %
 \begin{align}
     \frac{\partial b_3}{\partial S_0}
-      &= (1+r) \gamma_y \alpha_S
-        + \gamma_y \rho_1^{\effd} \alpha_S
+      &= (1+r)\, \gamma_y\, \alpha_S
+        \;+\; \gamma_y\, \rho_1^{\mathrm{eff}}\, \alpha_S
     \notag \\
-      &= \gamma_y \alpha_S \left[(1+r) + \rho_1^{\effd}\right]
-    \label{eq:db3_dS0}
+      &= \gamma_y\, \alpha_S
+         \left[(1+r) + \rho_1^{\mathrm{eff}}\right]
+    \label{eq:db3_dS0_corr}
 \end{align}
 %
 \begin{align}
     \frac{\partial b_3}{\partial F_0^{DI}}
-      &= (1+r)\left[(1+r)\kappa_F^{DI} - \gamma_y \alpha_F^{DI}\right]
-        - \gamma_y \rho_1^{\effd} \alpha_F^{DI}
-    \notag \\
-      &= (1+r)^2 \kappa_F^{DI}
-        - \gamma_y \alpha_F^{DI} \left[(1+r) + \rho_1^{\effd}\right]
-    \label{eq:db3_dDI0}
+      &= (1+r)^2\, \kappa^{DI}
+        \;-\; \gamma_y\, \alpha_F^{DI}
+    \label{eq:db3_dDI0_corr}
 \end{align}
 %
 \begin{align}
     \frac{\partial b_3}{\partial F_0^{CP}}
-      &= (1+r)^2 \kappa_F^{CP}
-        + \gamma_y \eta y_1 \rho_1^{\effd}
-    \notag \\[2pt]
-      &\quad\text{(Note: this term is nonzero only via the period-1 persistence effect)}
-    \notag \\
-      &= (1+r)^2 \kappa_F^{CP}
-        - \gamma_y \eta |y_1| \rho_1^{\effd}
-    \label{eq:db3_dCP0}
+      &= (1+r)^2\, \kappa^{CP}
+        \;-\; \gamma_y\bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)
+         \left[(1+r) + \rho_1^{\mathrm{eff}}\right]
+    \label{eq:db3_dCP0_corr}
 \end{align}
-%
-\textit{Interpretation.} The fiscal dividend of period-0 CP finally materializes in $b_3$: the term $-\gamma_y \eta |y_1| \rho_1^{\effd}$ represents the improved tax revenues and reduced mandatory expenditures that result from the faster recovery enabled by the earlier capacity preservation. This confirms the two-period activation lag of CP on the debt dimension: $F_0^{CP} \to \rho_1^{\effd} \downarrow \to y_2 \uparrow \to (-\gamma_y y_2) \downarrow \to b_3 \downarrow$.
 
-\paragraph{Epidemiological dynamics.}
+\paragraph{Interpretation.}
+
+\textit{Lockdown.} The lockdown has no direct debt cost but generates an
+indirect cost $\gamma_y\, \alpha_S\, [(1+r) + \rho_1^{\mathrm{eff}}]$
+through the automatic stabilizer channel, compounding over two periods. The
+structure is identical to the single-channel specification because containment
+operates identically in both.
+
+\textit{Demand injection.} The fiscal dividend of period-0 DI materializes for
+the first time in $b_3$: the term $-\gamma_y\, \alpha_F^{DI}$ captures the
+automatic stabilizer savings from the improved $y_2$ attributable to
+$F_0^{DI}$. The net three-period cost is
+$(1+r)^2\, \kappa^{DI} - \gamma_y\, \alpha_F^{DI}$---a fixed number
+independent of the state, reflecting the constant-multiplier property of DI.
+The dividend is delayed by one period relative to the single-channel
+specification (where DI affected output contemporaneously and generated a
+fiscal dividend in $b_2$).
+
+\textit{Capacity preservation.} Period-0 CP generates fiscal dividends through
+the automatic stabilizer offset
+$\gamma_y\, (\alpha_F^{CP} + \tilde{\eta}\, S_0)$, compounded by
+$[(1+r) + \rho_1^{\mathrm{eff}}]$ over two periods. This offset is
+state-dependent through $S_0$ (the cushioning channel modulates the output
+effect that drives the dividend) and through $\rho_1^{\mathrm{eff}}$ (which
+governs how much of the improved $y_1$ propagates to $y_2$). The net
+three-period debt effect of CP becomes negative---i.e., CP becomes
+self-financing---when:
 %
 \begin{equation}
-    \theta_3 = \rho_\theta^3 \prod_{j=0}^{2} (1 - \phi_S S_j) \cdot \theta_0
-    \label{eq:theta3}
+    \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_0\bigr)
+    \left[(1+r) + \rho_1^{\mathrm{eff}}\right]
+    \;\geq\;
+    \frac{(1+r)^2\, \kappa^{CP}}{\gamma_y}
+    \label{eq:CP_selffinancing_corr}
 \end{equation}
 %
-The viral prevalence at period 3 is determined by the cumulative suppression effort across all three periods, each entering multiplicatively. This product structure implies that the marginal effectiveness of suppression in any period depends on the suppression in all other periods---lockdowns are complementary over time.
+This condition is satisfied when the combined level and cushioning effect is
+sufficiently large and when the effective persistence $\rho_1^{\mathrm{eff}}$
+is high (i.e., the output gap is persistent enough for the automatic stabilizer
+savings to accumulate). The persistence-reduction channel ($\eta_p$) operates
+here indirectly: it enters through $\rho_1^{\mathrm{eff}}$ rather than through
+the direct output effect. A lower $\rho_1^{\mathrm{eff}}$ (achieved by high
+$F_1^{CP}$) reduces the cumulative fiscal dividend by dissipating the output
+gap faster---the paradoxical consequence that successful stabilization reduces
+the automatic stabilizer base.
 
-% ============================================================
-\subsection*{A.4 Cumulative Effects of Period-0 Controls}
-% ============================================================
 
-The following table summarizes the effect of each period-0 control on all state variables across three periods. We assume $y_0 = 0$, $b_0 = 0$, and $y_k < 0$ for $k \geq 1$.
+% -----------------------------------------------------------------
+\subsection{Cumulative Effects of Period-0 Controls}
+\label{app:cumulative}
+
+Table~\ref{tab:control_effects_corr} summarizes the effect of each period-0
+control on all state variables across three periods. I define
+$\omega_0 \equiv \alpha_F^{CP} + \tilde{\eta}\, S_0$ as the net
+contemporaneous CP effect at the period-0 containment level.
 
 \begin{table}[h]
 \centering
-\caption{Period-0 Control Effects on State Variables}
-\label{tab:control_effects}
+\caption{Period-0 Control Effects on State Variables (Three-Channel CP)}
+\label{tab:control_effects_corr}
 \small
 \begin{tabular}{@{}llccc@{}}
 \toprule
 State & Control & Period 1 & Period 2 & Period 3 \\
 \midrule
 \multirow{3}{*}{$y$}
-  & $S_0$ & $-\alpha_S$ & $-\rho_1^{\effd} \alpha_S$ & $-\rho_2^{\effd}\rho_1^{\effd} \alpha_S$ \\
-  & $F_0^{DI}$ & $+\alpha_F^{DI}$ & $+\rho_1^{\effd} \alpha_F^{DI}$ & $+\rho_2^{\effd}\rho_1^{\effd} \alpha_F^{DI}$ \\
-  & $F_0^{CP}$ & $0$ & $0$\textsuperscript{a} & $0$\textsuperscript{a} \\
+  & $S_0$
+  & $-\alpha_S$
+  & $-\rho_1^{\mathrm{eff}}\, \alpha_S$
+  & $-\rho_2^{\mathrm{eff}}\, \rho_1^{\mathrm{eff}}\, \alpha_S$ \\
+  & $F_0^{DI}$
+  & $0$
+  & $+\alpha_F^{DI}$
+  & $+\rho_2^{\mathrm{eff}}\, \alpha_F^{DI}$ \\
+  & $F_0^{CP}$
+  & $+\omega_0$
+  & $+\rho_1^{\mathrm{eff}}\, \omega_0$
+  & $+\rho_2^{\mathrm{eff}}\, \rho_1^{\mathrm{eff}}\, \omega_0$ \\
 \midrule
 \multirow{3}{*}{$d$}
-  & $S_0$ & $0$ & $-\delta_\theta \rho_\theta \phi_S \theta_0$ & via $\theta_2$ \\
-  & $F_0^{DI}$ & $0$ & $0$ & $0$ \\
-  & $F_0^{CP}$ & $0$ & $0$ & $0$ \\
+  & $S_0$
+  & $0$
+  & $-\delta_\theta\, \rho_\theta\, \phi_S\, \theta_0$
+  & via $\theta_2$ \\
+  & $F_0^{DI}$
+  & $0$
+  & $0$
+  & $0$ \\
+  & $F_0^{CP}$
+  & $0$
+  & $0$
+  & $0$ \\
 \midrule
 \multirow{3}{*}{$b$}
-  & $S_0$ & $0$ & $+\gamma_y \alpha_S$ & $+\gamma_y \alpha_S[(1{+}r) + \rho_1^{\effd}]$ \\
-  & $F_0^{DI}$ & $+\kappa_F^{DI}$ & $(1{+}r)\kappa_F^{DI} {-} \gamma_y \alpha_F^{DI}$ & Eq.~(\ref{eq:db3_dDI0}) \\
-  & $F_0^{CP}$ & $+\kappa_F^{CP}$ & $(1{+}r)\kappa_F^{CP}$ & $(1{+}r)^2\kappa_F^{CP} {-} \gamma_y \eta|y_1|\rho_1^{\effd}$ \\
+  & $S_0$
+  & $0$
+  & $+\gamma_y\, \alpha_S$
+  & Eq.~(\ref{eq:db3_dS0_corr}) \\
+  & $F_0^{DI}$
+  & $+\kappa^{DI}$
+  & $(1{+}r)\, \kappa^{DI}$
+  & $(1{+}r)^2\kappa^{DI} {-} \gamma_y\, \alpha_F^{DI}$ \\
+  & $F_0^{CP}$
+  & $+\kappa^{CP}$
+  & $(1{+}r)\kappa^{CP} {-} \gamma_y\, \omega_0$
+  & Eq.~(\ref{eq:db3_dCP0_corr}) \\
 \midrule
 \multirow{3}{*}{$\theta$}
-  & $S_0$ & $-\phi_S \rho_\theta \theta_0$ & $-\phi_S \rho_\theta^2(1{-}\phi_S S_1)\theta_0$ & cumulative \\
-  & $F_0^{DI}$ & $0$ & $0$ & $0$ \\
-  & $F_0^{CP}$ & $0$ & $0$ & $0$ \\
+  & $S_0$
+  & $-\phi_S\, \rho_\theta\, \theta_0$
+  & $-\phi_S\, \rho_\theta^2\,(1{-}\phi_S\, S_1)\,\theta_0$
+  & cumulative \\
+  & $F_0^{DI}$
+  & $0$
+  & $0$
+  & $0$ \\
+  & $F_0^{CP}$
+  & $0$
+  & $0$
+  & $0$ \\
 \bottomrule
 \end{tabular}
 
 \medskip
 \footnotesize
-\textsuperscript{a} $F_0^{CP}$ has no \textit{direct} effect on $y_2$ or $y_3$. Its effect operates indirectly through $\rho_1^{\effd}$ and $\rho_2^{\effd}$ when combined with subsequent CP, which modulates the persistence of the gap created by other controls. The partial derivative $\partial y_2 / \partial F_0^{CP} = 0$ because $y_0 = 0$ and CP enters multiplicatively on $y_k$.
+\textit{Notes:} $\omega_0 \equiv \alpha_F^{CP} + \tilde{\eta}\, S_0$ is the
+net contemporaneous CP effect at the period-0 containment level;
+$\rho_k^{\mathrm{eff}} \equiv \rho_y + \psi\, S_k - \eta_p\, F_k^{CP}$.
+The CP output effect decays at rate $\rho_k^{\mathrm{eff}}$, with the
+persistence-reduction channel ($\eta_p$) entering through the attenuation
+factor rather than the flow term. The DI output effect first appears in
+period~2 (two-period lag) and decays at rate $\rho_k^{\mathrm{eff}}$
+thereafter.
 \end{table}
 
-% ============================================================
-\subsection*{A.5 Optimality Conditions}
-% ============================================================
+\paragraph{Comparison with single-channel specification.}
+Three differences relative to the specification with only the persistence
+channel ($\eta\, F_k^{CP}\, y_k$) are noteworthy.
 
-The social planner minimizes the expected intertemporal cost:
+First, CP now has an immediate output effect from period~1 onward. In the
+single-channel specification, $\partial y_1 / \partial F_0^{CP} = 0$ because
+the persistence channel requires a pre-existing output gap ($y_0 = 0$).
+In the three-channel specification,
+$\partial y_1 / \partial F_0^{CP} = \omega_0 =
+\alpha_F^{CP} + \tilde{\eta}\, S_0 > 0$, operating through the level and
+cushioning channels.
+
+Second, CP generates a fiscal dividend one period earlier. In the
+single-channel specification, the first non-trivial
+$\partial b / \partial F_0^{CP}$ net of the gross cost appears in $b_3$
+(through the persistence channel's effect on $y_2$). In the three-channel
+specification, the automatic stabilizer offset
+$-\gamma_y\, \omega_0$ appears already in $b_2$.
+
+Third, the DI fiscal dividend is delayed by one period. In the single-channel
+specification (with contemporaneous DI in the output equation), the DI
+offset $-\gamma_y\, \alpha_F^{DI}$ appears in $b_2$. In the augmented system,
+DI affects output only in $y_2$ (via $z_1 = F_0^{DI}$), so the offset
+appears in $b_3$. The economic content is identical---the timing difference
+reflects the explicit modeling of the disbursement lag.
+
+\paragraph{Epidemiological dynamics.}
 %
 \begin{equation}
-    J = E\left\{x_N' Q_N x_N + \sum_{k=0}^{N-1} \left[x_k' Q_k x_k + u_k' R u_k\right]\right\}
-    \label{eq:objective}
+    \theta_3 = \rho_\theta^3\prod_{j=0}^{2}
+    \bigl(1 - \phi_S\, S_j\bigr)\, \theta_0
+    \label{eq:theta3_corr}
 \end{equation}
 %
-with
-%
-\begin{equation}
-    Q_k = \beta^k \begin{pmatrix} w_y & 0 & 0 & 0 \\ 0 & w_d & 0 & 0 \\ 0 & 0 & w_b & 0 \\ 0 & 0 & 0 & 0 \end{pmatrix}, \quad
-    R = \begin{pmatrix} r_S & 0 & 0 \\ 0 & r_{DI} & 0 \\ 0 & 0 & r_{CP} \end{pmatrix}, \quad
-    Q_N = \beta^N \begin{pmatrix} 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & W_b & 0 \\ 0 & 0 & 0 & 0 \end{pmatrix}
-    \label{eq:cost_matrices}
-\end{equation}
-
-\paragraph{Bellman equation.} The cost-to-go from period $k$ is:
-%
-\begin{equation}
-    V_k(x_k) = \min_{u_k} \left\{x_k' Q_k x_k + u_k' R u_k + E\left[V_{k+1}(f(x_k, u_k) + G\varepsilon_k)\right]\right\}
-    \label{eq:bellman}
-\end{equation}
-%
-with terminal condition $V_N(x_N) = x_N' Q_N x_N$.
-
-\paragraph{First-order conditions.} The necessary condition for optimality at each period $k$ is:
-%
-\begin{equation}
-    \frac{\partial}{\partial u_k}\left[u_k' R u_k + E\left[V_{k+1}(f(x_k, u_k, \varepsilon_k))\right]\right] = 0
-    \label{eq:foc_general}
-\end{equation}
-%
-which yields:
-%
-\begin{equation}
-    2 R u_k + B_k' \nabla_x V_{k+1}\big|_{x_{k+1} = f(x_k, u_k)} = 0
-    \label{eq:foc}
-\end{equation}
-%
-where $B_k = \partial f / \partial u_k$ is the Jacobian (\ref{eq:B_k}). Defining the costate (shadow price) vector $p_{k+1} = \nabla_x V_{k+1}(x_{k+1})$, the optimality condition becomes:
-%
-\begin{equation}
-    u_k^* = -\frac{1}{2} R^{-1} B_k' \, p_{k+1}
-    \label{eq:optimal_control}
-\end{equation}
-
-\paragraph{Control-specific optimality conditions.} Expanding (\ref{eq:optimal_control}) using the structure of $B_k$ and denoting the components of the costate vector as $p_{k+1} = (p_{k+1}^y, p_{k+1}^d, p_{k+1}^b, p_{k+1}^\theta)'$:
-
-\medskip
-\noindent\textit{Optimal lockdown intensity:}
-%
-\begin{equation}
-    S_k^* = -\frac{1}{2 r_S}\left[
-      (\psi y_k - \alpha_S) \, p_{k+1}^y
-      - \phi_S \rho_\theta \theta_k \, p_{k+1}^\theta
-    \right]
-    \label{eq:opt_S}
-\end{equation}
-%
-The lockdown balances two shadow prices: the output cost ($p_{k+1}^y$, weighted by the state-dependent marginal effect $\psi y_k - \alpha_S$) against the epidemiological benefit ($p_{k+1}^\theta$, weighted by the suppression effectiveness $\phi_S \rho_\theta \theta_k$). At higher $|\theta_k|$ (severe pandemic), the second term dominates, favoring stricter containment. At deeper $|y_k|$ (severe recession), the first term increases in magnitude, favoring looser containment. The political cost $r_S$ dampens overall lockdown intensity.
-
-\medskip
-\noindent\textit{Optimal demand injection:}
-%
-\begin{equation}
-    F_k^{DI*} = -\frac{1}{2 r_{DI}}\left[
-      \alpha_F^{DI} \, p_{k+1}^y
-      + \kappa_F^{DI} \, p_{k+1}^b
-    \right]
-    \label{eq:opt_DI}
-\end{equation}
-%
-Demand injection balances the output benefit ($\alpha_F^{DI} p_{k+1}^y$) against the debt cost ($\kappa_F^{DI} p_{k+1}^b$). Since $p_{k+1}^y < 0$ (negative output gap is costly) and $p_{k+1}^b > 0$ (debt is costly), the two terms have opposite signs: the output benefit favors more DI, the debt cost restrains it. The ratio $\alpha_F^{DI} / \kappa_F^{DI}$ governs the relative strength---confirming the ``price of stabilization in debt units'' identified in Property~3.
-
-\medskip
-\noindent\textit{Optimal capacity preservation:}
-%
-\begin{equation}
-    F_k^{CP*} = -\frac{1}{2 r_{CP}}\left[
-      -\eta y_k \, p_{k+1}^y
-      + \kappa_F^{CP} \, p_{k+1}^b
-    \right]
-    \label{eq:opt_CP}
-\end{equation}
-%
-Capacity preservation balances the persistence reduction benefit ($-\eta y_k \, p_{k+1}^y$) against the debt cost ($\kappa_F^{CP} p_{k+1}^b$). The output benefit term is state-dependent: $-\eta y_k > 0$ when $y_k < 0$, and its magnitude scales with $|y_k|$. In a deeper recession, the shadow value of CP increases proportionally---confirming the analytical result that CP becomes relatively more valuable as the crisis deepens.
-
-\paragraph{Comparison of fiscal instruments.} From (\ref{eq:opt_DI}) and (\ref{eq:opt_CP}), the relative deployment of DI and CP at the optimum satisfies:
-%
-\begin{equation}
-    \frac{F_k^{DI*}}{F_k^{CP*}} =
-    \frac{r_{CP}}{r_{DI}} \cdot
-    \frac{\alpha_F^{DI} \, p_{k+1}^y + \kappa_F^{DI} \, p_{k+1}^b}
-         {-\eta y_k \, p_{k+1}^y + \kappa_F^{CP} \, p_{k+1}^b}
-    \label{eq:ratio_DI_CP}
-\end{equation}
-%
-Since $|{-\eta y_k}|$ is increasing in the depth of the recession while $\alpha_F^{DI}$ is constant, this ratio is \textit{decreasing} in $|y_k|$: the optimal fiscal mix shifts toward capacity preservation as the crisis deepens. In the limit of a sufficiently severe recession ($|y_k| \to \infty$), the ratio converges to $\frac{r_{CP}}{r_{DI}} \cdot \frac{\kappa_F^{DI}}{\kappa_F^{CP}}$---the optimal mix is determined entirely by the relative political costs and fiscal cost parameters, as the output benefits of CP dominate those of DI.
-
-\paragraph{Interaction between lockdown and fiscal composition.} The optimal lockdown (\ref{eq:opt_S}) depends on $p_{k+1}^y$ and $p_{k+1}^\theta$, which are themselves functions of the entire future trajectory---including future fiscal policy. Through the costate recursion, a higher expected future CP (reducing $\rho_k^{\effd}$ in future periods) lowers the cost-to-go associated with a given output gap today, which reduces $|p_{k+1}^y|$ and thereby \textit{permits a stricter lockdown} at lower welfare cost. This formalizes the enabling role of CP: by ensuring that the economy can recover from the lockdown, CP expands the planner's feasible set on the containment dimension.
-
-\subsection*{A.6 Summary of Structural Properties}
-
-\begin{enumerate}
-    \item \textbf{Temporal asymmetry.} Fiscal stimulus (DI) affects output within one period; containment affects mortality with a two-period lag ($S_k \to \theta_{k+1} \to d_{k+2}$); capacity preservation affects debt with a two-period lag ($F_k^{CP} \to \rho_{k+1}^{\effd} \to y_{k+2} \to b_{k+3}$).
-
-    \item \textbf{State-dependent marginal effects.} The output cost of lockdown ($\alpha_S + \psi|y_k|$) and the output benefit of CP ($\eta|y_k|$) both scale with crisis severity. DI has constant marginal effects.
-
-    \item \textbf{Optimal composition shift.} The ratio $F_k^{DI*} / F_k^{CP*}$ is decreasing in $|y_k|$: the optimal fiscal mix shifts from DI-heavy (mild recession) to CP-heavy (deep recession).
-
-    \item \textbf{Fiscal dividend asymmetry.} DI generates fiscal dividends within one period (via $-\gamma_y \alpha_F^{DI}$). CP generates fiscal dividends with a two-period lag (via $\rho_k^{\effd} \to y \to \gamma_y$). Both partially offset their gross fiscal costs.
-
-    \item \textbf{Complementarity.} CP enables stricter containment by reducing its welfare cost (through lower $|p_{k+1}^y|$). DI addresses the output gap that CP alone cannot close. The optimal policy uses both instruments simultaneously.
-
-    \item \textbf{Rank deficiency.} $\text{rank}(B_k) = 3 < 4$: mortality cannot be controlled directly. The trilemma persists despite three control instruments, because no control independently targets a single state dimension.
-\end{enumerate}
-
-\subsection{Stability Analysis}
-\label{sec:stability}
-
-The constitutive properties established in the preceding section characterize the
-\textit{mechanisms} of the pandemic trilemma. This section examines the
-\textit{dynamical structure} of the system by analyzing the stability properties of
-the linearized transition matrix. The analysis reveals that the planner confronts a
-system with multiple simultaneously unstable modes---a configuration that transforms
-the problem from multi-objective optimization into a genuine stabilization challenge.
-
-\subsubsection{Eigenvalue Structure}
-
-The linearized system matrix $A_k$ (equation~\ref{eq:A_k}) is block-triangular, so its
-eigenvalues coincide with the diagonal entries:
-%
-\begin{align}
-    \lambda_1^k &= \rho_y + \psi \, S_k - \eta \, F_k^{CP}
-      & &\text{(output persistence)}
-    \label{eq:lambda1} \\[4pt]
-    \lambda_2^k &= 0
-      & &\text{(mortality)}
-    \label{eq:lambda2} \\[4pt]
-    \lambda_3   &= 1 + r
-      & &\text{(debt dynamics)}
-    \label{eq:lambda3} \\[4pt]
-    \lambda_4^k &= \rho_\theta (1 - \phi_S \, S_k)
-      & &\text{(epidemiological dynamics)}
-    \label{eq:lambda4}
-\end{align}
-%
-A state dimension is stable if and only if its associated eigenvalue lies strictly
-inside the unit circle ($|\lambda| < 1$). The mortality eigenvalue $\lambda_2 = 0$
-implies that excess deaths carry no autonomous persistence: each period's mortality is
-entirely determined by the preceding period's viral prevalence and does not propagate
-forward independently. The remaining three eigenvalues govern the stability of the
-planner's active state dimensions and merit individual analysis.
-
-\subsubsection{Unconditionally Unstable: Public Debt}
-
-The debt eigenvalue $\lambda_3 = 1 + r > 1$ lies outside the unit circle for any
-positive real interest rate. This instability is \textit{unconditional}: it holds
-regardless of the planner's policy choices, as no element of the control vector $u_k$
-enters the $(3,3)$-entry of $A_k$. Existing debt compounds mechanically, and the
-planner cannot alter this dynamic through any feasible intervention.
-
-The only forces counteracting this explosive tendency operate through the off-diagonal
-terms of the debt transition: the automatic stabilizer channel $-\gamma_y y_k$ and the
-primary balance effect of fiscal consolidation. During the pandemic, both channels work
-in the destabilizing direction---$y_k < 0$ generates additional debt through
-$-\gamma_y y_k > 0$, and active fiscal support adds $\kappa_F^{DI} F_k^{DI} +
-\kappa_F^{CP} F_k^{CP} > 0$. The debt state therefore accelerates away from the origin
-throughout the crisis period.
-
-The post-pandemic environment demonstrated the practical relevance of this instability.
-The inflation surge of 2022--2023 triggered substantial increases in policy rates across
-advanced economies \citep{jorda2023}, raising $r$ and thereby amplifying the explosive
-eigenvalue. Countries that exited the pandemic with higher $b_N$ were
-disproportionately exposed to this tightening---a risk that was uncertain but
-foreseeable at the time of the fiscal deployment decisions. The terminal cost $W_b$ in
-the objective function formalizes this concern: it disciplines the planner's
-intertemporal trade-off by imposing a cost on the debt state at the planning horizon,
-reflecting the present value of the post-pandemic fiscal burden under uncertain future
-interest rates.
-
-\subsubsection{Conditionally Unstable: Epidemiological Dynamics}
-
-Without intervention ($S_k = 0$), the epidemiological eigenvalue equals $\lambda_4 =
-\rho_\theta > 1$: viral prevalence grows exponentially, as each generation of
-infections produces more than one subsequent generation. The planner can stabilize
-this dimension by deploying containment measures of sufficient intensity. The
-stabilization condition requires:
-%
-\begin{equation}
-    \lambda_4^k < 1 \quad \Longleftrightarrow \quad
-    S_k > \frac{1 - 1/\rho_\theta}{\phi_S}
-    \equiv \underline{S}
-    \label{eq:S_threshold}
-\end{equation}
-%
-The threshold $\underline{S}$ represents the minimum lockdown intensity required to
-reverse the epidemic trajectory---the formal counterpart of the widely cited
-$R_{\text{eff}} < 1$ condition. Below this threshold, the epidemic grows despite
-intervention; at or above it, infections decline. Three features of this condition are
-noteworthy.
-
-First, the threshold depends on the ratio of the virus's intrinsic transmissibility
-($\rho_\theta$) to the effectiveness of containment ($\phi_S$). A more transmissible
-variant (higher $\rho_\theta$) requires a stricter lockdown; more effective NPIs (higher
-$\phi_S$) lower the required intensity. Second, the condition is binary: there exists a
-critical level below which suppression is ineffective at reversing the epidemic's
-direction, regardless of the economic and fiscal costs incurred. Third, the threshold is
-time-invariant in the model's parameterization---it does not depend on the current level
-of infections $\theta_k$. The \textit{level} of prevalence determines the number of
-deaths (through $d_{k+2} = \delta_\theta \theta_{k+1}$), but the \textit{stability} of
-the epidemiological state depends only on the structural parameters $\rho_\theta$ and
-$\phi_S$.\footnote{This time-invariance is a consequence of the linearized
-specification. In a nonlinear SIR framework, the effective reproduction rate depends on
-the remaining susceptible population, introducing implicit time-variation. The linear
-approximation is appropriate for the early phase of a pandemic where the susceptible
-fraction remains close to unity.}
-
-\subsubsection{Conditionally Unstable: Output Dynamics}
-
-In the absence of a pandemic ($S_k = 0$, $F_k^{CP} = 0$), the output eigenvalue
-equals $\lambda_1 = \rho_y < 1$: the economy is inherently stable, with output gaps
-closing through natural mean reversion. This reflects the standard macroeconomic
-assumption that market economies possess self-correcting mechanisms---price adjustments,
-inventory cycles, and reallocation of factors of production---that gradually restore
-output to its potential.
-
-The pandemic disrupts this stability through the hysteresis channel formalized in
-Property~2. Containment measures increase the output eigenvalue by $\psi S_k$:
-%
-\begin{equation}
-    \lambda_1^k = \rho_y + \psi \, S_k - \eta \, F_k^{CP}
-    \label{eq:lambda1_full}
-\end{equation}
-%
-The critical threshold at which the output state becomes unstable is:
-%
-\begin{equation}
-    \lambda_1^k \geq 1 \quad \Longleftrightarrow \quad
-    \psi \, S_k - \eta \, F_k^{CP} \geq 1 - \rho_y
-    \label{eq:hysteresis_threshold}
-\end{equation}
-%
-When this condition is met, the output gap becomes self-reinforcing: firms exit the
-market, employment relationships dissolve, human capital depreciates, and supply chains
-fragment---each of these effects reducing the economy's capacity to recover, which in
-turn deepens the contraction. The output state transitions from a stable, mean-reverting
-process to an explosive one. I refer to this regime as the \textit{hysteresis trap}: a
-state in which the structural damage inflicted by prolonged containment has eroded the
-economy's self-correcting capacity to the point where recovery requires active
-intervention merely to prevent further deterioration.
-
-Capacity preservation operates as the direct counterforce to this instability. Each unit
-of $F_k^{CP}$ reduces $\lambda_1^k$ by $\eta$, pulling the eigenvalue back toward the
-stable region. The stabilization condition for the output state is:
-%
-\begin{equation}
-    \lambda_1^k < 1 \quad \Longleftrightarrow \quad
-    F_k^{CP} > \frac{\psi \, S_k - (1 - \rho_y)}{\eta}
-    \equiv \underline{F}^{CP}(S_k)
-    \label{eq:CP_threshold}
-\end{equation}
-%
-This threshold is increasing in $S_k$: a stricter lockdown requires more capacity
-preservation to prevent the output state from becoming unstable. The threshold is
-positive only when $\psi S_k > 1 - \rho_y$, i.e., when the lockdown is sufficiently
-stringent to overcome the economy's natural stability margin. For mild containment
-measures, the economy remains self-stabilizing without active capacity support.
-
-\subsubsection{The Competing Instabilities}
-
-The central insight of the stability analysis is that the planner faces not one but
-potentially three simultaneously unstable eigenvalues, and that the policy actions
-required to stabilize one dimension systematically destabilize another. Table~\ref{tab:stability}
-summarizes this structure.
-
-\begin{table}[h]
-\centering
-\caption{Eigenvalue Structure and Stability Conditions}
-\label{tab:stability}
-\small
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Eigenvalue & Without policy & Stability condition & Stabilizing control & Side effect \\
-\midrule
-$\lambda_1^k$ (Output)
-  & $\rho_y < 1$ (stable)
-  & $\psi S_k - \eta F_k^{CP} < 1 - \rho_y$
-  & $F_k^{CP} \uparrow$
-  & $b_{k+1} \uparrow$ \\[6pt]
-$\lambda_3$ (Debt)
-  & $(1+r) > 1$ (unstable)
-  & Cannot be stabilized
-  & ---
-  & --- \\[6pt]
-$\lambda_4^k$ (Epidemic)
-  & $\rho_\theta > 1$ (unstable)
-  & $S_k > \underline{S}$
-  & $S_k \uparrow$
-  & $\lambda_1^k \uparrow$, $y_{k+1} \downarrow$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The competing instabilities create a cascading stabilization problem:
-%
-\begin{enumerate}
-    \item The epidemiological instability ($\lambda_4 > 1$) necessitates containment
-    ($S_k > \underline{S}$).
-
-    \item Containment destabilizes the output dimension ($\lambda_1$ increases toward
-    and potentially beyond unity), necessitating capacity preservation ($F_k^{CP} >
-    \underline{F}^{CP}(S_k)$).
-
-    \item The resulting output gap ($y_k < 0$) widens the deficit through automatic
-    stabilizers ($-\gamma_y y_k > 0$), necessitating demand injection ($F_k^{DI} > 0$)
-    to close the gap.
-
-    \item Both fiscal instruments augment the unconditionally unstable debt state
-    ($\kappa_F^{DI} F_k^{DI} + \kappa_F^{CP} F_k^{CP} > 0$), which cannot be
-    stabilized by any available control.
-\end{enumerate}
-%
-This cascade formalizes the trilemma as a dynamical systems problem: the planner must
-simultaneously manage two conditionally unstable modes and one unconditionally unstable
-mode with three control instruments, where each stabilizing action on one mode
-contributes to the instability of at least one other.
-
-\subsubsection{Implications for Optimal Policy Timing}
-
-The eigenvalue structure provides a formal rationale for the empirically documented
-advantage of early intervention
-\citep{balmford2020,acemoglu2021}.
-
-\paragraph{Early lockdown.} When $\theta_k$ is small (early in the epidemic), the
-absolute number of infections prevented per unit of containment is lower, but the
-\textit{growth rate} that must be suppressed is the same ($\rho_\theta$ is constant).
-The cost of containment, however, is state-dependent through the output channel: the
-marginal output cost is $\alpha_S + \psi |y_k|$, which is smaller when $|y_k|$ is small.
-Early lockdown therefore achieves the same epidemiological stabilization ($\lambda_4 < 1$)
-at lower economic cost. Delay allows $\theta_k$ to grow, which---through the mortality
-channel $d_{k+2} = \delta_\theta \theta_{k+1}$---increases the cumulative death toll and
-simultaneously deepens the output gap (as behavioral responses and eventually stricter
-containment become necessary), raising the cost of all subsequent interventions.
-
-\paragraph{Early capacity preservation.} The hysteresis parameter $\psi$ implies that
-the structural damage to the economy's recovery capacity accumulates \textit{during} the
-lockdown. Each period of containment without adequate CP pushes $\lambda_1$ closer to
-the instability threshold. Once $\lambda_1 \geq 1$, the output gap becomes
-self-reinforcing and requires progressively larger interventions merely to prevent
-further deterioration---let alone to close the gap. Early CP deployment maintains
-$\lambda_1$ in the stable region, preserving the economy's capacity for autonomous
-recovery once containment measures are relaxed.
-
-\paragraph{Convexity of delay costs.} The interaction between the competing
-instabilities implies that the cost of delayed intervention is \textit{convex} rather
-than linear. A one-period delay in containment allows $\theta_k$ to grow by a factor
-$\rho_\theta$, requiring a commensurately larger output sacrifice when containment is
-eventually imposed. The deeper output gap in turn raises the cost of containment (through
-$\psi |y_k|$), increases the required CP (through the threshold $\underline{F}^{CP}(S_k)$),
-and accelerates debt accumulation (through $-\gamma_y y_k$). Each channel amplifies the
-others, generating a superlinear relationship between delay duration and total welfare
-cost. This convexity is a direct consequence of the system's multi-dimensional
-instability structure and cannot be captured by models that treat health and economic
-outcomes as independent trade-offs.
-
-% ============================================================
-% Two-Period Debt Effects: ∂b_{k+2}/∂F_k^{DI} and ∂b_{k+2}/∂F_k^{CP}
-% ============================================================
-
-The debt transition one period forward is:
-%
-\begin{equation}
-    b_{k+2} = (1+r) \, b_{k+1} - \gamma_y \, y_{k+1}
-      + \kappa_F^{DI} \, F_{k+1}^{DI}
-      + \kappa_F^{CP} \, F_{k+1}^{CP}
-      + c_{k+1}^{H}
-\end{equation}
-%
-Period-$k$ fiscal decisions affect $b_{k+2}$ through two channels: directly via
-their contribution to $b_{k+1}$, which compounds at $(1+r)$, and indirectly via
-their effect on $y_{k+1}$, which feeds through the automatic stabilizer term
-$-\gamma_y y_{k+1}$. Differentiating with respect to each instrument while
-holding period-$(k+1)$ controls constant yields:
-
-\paragraph{Demand Injection.}
-%
-\begin{equation}
-    \frac{\partial b_{k+2}}{\partial F_k^{DI}}
-      = \underbrace{(1+r) \, \kappa_F^{DI}}_{\substack{\text{direct fiscal cost,} \\ \text{compounded}}}
-      \;-\; \underbrace{\gamma_y \, \alpha_F^{DI}}_{\substack{\text{automatic stabilizer} \\ \text{offset}}}
-    \label{eq:db2_dDI}
-\end{equation}
-%
-The two-period debt effect of DI is \textit{state-independent}: it depends only
-on the structural parameters $\kappa_F^{DI}$, $\alpha_F^{DI}$, $\gamma_y$, and
-$r$, but not on the current output gap or containment intensity. The first term
-captures the gross fiscal cost of DI, compounded by one period of interest
-accrual. The second term captures the fiscal dividend: by improving $y_{k+1}$ by
-$\alpha_F^{DI}$, demand injection reduces automatic debt accumulation in period
-$k+2$ by $\gamma_y \alpha_F^{DI}$. The net effect is positive under pandemic
-conditions, as established in (\ref{eq:net_cost_DI}).
-
-\paragraph{Capacity Preservation.}
-
-Recall that $\partial y_{k+1} / \partial F_k^{CP} = -\eta \, y_k \geq 0$
-(positive because $y_k \leq 0$). Substituting:
-%
-\begin{equation}
-    \frac{\partial b_{k+2}}{\partial F_k^{CP}}
-      = \underbrace{(1+r) \, \kappa_F^{CP}}_{\substack{\text{direct fiscal cost,} \\ \text{compounded}}}
-      \;-\; \underbrace{\gamma_y \, \eta \, |y_k|}_{\substack{\text{automatic stabilizer} \\ \text{offset (state-dependent)}}}
-    \label{eq:db2_dCP}
-\end{equation}
-%
-The two-period debt effect of CP is \textit{state-dependent}: the automatic
-stabilizer offset $\gamma_y \eta |y_k|$ scales with the depth of the recession.
-In a mild downturn ($|y_k|$ small), the offset is negligible and the net fiscal
-cost is approximately $(1+r) \kappa_F^{CP}$---the gross cost, compounded. As the
-recession deepens, the offset grows, and the net debt effect falls. The
-critical threshold at which CP becomes self-financing over two periods is:
-%
-\begin{equation}
-    |y_k^{**}| \geq \frac{(1+r) \, \kappa_F^{CP}}{\gamma_y \, \eta}
-    \label{eq:CP_self_financing}
-\end{equation}
-%
-Beyond this threshold, the automatic stabilizer savings from capacity
-preservation exceed its direct fiscal cost: each additional unit of CP
-\textit{reduces} cumulative debt over two periods. This is possible because CP
-does not generate output directly---it accelerates recovery from an existing
-gap. When that gap is sufficiently deep, the budgetary improvement from faster
-recovery exceeds the cost of the instrument.
-
-\paragraph{Comparison and Implications.}
-
-Juxtaposing (\ref{eq:db2_dDI}) and (\ref{eq:db2_dCP}) reveals three properties
-of the planner's fiscal composition problem.
-
-First, \textit{DI has constant net fiscal cost; CP has declining net fiscal
-cost.} The two-period debt effect of DI is a fixed number determined by
-structural parameters. The two-period debt effect of CP falls with the severity
-of the recession and can become negative. This implies that the relative fiscal
-advantage of CP over DI increases as the crisis deepens---precisely the
-conditions under which strict containment is most necessary.
-
-Second, \textit{the self-financing thresholds differ in kind.} DI is
-self-financing when $\alpha_F^{DI} \geq (1+r) \kappa_F^{DI} / \gamma_y$,
-which requires a multiplier above approximately 2 under standard
-parameterizations---above pandemic-era estimates. CP is self-financing when
-$|y_k| \geq (1+r) \kappa_F^{CP} / (\gamma_y \eta)$, a condition on the
-\textit{state of the economy}, not on a structural parameter. A sufficiently
-deep recession can render CP self-financing even when its effectiveness $\eta$
-is modest, because the automatic stabilizer base ($|y_k|$) is large.
-
-Third, \textit{the two instruments interact through their effect on the
-self-financing condition.} CP that prevents hysteresis keeps $|y_k|$ from
-growing, which---paradoxically---reduces the future automatic stabilizer offset
-of CP itself. But the same prevention of hysteresis also reduces the
-\textit{volume} of DI required in subsequent periods. The net effect on total
-debt depends on which margin dominates: the reduced automatic stabilizer offset
-per unit of CP, or the reduced volume of DI (at its fixed, higher per-unit
-cost). The optimal composition trades off these two margins dynamically across
-the planning horizon.
-
-
-\section{Derivation of the Optimal Control Law via Dynamic Programming}
-\label{app:LQR_derivation}
-
-This appendix provides a self-contained derivation of the optimal 
-linear-quadratic regulator (LQR) solution following 
-\citet[Chapter~3.1]{bertsekas2017dynamic}. The derivation proceeds 
-via backward induction using the principle of dynamic programming.
-
-\subsection{Problem Statement}
-
-Consider a discrete-time linear stochastic system evolving according to:
-\begin{equation}
-    \bm{x}_{k+1} = \bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k, 
-    \quad k = 0, 1, \ldots, N-1
-    \label{eq:app_system}
-\end{equation}
-where $\bm{x}_k \in \mathbb{R}^n$ is the state vector, 
-$\bm{u}_k \in \mathbb{R}^m$ is the control vector, and 
-$\bm{w}_k \in \mathbb{R}^n$ is a stochastic disturbance with 
-$\mathbb{E}[\bm{w}_k] = \bm{0}$ and 
-$\mathbb{E}[\bm{w}_k \bm{w}_k'] = \bm{\Sigma}_w$. The disturbances 
-are assumed to be independent across time and independent of the 
-initial state $\bm{x}_0$.
-
-The social planner seeks to minimize the expected intertemporal 
-quadratic cost:
-\begin{equation}
-    J = \mathbb{E} \left\{ \bm{x}_N' \bm{Q}_N \bm{x}_N + 
-    \sum_{k=0}^{N-1} \left( \bm{x}_k' \bm{Q}_k \bm{x}_k + 
-    \bm{u}_k' \bm{R} \bm{u}_k \right) \right\}
-    \label{eq:app_cost}
-\end{equation}
-where the weighting matrices satisfy:
-\begin{itemize}
-    \item $\bm{Q}_k \succeq 0$ (positive semidefinite) for all 
-    $k = 0, \ldots, N-1$
-    \item $\bm{Q}_N \succeq 0$ (positive semidefinite)
-    \item $\bm{R} \succ 0$ (positive definite)
-\end{itemize}
-
-\subsection{The Principle of Optimality}
-
-The solution proceeds via \textit{dynamic programming}, which 
-exploits Bellman's principle of optimality: an optimal policy has 
-the property that, regardless of the initial state and decision, 
-the remaining decisions must constitute an optimal policy with 
-regard to the state resulting from the first decision.
-
-Define the \textit{cost-to-go function} $J_k(\bm{x}_k)$ as the 
-minimum expected cost from period $k$ to the terminal period $N$, 
-conditional on the current state $\bm{x}_k$:
-\begin{equation}
-    J_k(\bm{x}_k) = \min_{\bm{u}_k, \ldots, \bm{u}_{N-1}} 
-    \mathbb{E} \left\{ \bm{x}_N' \bm{Q}_N \bm{x}_N + 
-    \sum_{t=k}^{N-1} \left( \bm{x}_t' \bm{Q}_t \bm{x}_t + 
-    \bm{u}_t' \bm{R} \bm{u}_t \right) \,\Big|\, \bm{x}_k \right\}
-    \label{eq:app_costtogo}
-\end{equation}
-
-The principle of optimality implies that the cost-to-go satisfies 
-the \textit{Bellman equation}:
-\begin{equation}
-    J_k(\bm{x}_k) = \min_{\bm{u}_k} \mathbb{E}_{\bm{w}_k} 
-    \left\{ \bm{x}_k' \bm{Q}_k \bm{x}_k + \bm{u}_k' \bm{R} \bm{u}_k 
-    + J_{k+1}(\bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k) \right\}
-    \label{eq:app_bellman}
-\end{equation}
-
-This recursive relationship allows us to solve the problem 
-\textit{backward} from the terminal period $k = N$ to the initial 
-period $k = 0$.
-
-\subsection{Terminal Condition}
-
-At the terminal period $k = N$, no further control is applied. The 
-cost-to-go consists solely of the terminal penalty:
-\begin{equation}
-    J_N(\bm{x}_N) = \bm{x}_N' \bm{Q}_N \bm{x}_N
-    \label{eq:app_terminal}
-\end{equation}
-
-This is a quadratic function of the state. We write:
-\begin{equation}
-    J_N(\bm{x}_N) = \bm{x}_N' \bm{P}_N \bm{x}_N 
-    \quad \text{with} \quad \bm{P}_N = \bm{Q}_N
-    \label{eq:app_P_terminal}
-\end{equation}
-
-\textbf{Induction Hypothesis:} We conjecture that the cost-to-go 
-function is quadratic at every stage:
-\begin{equation}
-    J_{k+1}(\bm{x}_{k+1}) = \bm{x}_{k+1}' \bm{P}_{k+1} \bm{x}_{k+1} 
-    + c_{k+1}
-    \label{eq:app_hypothesis}
-\end{equation}
-where $\bm{P}_{k+1}$ is a symmetric positive semidefinite matrix 
-and $c_{k+1}$ is a scalar constant (independent of the state). We 
-will show that this structure is preserved under the backward 
-recursion.
-
-\subsection{Backward Induction Step}
-
-Substituting the conjectured form \eqref{eq:app_hypothesis} into 
-the Bellman equation \eqref{eq:app_bellman}:
-\begin{equation}
-    J_k(\bm{x}_k) = \min_{\bm{u}_k} \mathbb{E}_{\bm{w}_k} 
-    \Big\{ \bm{x}_k' \bm{Q}_k \bm{x}_k + \bm{u}_k' \bm{R} \bm{u}_k 
-    + (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k) + c_{k+1} \Big\}
-    \label{eq:app_substitute}
-\end{equation}
-
-Expanding the quadratic term in the next-period state:
-\begin{align}
-    &(\bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k + \bm{w}_k) \nonumber \\
-    &= (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k) \label{eq:app_expand1} \\
-    &\quad + 2(\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' \bm{P}_{k+1} 
-    \bm{w}_k \label{eq:app_expand2} \\
-    &\quad + \bm{w}_k' \bm{P}_{k+1} \bm{w}_k \label{eq:app_expand3}
-\end{align}
-
-Taking expectations and using $\mathbb{E}[\bm{w}_k] = \bm{0}$, the 
-cross-term \eqref{eq:app_expand2} vanishes:
-\begin{equation}
-    \mathbb{E}\left[ 2(\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' 
-    \bm{P}_{k+1} \bm{w}_k \right] = 2(\bm{A}\bm{x}_k + 
-    \bm{B}\bm{u}_k)' \bm{P}_{k+1} \, \mathbb{E}[\bm{w}_k] = 0
-    \label{eq:app_crossterm}
-\end{equation}
-
-The expectation of the noise term \eqref{eq:app_expand3} yields a 
-constant:
-\begin{equation}
-    \mathbb{E}[\bm{w}_k' \bm{P}_{k+1} \bm{w}_k] = 
-    \text{tr}(\bm{P}_{k+1} \bm{\Sigma}_w) =: \sigma_k^2
-    \label{eq:app_noiseterm}
-\end{equation}
-
-Substituting back into \eqref{eq:app_substitute}:
-\begin{align}
-    J_k(\bm{x}_k) &= \bm{x}_k' \bm{Q}_k \bm{x}_k + c_{k+1} + 
-    \sigma_k^2 \nonumber \\
-    &\quad + \min_{\bm{u}_k} \Big\{ \bm{u}_k' \bm{R} \bm{u}_k + 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k) \Big\}
-    \label{eq:app_Jk_simplified}
-\end{align}
-
-\subsection{Minimization with Respect to the Control}
-
-Define the function to be minimized over $\bm{u}_k$:
-\begin{equation}
-    f(\bm{u}_k) = \bm{u}_k' \bm{R} \bm{u}_k + 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)
-    \label{eq:app_f_uk}
-\end{equation}
-
-Expanding the second term:
-\begin{align}
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k) 
-    &= \bm{x}_k' \bm{A}' \bm{P}_{k+1} \bm{A} \bm{x}_k \nonumber \\
-    &\quad + 2 \bm{x}_k' \bm{A}' \bm{P}_{k+1} \bm{B} \bm{u}_k 
-    \nonumber \\
-    &\quad + \bm{u}_k' \bm{B}' \bm{P}_{k+1} \bm{B} \bm{u}_k
-    \label{eq:app_expand_quad}
-\end{align}
-
-Substituting into \eqref{eq:app_f_uk} and collecting terms:
-\begin{equation}
-    f(\bm{u}_k) = \bm{u}_k' \underbrace{(\bm{R} + \bm{B}' 
-    \bm{P}_{k+1} \bm{B})}_{\bm{H}} \bm{u}_k + 
-    2 \bm{x}_k' \bm{A}' \bm{P}_{k+1} \bm{B} \bm{u}_k + 
-    \bm{x}_k' \bm{A}' \bm{P}_{k+1} \bm{A} \bm{x}_k
-    \label{eq:app_f_collected}
-\end{equation}
-
-The matrix $\bm{H} = \bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B}$ is 
-positive definite since $\bm{R} \succ 0$ and 
-$\bm{B}' \bm{P}_{k+1} \bm{B} \succeq 0$. This guarantees that 
-$f(\bm{u}_k)$ is strictly convex and admits a unique minimum.
-
-\paragraph{First-Order Condition.}
-Differentiating $f(\bm{u}_k)$ with respect to $\bm{u}_k$ and 
-setting the gradient to zero:
-\begin{equation}
-    \frac{\partial f}{\partial \bm{u}_k} = 
-    2(\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B}) \bm{u}_k + 
-    2 \bm{B}' \bm{P}_{k+1} \bm{A} \bm{x}_k = \bm{0}
-    \label{eq:app_FOC}
-\end{equation}
-
-Solving for the optimal control $\bm{u}_k^*$:
-\begin{equation}
-    \boxed{\bm{u}_k^* = -\bm{K}_k \bm{x}_k}
-    \label{eq:app_optimal_control}
-\end{equation}
-where the \textit{feedback gain matrix} is defined as:
-\begin{equation}
-    \boxed{\bm{K}_k = (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B})^{-1} 
-    \bm{B}' \bm{P}_{k+1} \bm{A}}
-    \label{eq:app_gain}
-\end{equation}
-
-\paragraph{Second-Order Condition.}
-The Hessian of $f(\bm{u}_k)$ is:
-\begin{equation}
-    \frac{\partial^2 f}{\partial \bm{u}_k \partial \bm{u}_k'} = 
-    2(\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B}) \succ 0
-    \label{eq:app_SOC}
-\end{equation}
-confirming that the solution \eqref{eq:app_optimal_control} is 
-indeed a minimum.
-
-\subsection{Derivation of the Riccati Equation}
-
-Substituting the optimal control \eqref{eq:app_optimal_control} 
-back into \eqref{eq:app_Jk_simplified}, we obtain the minimized 
-cost-to-go. After algebraic manipulation, the result takes the 
-quadratic form:
-\begin{equation}
-    J_k(\bm{x}_k) = \bm{x}_k' \bm{P}_k \bm{x}_k + c_k
-    \label{eq:app_Jk_quadratic}
-\end{equation}
-
-To derive the recursion for $\bm{P}_k$, substitute 
-$\bm{u}_k^* = -\bm{K}_k \bm{x}_k$ into the deterministic part of 
-\eqref{eq:app_Jk_simplified}:
-\begin{align}
-    &\bm{u}_k^{*'} \bm{R} \bm{u}_k^* + 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k^*)' \bm{P}_{k+1} 
-    (\bm{A}\bm{x}_k + \bm{B}\bm{u}_k^*) \nonumber \\
-    &= \bm{x}_k' \bm{K}_k' \bm{R} \bm{K}_k \bm{x}_k + 
-    \bm{x}_k' (\bm{A} - \bm{B}\bm{K}_k)' \bm{P}_{k+1} 
-    (\bm{A} - \bm{B}\bm{K}_k) \bm{x}_k
-    \label{eq:app_substitute_optimal}
-\end{align}
-
-Combining with the state cost $\bm{x}_k' \bm{Q}_k \bm{x}_k$:
-\begin{equation}
-    \bm{P}_k = \bm{Q}_k + \bm{K}_k' \bm{R} \bm{K}_k + 
-    (\bm{A} - \bm{B}\bm{K}_k)' \bm{P}_{k+1} (\bm{A} - \bm{B}\bm{K}_k)
-    \label{eq:app_Pk_form1}
-\end{equation}
-
-This expression can be simplified. Expanding and using the 
-definition of $\bm{K}_k$:
-\begin{align}
-    \bm{P}_k &= \bm{Q}_k + \bm{A}' \bm{P}_{k+1} \bm{A} - 
-    \bm{A}' \bm{P}_{k+1} \bm{B} \bm{K}_k - 
-    \bm{K}_k' \bm{B}' \bm{P}_{k+1} \bm{A} + 
-    \bm{K}_k' (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B}) \bm{K}_k
-    \label{eq:app_Pk_expand}
-\end{align}
-
-Using $\bm{K}_k = (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B})^{-1} 
-\bm{B}' \bm{P}_{k+1} \bm{A}$, we have:
-\begin{equation}
-    (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B}) \bm{K}_k = 
-    \bm{B}' \bm{P}_{k+1} \bm{A}
-    \label{eq:app_K_identity}
-\end{equation}
-
-Substituting \eqref{eq:app_K_identity} into 
-\eqref{eq:app_Pk_expand} and simplifying yields the 
-\textit{Discrete-Time Riccati Equation}:
-\begin{equation}
-    \boxed{\bm{P}_k = \bm{A}' \bm{P}_{k+1} \bm{A} - 
-    \bm{A}' \bm{P}_{k+1} \bm{B} 
-    (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B})^{-1} 
-    \bm{B}' \bm{P}_{k+1} \bm{A} + \bm{Q}_k}
-    \label{eq:app_riccati}
-\end{equation}
-
-Equivalently, using the gain matrix $\bm{K}_k$:
-\begin{equation}
-    \bm{P}_k = \bm{A}' \bm{P}_{k+1} \bm{A} - 
-    \bm{A}' \bm{P}_{k+1} \bm{B} \bm{K}_k + \bm{Q}_k
-    \label{eq:app_riccati_alt}
-\end{equation}
-
-The recursion for the constant term is:
-\begin{equation}
-    c_k = c_{k+1} + \text{tr}(\bm{P}_{k+1} \bm{\Sigma}_w)
-    \label{eq:app_ck_recursion}
-\end{equation}
-with terminal condition $c_N = 0$.
-
-\subsection{Algorithm Summary}
-
-The complete backward-forward algorithm consists of two phases:
-
-\paragraph{Phase 1: Backward Recursion (Offline).}
-\begin{enumerate}
-    \item Initialize: $\bm{P}_N = \bm{Q}_N$
-    \item For $k = N-1, N-2, \ldots, 0$:
-    \begin{enumerate}
-        \item Compute the gain matrix:
-        \begin{equation*}
-            \bm{K}_k = (\bm{R} + \bm{B}' \bm{P}_{k+1} \bm{B})^{-1} 
-            \bm{B}' \bm{P}_{k+1} \bm{A}
-        \end{equation*}
-        \item Update the Riccati matrix:
-        \begin{equation*}
-            \bm{P}_k = \bm{A}' \bm{P}_{k+1} \bm{A} - 
-            \bm{A}' \bm{P}_{k+1} \bm{B} \bm{K}_k + \bm{Q}_k
-        \end{equation*}
-        \item Store $\bm{K}_k$
-    \end{enumerate}
-\end{enumerate}
-
-\paragraph{Phase 2: Forward Simulation (Online).}
-\begin{enumerate}
-    \item Initialize: Observe initial state $\bm{x}_0$
-    \item For $k = 0, 1, \ldots, N-1$:
-    \begin{enumerate}
-        \item Apply optimal control: $\bm{u}_k^* = -\bm{K}_k \bm{x}_k$
-        \item System evolves: $\bm{x}_{k+1} = \bm{A}\bm{x}_k + 
-        \bm{B}\bm{u}_k^* + \bm{w}_k$
-        \item Observe $\bm{x}_{k+1}$
-    \end{enumerate}
-\end{enumerate}
-
-\subsection{Certainty Equivalence Principle}
-
-A fundamental property of the linear-quadratic-Gaussian (LQG) 
-framework is the \textit{Certainty Equivalence Principle}. This 
-states that:
-
-\begin{enumerate}
-    \item The optimal feedback gain $\bm{K}_k$ depends only on the 
-    system matrices $(\bm{A}, \bm{B})$ and cost matrices 
-    $(\bm{Q}_k, \bm{R})$, but \textbf{not} on the noise covariance 
-    $\bm{\Sigma}_w$.
-    
-    \item The optimal control law is identical to that of the 
-    deterministic problem (where $\bm{w}_k \equiv \bm{0}$).
-    
-    \item The stochastic disturbances affect only the 
-    \textit{expected cost}, not the \textit{optimal policy}. 
-    Specifically, the expected cost under optimal control is:
-    \begin{equation}
-        J^* = \bm{x}_0' \bm{P}_0 \bm{x}_0 + 
-        \sum_{k=0}^{N-1} \text{tr}(\bm{P}_{k+1} \bm{\Sigma}_w)
-        \label{eq:app_expected_cost}
-    \end{equation}
-    where the second term represents the irreducible cost of 
-    uncertainty.
-\end{enumerate}
-
-\noindent The certainty equivalence property arises because: (i) the system 
-dynamics are linear in both state and control, (ii) the cost 
-function is quadratic, and (iii) the disturbances have zero mean. 
-Under these conditions, the cross-terms between the deterministic 
-and stochastic components vanish in expectation, allowing the 
-optimization to proceed as if the future disturbances were known 
-to equal their expected value of zero.
-
-\vspace{5mm}
-
-\noindent\textit{This derivation follows \citet[Chapter~3.1]{bertsekas2017dynamic}.
-For extensions to infinite-horizon problems, time-varying systems,
-and output feedback, see anderson2007optimal.}
+The viral prevalence at period~3 is determined by the cumulative suppression
+effort across all three periods, each entering multiplicatively. This product
+structure implies that lockdowns are complementary over time: the marginal
+effectiveness of suppression in any period depends on the suppression in all
+other periods.
 
 % =============================================================================
-\section{iLQR Derivation for the Augmented System}
-\label{app:ilqr_derivation}
+\section{iLQR Algorithm}
+\label{app:ilqr}
 % =============================================================================
 
-This appendix provides the augmented state-space formulation and the complete
-backward-pass derivation for the iterative Linear-Quadratic Regulator (iLQR) applied
-to the pandemic planner's problem.
+The bilinear terms in~(\ref{eq:y_aug}) and~(\ref{eq:theta_aug}) prevent
+the application of standard LQR. The iterative Linear-Quadratic Regulator
+(iLQR) of \citet{li2004iterative} handles this by successively linearizing
+around the current trajectory and solving the resulting time-varying LQR
+subproblem. \citet{sharma2025sqp} show that iLQR is equivalent to Sequential
+Quadratic Programming applied to the discrete-time optimal control problem.
+The notation follows \citet[Chapters~3--4]{bertsekas2017dynamic}.
 
-\subsection{Augmented State Space}
-\label{app:augmented}
-
-The one-period lag on demand injection ($F_{k-1}^{DI}$ in
-equation~\ref{eq:y_nonlin}) means the system is not in standard first-order Markov
-form. I introduce the auxiliary state $z_k \equiv F_{k-1}^{DI}$ and define the
-augmented state vector
-$\tilde{\bm{x}}_k = (y_k,\, d_k,\, b_k,\, \theta_k,\, z_k)' \in \mathbb{R}^5$,
-with the augmented transition:
-%
-\begin{align}
-    y_{k+1}      &= \bigl[\rho_y + \psi\, S_k - \eta_p\, F_k^{CP}\bigr]\, y_k
-                    - \alpha_S\, S_k
-                    + \bigl(\alpha_F^{CP} + \tilde{\eta}\, S_k\bigr)\, F_k^{CP}
-                    + \alpha_F^{DI}\, z_k
-                    + \beta_d\, d_k
-    \label{eq:y_aug} \\[1ex]
-    d_{k+1}      &= \delta_\theta\, \theta_k
-    \label{eq:d_aug} \\[1ex]
-    b_{k+1}      &= (1+r)\, b_k - \gamma_y\, y_k
-                    + \kappa_F^{DI}\, F_k^{DI} + \kappa_F^{CP}\, F_k^{CP}
-                    + c_H\, \theta_k
-    \label{eq:b_aug} \\[1ex]
-    \theta_{k+1} &= \rho_\theta\bigl(1 - \phi_S\, S_k\bigr)\, \theta_k
-                    + \varepsilon_k
-    \label{eq:theta_aug} \\[1ex]
-    z_{k+1}      &= F_k^{DI}
-    \label{eq:z_aug}
-\end{align}
-
-The augmented Jacobians $\tilde{\bm{A}}_k \in \mathbb{R}^{5 \times 5}$ and
-$\tilde{\bm{B}}_k \in \mathbb{R}^{5 \times 3}$ are:
-%
-\begin{equation}
-\tilde{\bm{A}}_k = \begin{pmatrix}
-\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP}
-    & \beta_d & 0 & 0 & \alpha_F^{DI} \\[3pt]
-0 & 0 & 0 & \delta_\theta & 0 \\[3pt]
--\gamma_y & 0 & (1+r) & c_H & 0 \\[3pt]
-0 & 0 & 0 & \rho_\theta(1-\phi_S\,\bar{S}_k) & 0 \\[3pt]
-0 & 0 & 0 & 0 & 0
-\end{pmatrix}
-\label{eq:Ak_aug}
-\end{equation}
-%
-\begin{equation}
-\tilde{\bm{B}}_k = \begin{pmatrix}
-\psi\,\bar{y}_k - \alpha_S + \tilde{\eta}\,\bar{F}_k^{CP}
-    & 0
-    & \alpha_F^{CP} + \tilde{\eta}\,\bar{S}_k - \eta_p\,\bar{y}_k \\[3pt]
-0 & 0 & 0 \\[3pt]
-0 & \kappa_F^{DI} & \kappa_F^{CP} \\[3pt]
--\rho_\theta\,\phi_S\,\bar{\theta}_k & 0 & 0 \\[3pt]
-0 & 1 & 0
-\end{pmatrix}
-\label{eq:Bk_aug}
-\end{equation}
-%
-The disturbance selection vector is
-$\tilde{\bm{G}} = (0,\, 0,\, 0,\, 1,\, 0)' \in \mathbb{R}^5$.
-All matrices in the backward pass below use the augmented
-dimensions ($5 \times 5$, $5 \times 3$).
-
-\subsection{Controllability and Stability}
-\label{app:controllability}
-
-The eigenvalues of $\tilde{\bm{A}}_k$ evaluated at a nominal trajectory are
-$\bigl\{\rho_y + \psi\,\bar{S}_k - \eta_p\,\bar{F}_k^{CP},\;\; 0,\;\;
-(1+r),\;\; \rho_\theta(1-\phi_S\,\bar{S}_k),\;\; 0\bigr\}$. Two eigenvalues
-lie outside the unit circle. The debt eigenvalue $(1+r) > 1$ is unconditionally
-explosive: debt accumulates without bound in the absence of intervention. The
-infection eigenvalue $\rho_\theta(1 - \phi_S\,\bar{S}_k)$ is conditionally
-explosive---it exceeds unity whenever suppression is insufficient to push the
-effective reproduction rate below one
-($\phi_S\,\bar{S}_k < 1 - 1/\rho_\theta$). Active policy is therefore required
-not merely for optimization but for stabilization of the system.
-
-Since $\operatorname{rank}(\tilde{\bm{B}}_k) = 3 < 5 = \dim(\tilde{\bm{x}})$,
-the mortality state $d_k$ and the auxiliary state $z_k$ are not directly
-controllable. However, the controllability matrix
-$\mathcal{C}_k = [\tilde{\bm{B}}_k \;\; \tilde{\bm{A}}_k\tilde{\bm{B}}_k
-\;\; \cdots \;\; \tilde{\bm{A}}_k^4\tilde{\bm{B}}_k]$ has full row rank under
-non-degeneracy conditions ($\delta_\theta,\, \phi_S,\, \alpha_S,\,
-\alpha_F^{DI},\, \kappa_F^{DI},\, \kappa_F^{CP} \neq 0$ and
-$\bar{\theta}_k,\, \bar{y}_k \neq 0$). Mortality is reachable through
-$\tilde{\bm{A}}_k\tilde{\bm{B}}_k$ via the composite parameter
-$\delta_\theta\,\rho_\theta\,\phi_S\,\bar{\theta}_k$, confirming the
-two-period transmission lag $S_k \to \theta_{k+1} \to d_{k+2}$ established in
-Section~\ref{sec:trilemma}.
-
-
-
+% -----------------------------------------------------------------------------
 \subsection{Backward Pass: Q-Function Expansion}
 \label{app:backward}
 
 Let $(\bar{\bm{x}}_k^{(j)},\, \bar{\bm{u}}_k^{(j)})_{k=0}^{N-1}$ denote the
 nominal trajectory at iteration $j$. Define deviations
 $\delta\bm{x}_k = \bm{x}_k - \bar{\bm{x}}_k^{(j)}$ and
-$\delta\bm{u}_k = \bm{u}_k - \bar{\bm{u}}_k^{(j)}$. The local action-value
-(Q-)function is expanded to second order:
+$\delta\bm{u}_k = \bm{u}_k - \bar{\bm{u}}_k^{(j)}$. Expanding the local
+action-value (Q-)function to second order:
 %
 \begin{equation}
     Q(\delta\bm{x}_k, \delta\bm{u}_k) \approx
@@ -3312,31 +2577,38 @@ $\delta\bm{u}_k = \bm{u}_k - \bar{\bm{u}}_k^{(j)}$. The local action-value
     + \tfrac{1}{2}\delta\bm{x}_k'\,\bm{Q}_{xx,k}\,\delta\bm{x}_k
     + \delta\bm{u}_k'\,\bm{Q}_{ux,k}\,\delta\bm{x}_k
     + \tfrac{1}{2}\delta\bm{u}_k'\,\bm{Q}_{uu,k}\,\delta\bm{u}_k
-    \label{eq:Qfunc}
+    \label{eq:Qfunc_app}
 \end{equation}
 %
 where $\bm{p}_{k+1} \in \mathbb{R}^5$ and
 $\bm{P}_{k+1} \in \mathbb{R}^{5 \times 5}$ are the gradient and Hessian of the
-cost-to-go at $k+1$, and the Q-function coefficients are:
+cost-to-go at $k+1$, and the coefficients are:
 %
 \begin{align}
-    \bm{Q}_{x,k}  &= \bm{Q}_k\,\bar{\bm{x}}_k + \bm{A}_k'\,\bm{p}_{k+1}
-    \label{eq:Qx} \\[4pt]
-    \bm{Q}_{u,k}  &= \bm{R}_k\,\bar{\bm{u}}_k + \bm{B}_k'\,\bm{p}_{k+1}
-    \label{eq:Qu} \\[4pt]
-    \bm{Q}_{xx,k} &= \bm{Q}_k + \bm{A}_k'\,\bm{P}_{k+1}\,\bm{A}_k
-    \label{eq:Qxx} \\[4pt]
-    \bm{Q}_{uu,k} &= \bm{R}_k + \bm{B}_k'\,\bm{P}_{k+1}\,\bm{B}_k
-    \label{eq:Quu} \\[4pt]
-    \bm{Q}_{ux,k} &= \bm{B}_k'\,\bm{P}_{k+1}\,\bm{A}_k
-    \label{eq:Qux}
+    \bm{Q}_{x,k}  &= \bm{Q}_k\,\bar{\bm{x}}_k^{(j)}
+                      + \tilde{\bm{A}}_k'\,\bm{p}_{k+1}
+    \label{eq:Qx_app} \\[4pt]
+    \bm{Q}_{u,k}  &= \bm{R}_k\,\bar{\bm{u}}_k^{(j)}
+                      + \tilde{\bm{B}}_k'\,\bm{p}_{k+1}
+                      + \bm{C}'\bigl(\bm{\lambda}_k + \bm{I}_\mu\, \bm{c}_k\bigr)
+    \label{eq:Qu_app} \\[4pt]
+    \bm{Q}_{xx,k} &= \bm{Q}_k
+                      + \tilde{\bm{A}}_k'\,\bm{P}_{k+1}\,\tilde{\bm{A}}_k
+    \label{eq:Qxx_app} \\[4pt]
+    \bm{Q}_{uu,k} &= \bm{R}_k
+                      + \tilde{\bm{B}}_k'\,\bm{P}_{k+1}\,\tilde{\bm{B}}_k
+                      + \bm{C}'\,\bm{I}_\mu\,\bm{C}
+    \label{eq:Quu_app} \\[4pt]
+    \bm{Q}_{ux,k} &= \tilde{\bm{B}}_k'\,\bm{P}_{k+1}\,\tilde{\bm{A}}_k
+    \label{eq:Qux_app}
 \end{align}
+%
+The terms involving $\bm{C}$, $\bm{\lambda}_k$, and $\bm{I}_\mu$ arise from
+the Augmented Lagrangian treatment of box constraints and are defined in
+Section~\ref{app:constraints} below.
 
-\subsection{Optimal Gains}
-\label{app:gains}
-
-Minimizing~(\ref{eq:Qfunc}) with respect to $\delta\bm{u}_k$ yields the feedforward
-correction $\bm{k}_k$ and the state-feedback gain $\bm{K}_k$:
+Minimizing~(\ref{eq:Qfunc_app}) with respect to $\delta\bm{u}_k$ yields the
+feedforward correction $\bm{k}_k$ and the state-feedback gain $\bm{K}_k$:
 %
 \begin{equation}
     \delta\bm{u}_k^* = \bm{k}_k + \bm{K}_k\,\delta\bm{x}_k,
@@ -3344,82 +2616,133 @@ correction $\bm{k}_k$ and the state-feedback gain $\bm{K}_k$:
     \bm{k}_k = -\bm{Q}_{uu,k}^{-1}\,\bm{Q}_{u,k},
     \qquad
     \bm{K}_k = -\bm{Q}_{uu,k}^{-1}\,\bm{Q}_{ux,k}
-    \label{eq:gains}
+    \label{eq:gains_app}
 \end{equation}
 %
 Substituting back yields the updated cost-to-go:
 %
 \begin{align}
-    \bm{p}_k &= \bm{Q}_{x,k} - \bm{K}_k'\,\bm{Q}_{uu,k}\,\bm{k}_k
-    \label{eq:pk} \\[4pt]
+    \bm{p}_k &= \bm{Q}_{x,k} + \bm{K}_k'\,\bm{Q}_{uu,k}\,\bm{k}_k
+    \label{eq:pk_app} \\[4pt]
     \bm{P}_k &= \bm{Q}_{xx,k} - \bm{K}_k'\,\bm{Q}_{uu,k}\,\bm{K}_k
-    \label{eq:Pk}
+    \label{eq:Pk_app}
 \end{align}
 %
-Equations~(\ref{eq:Qx})--(\ref{eq:Pk}) constitute the backward pass, initiated at
-$\bm{p}_N = \bm{Q}_N\,\bar{\bm{x}}_N$ and $\bm{P}_N = \bm{Q}_N$ and solved
-backward from $k = N-1$ to $k = 0$.
+Equations~(\ref{eq:Qx_app})--(\ref{eq:Pk_app}) constitute the backward pass,
+initiated at $\bm{p}_N = \bm{Q}_N\,\bar{\bm{x}}_N^{(j)}$ and
+$\bm{P}_N = \bm{Q}_N$, solved backward from $k = N-1$ to $k = 0$.
 
+% -----------------------------------------------------------------------------
 \subsection{Regularization}
 \label{app:regularization}
 
 Positive definiteness of $\bm{Q}_{uu,k}$ is required for the gain
-computation~(\ref{eq:gains}). In the presence of nearly explosive
-eigenvalues---specifically $(1+r) > 1$ and
-$\rho_\theta(1-\phi_S \bar{S}_k) > 1$ in early pandemic periods---the Hessian
-$\bm{P}_{k+1}$ can grow large, causing $\bm{Q}_{uu,k}$ to become ill-conditioned.
-Following \citet{tassa2014control}, I apply Levenberg--Marquardt regularization by
-replacing $\bm{Q}_{uu,k}$ with
-$\tilde{\bm{Q}}_{uu,k} = \bm{Q}_{uu,k} + \lambda\bm{I}$ in~(\ref{eq:gains}), with
-$\lambda > 0$ adapted upward when $\bm{Q}_{uu,k}$ fails a Cholesky factorization
-check and reduced geometrically after each successful iteration.
+computation~(\ref{eq:gains_app}). The explosive eigenvalues---$(1+r) > 1$ and
+$\rho_\theta(1-\phi_S\,\bar{S}_k) > 1$ in early pandemic periods---cause
+$\bm{P}_{k+1}$ to grow large, potentially rendering $\bm{Q}_{uu,k}$
+ill-conditioned. Following \citet{tassa2014control}, Levenberg--Marquardt
+regularization replaces $\bm{Q}_{uu,k}$ with
+$\tilde{\bm{Q}}_{uu,k} = \bm{Q}_{uu,k} + \lambda\,\bm{I}_3$ in the gain
+computation, where $\lambda > 0$ is adapted: increased when $\bm{Q}_{uu,k}$
+fails a Cholesky factorization check, reduced geometrically after each
+successful iteration.
 
+% -----------------------------------------------------------------------------
 \subsection{Forward Pass}
 \label{app:forward}
 
-Given gains $(\bm{k}_k, \bm{K}_k)_{k=0}^{N-1}$, the forward pass integrates the
-updated policy through the \emph{nonlinear} dynamics with step-size
-$\alpha \in (0, 1]$:
+Given gains $(\bm{k}_k,\, \bm{K}_k)_{k=0}^{N-1}$ from the backward pass, the
+forward pass integrates the updated policy through the \emph{nonlinear} dynamics
+with step-size $\alpha \in (0,\, 1]$:
 %
 \begin{align}
-    \hat{\bm{u}}_k   &= \bar{\bm{u}}_k^{(j)}
+    \hat{\bm{u}}_k &= \bar{\bm{u}}_k^{(j)}
         + \alpha\,\bm{k}_k
         + \bm{K}_k\bigl(\hat{\bm{x}}_k - \bar{\bm{x}}_k^{(j)}\bigr),
-    \quad \hat{\bm{u}}_k \leftarrow
-        \operatorname{clip}\!\left(\hat{\bm{u}}_k,\, \bm{u}_{\min},\,
-        \bm{u}_{\max}\right)
+    \qquad
+    \hat{\bm{u}}_k \leftarrow
+        \operatorname{clip}\!\left(\hat{\bm{u}}_k,\,
+        \bm{u}_{\min},\, \bm{u}_{\max}\right)
     \label{eq:fwd_u_app} \\[4pt]
-    \hat{\bm{x}}_{k+1} &= f\!\left(\hat{\bm{x}}_k,\, \hat{\bm{u}}_k\right)
+    \hat{\bm{x}}_{k+1} &= f\!\left(\hat{\bm{x}}_k,\,
+        \hat{\bm{u}}_k,\, k\right)
     \label{eq:fwd_x_app}
 \end{align}
 %
-starting from $\hat{\bm{x}}_0 = \bm{x}_0$. Starting at $\alpha = 1$, the step size
-is halved until the new trajectory achieves a sufficient decrease in total cost
-(Armijo condition).
+starting from $\hat{\bm{x}}_0 = \bm{x}_0$. The step size $\alpha$ is
+initialized at unity and halved until the new trajectory achieves a sufficient
+decrease in total cost (Armijo condition). If no improvement is found within a
+predetermined number of halvings, $\lambda$ is increased and the backward pass
+is repeated.
 
-Box constraints are enforced through an Augmented Lagrangian scheme \citep{toussaint2014} with outer multiplier updates, rather than simple projection.
+% -----------------------------------------------------------------------------
+\subsection{Box Constraints via Augmented Lagrangian}
+\label{app:constraints}
 
+The control variables are subject to box constraints: $S_k \in [0,\, S_{\max}]$,
+$F_k^{DI} \in [0,\, \bar{F}^{DI}]$, $F_k^{CP} \in [0,\, \bar{F}^{CP}]$, where
+$S_{\max} = 0.86$ (empirical maximum) and $\bar{F}^{DI}$, $\bar{F}^{CP}$ are
+calibrated upper bounds. These are expressed as six inequality constraints
+$\bm{C}\,\bm{u}_k \leq \bm{c}$ with:
+%
+\begin{equation}
+    \bm{C} = \begin{pmatrix}
+    -1 & 0 & 0 \\ 1 & 0 & 0 \\
+    0 & -1 & 0 \\ 0 & 1 & 0 \\
+    0 & 0 & -1 \\ 0 & 0 & 1
+    \end{pmatrix}, \qquad
+    \bm{c} = \begin{pmatrix}
+    0 \\ S_{\max} \\ 0 \\ \bar{F}^{DI} \\ 0 \\ \bar{F}^{CP}
+    \end{pmatrix}
+    \label{eq:constraints}
+\end{equation}
+%
+Rather than simple projection, constraints are enforced through an Augmented
+Lagrangian scheme \citep{howell2019altro}. At each outer iteration, the
+Lagrange multipliers $\bm{\lambda}_k \in \mathbb{R}^6$ are updated:
+$\bm{\lambda}_k \leftarrow \max\bigl(\bm{0},\, \bm{\lambda}_k +
+\bm{\mu}_k \odot (\bm{C}\,\bm{u}_k - \bm{c})\bigr)$, where
+$\bm{\mu}_k$ are penalty parameters increased by a factor $\phi > 1$ after
+each outer iteration. The diagonal matrix $\bm{I}_\mu =
+\operatorname{diag}\bigl(\mu_k^{(i)} \cdot \mathbb{1}[c_i \text{ active}]\bigr)$
+enters the Q-function coefficients~(\ref{eq:Qu_app})
+and~(\ref{eq:Quu_app}), modifying the search direction to respect the
+constraints without requiring explicit projection during the backward pass.
 
+% -----------------------------------------------------------------------------
+\subsection{Certainty Equivalence}
+\label{app:ce}
+
+At each iLQR iteration the linearized system is affine in the state and the
+objective is quadratic, satisfying the conditions for certainty equivalence
+\citep[Chapter~3.1]{bertsekas2017dynamic}. The optimal feedback gain
+$\bm{K}_k^{(j)}$ is therefore identical to the deterministic case
+($\varepsilon_k \equiv 0$). Stochastic shocks increase the expected cost by
+$\sum_{k=0}^{N-1} \sigma^2\, \tilde{\bm{G}}'\,\bm{P}_{k+1}^{(j)}\,
+\tilde{\bm{G}}$---reflecting the irreducible cost of epidemiological
+uncertainty---but do not alter the optimal policy rule.
+
+% -----------------------------------------------------------------------------
 \subsection{Convergence}
 \label{app:convergence}
 
-The algorithm terminates when the relative cost reduction falls below tolerance
-$\epsilon$:
+The algorithm terminates when the relative cost reduction falls below
+tolerance $\epsilon$:
 %
 \begin{equation}
-    \frac{|J^{(j)} - J^{(j-1)}|}{|J^{(j)}|} < \epsilon, \qquad \epsilon = 10^{-6}.
+    \frac{\bigl|J^{(j)} - J^{(j-1)}\bigr|}{\bigl|J^{(j)}\bigr|} < \epsilon,
+    \qquad \epsilon = 10^{-6}
+    \label{eq:convergence}
 \end{equation}
 %
-A maximum of 500 iterations is imposed as a safeguard. In practice, convergence
-is achieved within 40--80 iterations for all initializations tested.
-
-The bilinear terms render the problem non-convex, so the iLQR converges to a
-local optimum. To verify that the solution is globally optimal in the
+A maximum of 500 iterations is imposed as a safeguard; in practice,
+convergence is achieved within 40--80 inner iterations for all
+initializations tested. The bilinear terms render the problem non-convex, so
+the iLQR converges to a local optimum. To verify global optimality in the
 economically relevant region, I solve from 50 random initialization
-trajectories---drawn by perturbing the baseline control sequence
-$\bar{\bm{u}}_k^{(0)}$ uniformly within the feasible set---and confirm that all
-runs converge to the same cost $J^*$ (up to numerical tolerance). No alternative
-local optima are detected.
+trajectories---drawn by perturbing the baseline control sequence uniformly
+within the feasible set---and confirm that all runs converge to the same cost
+$J^*$ up to numerical tolerance. No alternative local optima are detected.
 
 \subsection{Parameters Full Table}
 \label{subsec:full_parameter}
@@ -3593,6 +2916,72 @@ $c_H$ & Health expenditure per unit infection
 \end{tabular}
 \end{table}
 
+\section{Correlation Matrix and Variation Decomposition}
+\label{sec:correlation_matrix}
+
+
+\begin{table}[H]
+\centering
+\caption{Within vs.\ Between Variation Decomposition}
+\label{tab:within_between}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{} l r r r r r @{}}
+\toprule
+\textbf{Variable} & \textbf{Overall SD} & \textbf{Between SD} & \textbf{Within SD}
+  & \textbf{Within (\%)} & \textbf{Between (\%)} \\
+\midrule
+$y_{ik}$ (pp of potential)       & 4.766 & 3.018 & 3.688 & 77.4 & 63.3 \\
+$S_{ik}$ (0--100)                & 18.696 & 6.143 & 17.658 & 94.4 & 32.9 \\
+$F^{CP}_{ik}$ (pp GDP)          & 3.032 & 0.691 & 2.953 & 97.4 & 22.8 \\
+$F^{DI}_{ik}$ (pp GDP)          & 0.705 & 0.251 & 0.659 & 93.5 & 35.6 \\
+$F^{H}_{ik}$ (pp GDP)           & 0.381 & 0.123 & 0.361 & 94.7 & 32.3 \\
+$d_{ik}$ (P-score, \%)          & 14.873 & 7.603 & 12.783 & 85.9 & 51.1 \\
+$\theta_{ik}$ (\% of pop.)      & 1.889 & 0.533 & 1.813 & 95.9 & 28.2 \\
+$\text{Vax}_{ik}$ (\% of pop.)  & 33.038 & 4.212 & 32.768 & 99.2 & 12.7 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\scriptsize\textit{Notes:} 38 OECD countries,
+Q1\,2020--Q2\,2022 ($N = 380$). Overall SD: total standard deviation.
+Between SD: standard deviation of country means. Within SD: standard
+deviation of deviations from country means. Within (\%) = Within SD /
+Overall SD $\times$ 100. Country fixed effects absorb between-variation;
+within-variation identifies the coefficients. All policy variables
+exhibit within-shares above 93\%, confirming that the identifying
+variation survives absorption of country fixed effects.}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Pairwise Correlation Matrix}
+\label{tab:corr_matrix}
+\scriptsize
+\begin{tabular}{@{} l r r r r r r r @{}}
+\toprule
+ & $y_{ik}$ & $S_{ik}$ & $F^{CP}_{ik}$ & $F^{DI}_{ik}$
+ & $d_{ik}$ & $\theta_{ik}$ & $\text{Vax}_{ik}$ \\
+\midrule
+$y_{ik}$           & 1    &       &       &       &       &       &  \\
+$S_{ik}$           & $-$0.43 & 1  &       &       &       &       &  \\
+$F^{CP}_{ik}$      & $-$0.25 & 0.13  & 1  &       &       &       &  \\
+$F^{DI}_{ik}$      & $-$0.11 & 0.12  & 0.25  & 1  &       &       &  \\
+$d_{ik}$           & $-$0.09 & 0.20  & $-$0.15 & $-$0.04 & 1  &       &  \\
+$\theta_{ik}$      & 0.20  & $-$0.39 & $-$0.19 & $-$0.17 & 0.32  & 1  &  \\
+$\text{Vax}_{ik}$  & 0.43  & $-$0.56 & $-$0.36 & $-$0.27 & 0.04  & 0.53  & 1 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Pearson correlations,
+estimation sample (38 countries, Q1\,2020--Q2\,2022, $N = 380$).
+Lower triangle reported. The correlations
+$r(S, F^{CP}) = 0.13$ and $r(S, F^{DI}) = 0.12$ confirm that fiscal
+composition is only weakly correlated with containment intensity---the
+key identifying condition for the $S \times F^{CP}$ interaction term.}
+\end{table}
 
 
 \end{document}
