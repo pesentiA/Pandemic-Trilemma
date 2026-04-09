@@ -5,45 +5,39 @@ caption={Robustness Checks: Output Gap Equation},
 note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
-colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
-hline{2}={1-8}{solid, black, 0.05em},
-hline{32}={1-8}{solid, black, 0.05em},
-hline{1}={1-8}{solid, black, 0.1em},
-hline{33}={1-8}{solid, black, 0.1em},
-column{2-8}={}{halign=c},
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-12}{solid, black, 0.05em},
+hline{26}={1-12}{solid, black, 0.05em},
+hline{1}={1-12}{solid, black, 0.1em},
+hline{27}={1-12}{solid, black, 0.1em},
+column{2-12}={}{halign=c},
 column{1}={}{halign=l},
 }                     %% tabularray inner close
-& (1) Baseline & (2) No IRL & (3) No TUR & (4) S\_max\_tw & (5) +Vax & (6) Guar adj 25\% & (7) Guar adj 50\% \\
-S  [−α\_S, direct cost] & \num{-0.020} & \num{-0.019} & \num{-0.014} &  & \num{-0.020} & \num{-0.022} & \num{-0.020} \\
-& (\num{0.014}) & (\num{0.018}) & (\num{0.015}) &  & (\num{0.014}) & (\num{0.015}) & (\num{0.015}) \\
-y(t-1)  [ρ\_y, baseline persist.] & \num{0.102} & \num{0.050} & \num{0.043} & \num{0.126} & \num{0.112} & \num{0.107} & \num{0.105} \\
-& (\num{0.096}) & (\num{0.119}) & (\num{0.099}) & (\num{0.100}) & (\num{0.093}) & (\num{0.093}) & (\num{0.094}) \\
-S×y(t-1)  [ψ, lockdown hysteresis] & \num{0.004}*** & \num{0.005}*** & \num{0.005}*** &  & \num{0.004}*** & \num{0.004}*** & \num{0.004}*** \\
-& (\num{0.001}) & (\num{0.002}) & (\num{0.001}) &  & (\num{0.001}) & (\num{0.001}) & (\num{0.001}) \\
-S\_max×y(t-1)  [ψ] &  &  &  & \num{0.003}*** &  &  &  \\
-&  &  &  & (\num{0.001}) &  &  &  \\
-F\textasciicircum{}CP  [α\_CP, CP level effect] & \num{0.266}*** & \num{0.253}*** & \num{0.278}*** & \num{0.276}** & \num{0.267}*** & \num{0.335}* & \num{0.329}** \\
-& (\num{0.086}) & (\num{0.085}) & (\num{0.088}) & (\num{0.134}) & (\num{0.088}) & (\num{0.184}) & (\num{0.148}) \\
-S×F\textasciicircum{}CP  [η̃, CP cushioning] & \num{-0.008}*** & \num{-0.008}*** & \num{-0.008}*** &  & \num{-0.008}*** &  &  \\
-& (\num{0.003}) & (\num{0.003}) & (\num{0.003}) &  & (\num{0.003}) &  &  \\
-S\_max×F\textasciicircum{}CP  [η̃] &  &  &  & \num{-0.004}* &  &  &  \\
-&  &  &  & (\num{0.002}) &  &  &  \\
-S×F\textasciicircum{}CP\_adj25  [η̃] &  &  &  &  &  & \num{-0.008} &  \\
-&  &  &  &  &  & (\num{0.006}) &  \\
-S×F\textasciicircum{}CP\_adj50  [η̃] &  &  &  &  &  &  & \num{-0.009}* \\
-&  &  &  &  &  &  & (\num{0.005}) \\
-F\textasciicircum{}CP×y(t-1)  [−η\_p, persist. reduction] & \num{-0.023}* & \num{-0.026}** & \num{-0.022} & \num{-0.006} & \num{-0.024}* &  &  \\
-& (\num{0.013}) & (\num{0.013}) & (\num{0.014}) & (\num{0.014}) & (\num{0.013}) &  &  \\
-F\textasciicircum{}CP\_adj25×y(t-1)  [−η\_p] &  &  &  &  &  & \num{-0.040} &  \\
-&  &  &  &  &  & (\num{0.026}) &  \\
-F\textasciicircum{}CP\_adj50×y(t-1)  [−η\_p] &  &  &  &  &  &  & \num{-0.034} \\
-&  &  &  &  &  &  & (\num{0.022}) \\
-F\textasciicircum{}DI lag2  [α\_DI, DI multiplier] & \num{0.207}* & \num{0.162} & \num{0.220}** & \num{0.272}** & \num{0.208}* & \num{0.215}* & \num{0.211}* \\
-& (\num{0.112}) & (\num{0.120}) & (\num{0.109}) & (\num{0.113}) & (\num{0.109}) & (\num{0.114}) & (\num{0.113}) \\
-Vaccination rate &  &  &  &  & \num{0.013} &  &  \\
-&  &  &  &  & (\num{0.010}) &  &  \\
-Fear term  [projected mortality risk] & \num{-0.018}* & \num{-0.018}* & \num{-0.022}** & \num{-0.020}** & \num{-0.019}** & \num{-0.020}** & \num{-0.019}** \\
-& (\num{0.009}) & (\num{0.009}) & (\num{0.009}) & (\num{0.010}) & (\num{0.009}) & (\num{0.009}) & (\num{0.009}) \\
-Num.Obs. & \num{342} & \num{333} & \num{333} & \num{342} & \num{342} & \num{342} & \num{342} \\
+& (1) Baseline & (2) No IRL & (3) No TUR & (4) S\_max\_tw & (5) +Vax & (6) High soc.nets & (7) Low soc.nets & (8) Ext. Q4.2022 & (9) Only 2020 & (10) CP×DI compl. & (11) Q1.20-Q1.22 \\
+S  [-alpha\_S] & \num{-0.023}* & \num{-0.018} & \num{-0.019} &  & \num{-0.023}* & \num{0.020} & \num{-0.034}** & \num{-0.019}* & \num{-0.038} & \num{-0.024}* & \num{-0.020} \\
+& (\num{0.013}) & (\num{0.016}) & (\num{0.014}) &  & (\num{0.013}) & (\num{0.021}) & (\num{0.013}) & (\num{0.010}) & (\num{0.027}) & (\num{0.013}) & (\num{0.015}) \\
+y(t-1)  [rho\_y] & \num{0.260}*** & \num{0.200} & \num{0.218}** & \num{0.280}*** & \num{0.274}*** & \num{0.072} & \num{0.317}*** & \num{0.564}*** & \num{-0.055} & \num{0.262}*** & \num{0.102} \\
+& (\num{0.093}) & (\num{0.119}) & (\num{0.104}) & (\num{0.097}) & (\num{0.086}) & (\num{0.207}) & (\num{0.093}) & (\num{0.070}) & (\num{0.155}) & (\num{0.093}) & (\num{0.098}) \\
+S x y(t-1)  [psi] & \num{0.003}* & \num{0.004}** & \num{0.003}* &  & \num{0.002}* & \num{0.005}* & \num{0.002} & \num{0.000} & \num{0.005} & \num{0.002}* & \num{0.004}*** \\
+& (\num{0.001}) & (\num{0.002}) & (\num{0.002}) &  & (\num{0.001}) & (\num{0.003}) & (\num{0.002}) & (\num{0.001}) & (\num{0.003}) & (\num{0.001}) & (\num{0.001}) \\
+S\_max x y(t-1)  [psi] &  &  &  & \num{0.002} &  &  &  &  &  &  &  \\
+&  &  &  & (\num{0.001}) &  &  &  &  &  &  &  \\
+F\textasciicircum{}CP  [alpha\_CP] & \num{0.262}*** & \num{0.254}*** & \num{0.271}*** & \num{0.285}* & \num{0.264}*** & \num{0.290}** & \num{0.377}* & \num{0.232}*** & \num{0.177}** & \num{0.264}*** & \num{0.266}*** \\
+& (\num{0.089}) & (\num{0.089}) & (\num{0.091}) & (\num{0.145}) & (\num{0.091}) & (\num{0.101}) & (\num{0.216}) & (\num{0.083}) & (\num{0.079}) & (\num{0.085}) & (\num{0.088}) \\
+S x F\textasciicircum{}CP  [eta\_tilde] & \num{-0.008}** & \num{-0.008}** & \num{-0.008}** &  & \num{-0.007}** & \num{-0.007}* & \num{-0.013}** & \num{-0.007}** & \num{-0.004} & \num{-0.007}** & \num{-0.008}** \\
+& (\num{0.003}) & (\num{0.003}) & (\num{0.003}) &  & (\num{0.003}) & (\num{0.004}) & (\num{0.005}) & (\num{0.003}) & (\num{0.003}) & (\num{0.003}) & (\num{0.003}) \\
+S\_max x F\textasciicircum{}CP  [eta\_tilde] &  &  &  & \num{-0.004}* &  &  &  &  &  &  &  \\
+&  &  &  & (\num{0.002}) &  &  &  &  &  &  &  \\
+F\textasciicircum{}CP x y(t-1)  [-eta\_p] & \num{-0.023} & \num{-0.028}** & \num{-0.023} & \num{-0.008} & \num{-0.024}* & \num{-0.016} & \num{-0.090}* & \num{-0.026}* & \num{0.001} & \num{-0.017} & \num{-0.023}* \\
+& (\num{0.014}) & (\num{0.013}) & (\num{0.014}) & (\num{0.015}) & (\num{0.014}) & (\num{0.016}) & (\num{0.049}) & (\num{0.013}) & (\num{0.014}) & (\num{0.019}) & (\num{0.014}) \\
+F\textasciicircum{}DI lag2  [alpha\_DI] & \num{0.195}* & \num{0.149} & \num{0.207}* & \num{0.247}** & \num{0.201}* & \num{0.060} & \num{0.275}** & \num{0.198} & \num{0.204} & \num{0.152} & \num{0.207}* \\
+& (\num{0.114}) & (\num{0.117}) & (\num{0.111}) & (\num{0.114}) & (\num{0.109}) & (\num{0.289}) & (\num{0.108}) & (\num{0.134}) & (\num{0.256}) & (\num{0.138}) & (\num{0.115}) \\
+F\textasciicircum{}CP x F\textasciicircum{}DI  [complementarity] &  &  &  &  &  &  &  &  &  & \num{0.156} &  \\
+&  &  &  &  &  &  &  &  &  & (\num{0.167}) &  \\
+Vaccination rate &  &  &  &  & \num{0.020}* &  &  &  &  &  &  \\
+&  &  &  &  & (\num{0.011}) &  &  &  &  &  &  \\
+Fear term  [beta\_d] & \num{-0.020}** & \num{-0.021}** & \num{-0.023}** & \num{-0.022}** & \num{-0.021}** & \num{-0.038} & \num{-0.013} & \num{-0.023}*** & \num{-0.028} & \num{-0.021}** & \num{-0.018}* \\
+& (\num{0.009}) & (\num{0.009}) & (\num{0.009}) & (\num{0.009}) & (\num{0.009}) & (\num{0.023}) & (\num{0.010}) & (\num{0.009}) & (\num{0.020}) & (\num{0.009}) & (\num{0.010}) \\
+Num.Obs. & \num{380} & \num{370} & \num{370} & \num{380} & \num{380} & \num{190} & \num{190} & \num{494} & \num{190} & \num{380} & \num{342} \\
 \end{talltblr}
 \end{table}

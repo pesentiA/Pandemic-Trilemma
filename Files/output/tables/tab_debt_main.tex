@@ -1,0 +1,37 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Debt Equation: Main Results},
+note{}={. p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-6}{solid, black, 0.05em},
+hline{18}={1-6}{solid, black, 0.05em},
+hline{1}={1-6}{solid, black, 0.1em},
+hline{21}={1-6}{solid, black, 0.1em},
+column{2-6}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& OLS & Pooled CP & Above/Below & Above/Below (adj.) & Above/Loans/Guar. \\
+Output gap ($y_{ik}$) & \num{-0.147}*** & \num{-0.219}*** & \num{-0.215}*** & \num{-0.215}*** & \num{-0.210}*** \\
+& (\num{0.029}) & (\num{0.036}) & (\num{0.035}) & (\num{0.035}) & (\num{0.037}) \\
+Capacity preservation, pooled & \num{0.186}*** & \num{0.167}** &  &  &  \\
+& (\num{0.049}) & (\num{0.048}) &  &  &  \\
+CP above-the-line &  &  & \num{0.418}* & \num{0.418}* & \num{0.423}* \\
+&  &  & (\num{0.178}) & (\num{0.178}) & (\num{0.174}) \\
+CP below-the-line (face value) &  &  & \num{0.115}* &  &  \\
+&  &  & (\num{0.043}) &  &  \\
+CP below-the-line (adj.\ 35\%) &  &  &  & \num{0.328}* &  \\
+&  &  &  & (\num{0.124}) &  \\
+CP government loans &  &  &  &  & \num{0.352}*** \\
+&  &  &  &  & (\num{0.083}) \\
+CP guarantees (adj.\ 35\%) &  &  &  &  & \num{0.095} \\
+&  &  &  &  & (\num{0.164}) \\
+Demand injection ($F^{DI}_{i,k-1}$) & \num{0.508}. & \num{0.379} & \num{0.385} & \num{0.385} & \num{0.370} \\
+& (\num{0.294}) & (\num{0.249}) & (\num{0.260}) & (\num{0.260}) & (\num{0.262}) \\
+Num.Obs. & \num{380} & \num{380} & \num{380} & \num{380} & \num{380} \\
+Country FE & No & Yes & Yes & Yes & Yes \\
+Guarantee adj. & --- & --- & No & 35\% & 35\% \\
+\end{talltblr}
+\end{table}

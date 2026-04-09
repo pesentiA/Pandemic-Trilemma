@@ -1,0 +1,37 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Debt Equation: Robustness},
+note{}={. p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-6}{solid, black, 0.05em},
+hline{18}={1-6}{solid, black, 0.05em},
+hline{1}={1-6}{solid, black, 0.1em},
+hline{21}={1-6}{solid, black, 0.1em},
+column{2-6}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& + Trend & + Inf. prev. & Guar. 25\% & Guar. 50\% & Pre-vax \\
+Output gap & \num{-0.172}*** & \num{-0.204}*** & \num{-0.215}*** & \num{-0.215}*** & \num{-0.224}*** \\
+& (\num{0.040}) & (\num{0.037}) & (\num{0.035}) & (\num{0.035}) & (\num{0.053}) \\
+CP above-the-line & \num{0.262} & \num{0.388}* & \num{0.418}* & \num{0.418}* & \num{0.363} \\
+& (\num{0.217}) & (\num{0.185}) & (\num{0.178}) & (\num{0.178}) & (\num{0.261}) \\
+CP below-the-line (adj. 35\%) & \num{0.241}. & \num{0.323}* &  &  & \num{0.335}* \\
+& (\num{0.129}) & (\num{0.124}) &  &  & (\num{0.126}) \\
+CP below-the-line (adj. 25\%) &  &  & \num{0.459}* &  &  \\
+&  &  & (\num{0.174}) &  &  \\
+CP below-the-line (adj. 50\%) &  &  &  & \num{0.230}* &  \\
+&  &  &  & (\num{0.087}) &  \\
+Demand injection (lag 1) & \num{0.323} & \num{0.354} & \num{0.385} & \num{0.385} & \num{0.725} \\
+& (\num{0.243}) & (\num{0.254}) & (\num{0.260}) & (\num{0.260}) & (\num{0.503}) \\
+Quarterly trend & \num{-0.141}** &  &  &  &  \\
+& (\num{0.052}) &  &  &  &  \\
+Infection prevalence &  & \num{-9.342} &  &  &  \\
+&  & (\num{5.540}) &  &  &  \\
+Num.Obs. & \num{380} & \num{380} & \num{380} & \num{380} & \num{152} \\
+Country FE & Yes & Yes & Yes & Yes & Yes \\
+Sample & Full & Full & Full & Full & Q1--Q4.2020 \\
+\end{talltblr}
+\end{table}
