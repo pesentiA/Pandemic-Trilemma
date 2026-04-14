@@ -6,7 +6,9 @@
       "Bash(python3 -c \":*)",
       "Bash(sort -t'{' -k2)",
       "Read(//c/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/**)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" \"c:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/R/_tmp_di_per_country.R\")",
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" \"c:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/R/_tmp_cp_decomp.R\")"
     ]
   }
 }

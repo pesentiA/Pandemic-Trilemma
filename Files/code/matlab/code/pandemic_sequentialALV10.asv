@@ -93,7 +93,7 @@ end
 r_int=0.001; gamma_y=0.21; kappa_F_CP=0.423; kappa_F_DI=0.37; c_H=0.02;
 
 % --- Bounds ---
-S_max=0.86; FDI_max=0.04; FCP_max=0.12;
+S_max=0.86; FDI_max=0.10; FCP_max=0.20;
 
 % --- Initial conditions ---
 x0 = [0;0;0;0.001;0];
