@@ -1070,56 +1070,39 @@ The epidemiological variables display comparably wide cross-country dispersion. 
 \label{tab:main_results}
 \scriptsize
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{} l c c c c c @{}}
+\begin{tabular}{@{} l c c c @{}}
 \toprule
- & (1) & (2) & (3) & (4) & (5) \\
- & OLS & Country FE & TWFE & + Hysteresis & Full \\
+ & (1) & (2) & (3) \\
+ & OLS & Country FE & TWFE \\
 \midrule
 $S_{ik}$
-  & $-0.066$*** & $-0.105$*** & $-0.043$*** & $-0.036$*** & $-0.023$* \\
-  & (0.013)     & (0.012)     & (0.012)     & (0.012)     & (0.013) \\[4pt]
+  & $-0.092$*** & $-0.116$*** & $-0.034$*** \\
+  & (0.019)     & (0.013)     & (0.012) \\[4pt]
 $y_{i,k-1}$
-  & $0.543$***  & $0.200$***  & $0.362$***  & $0.273$***  & $0.260$*** \\
-  & (0.081)     & (0.041)     & (0.056)     & (0.091)     & (0.093) \\[4pt]
-$F^{CP}_{ik}$
-  & $-0.424$*** & $-0.314$*** & $0.017$     & $0.020$     & $0.262$*** \\
-  & (0.072)     & (0.069)     & (0.047)     & (0.047)     & (0.089) \\[4pt]
-$F^{DI}_{i,k-2}$
-  & $0.938$***  & $0.570$***  & $0.209$     & $0.204$     & $0.195$* \\
-  & (0.213)     & (0.104)     & (0.124)     & (0.123)     & (0.114) \\[4pt]
-$d_{ik}$ (fear)
-  & $-0.014$    & $0.001$     & $-0.023$**  & $-0.021$**  & $-0.020$** \\
-  & (0.017)     & (0.014)     & (0.009)     & (0.009)     & (0.009) \\[4pt]
+  & $0.767$***  & $0.174$**   & $0.311$*** \\
+  & (0.080)     & (0.067)     & (0.085) \\[4pt]
 $S_{ik} \times y_{i,k-1}$ \; [$\psi$]
-  &             &             &             & $0.002$     & $0.003$* \\
-  &             &             &             & (0.001)     & (0.001) \\[4pt]
-$S_{ik} \times F^{CP}_{ik}$ \; [$\tilde{\eta}$]
-  &             &             &             &             & $-0.008$** \\
-  &             &             &             &             & (0.003) \\[4pt]
-$F^{CP}_{ik} \times y_{i,k-1}$ \; [$-\eta_p$]
-  &             &             &             &             & $-0.023$ \\
-  &             &             &             &             & (0.014) \\[4pt]
+  & $-0.004$    & $0.000$     & $0.002$* \\
+  & (0.002)     & (0.002)     & (0.001) \\[4pt]
+$F^{CP}_{i,k-2} \times y_{i,k-1}$ \; [$-\eta_p$]
+  & $-0.024$*** & $-0.005$    & $-0.011$*** \\
+  & (0.007)     & (0.003)     & (0.003) \\[4pt]
+$F^{DI}_{i,k-2}$
+  & $0.999$***  & $0.663$***  & $0.185$ \\
+  & (0.198)     & (0.109)     & (0.122) \\[4pt]
+$d_{ik}$ (fear)
+  & $0.003$     & $0.014$     & $-0.021$** \\
+  & (0.016)     & (0.015)     & (0.008) \\[4pt]
 \midrule
-Country FE       &       & \checkmark & \checkmark & \checkmark & \checkmark \\
-Quarter FE       &       &            & \checkmark & \checkmark & \checkmark \\
-Observations     & 380   & 380        & 380        & 380        & 380 \\
-Within $R^2$     &       &            & 0.252      & 0.259      & 0.281 \\
+Country FE       &       & \checkmark & \checkmark \\
+Quarter FE       &       &            & \checkmark \\
+Observations     & 380   & 380        & 380 \\
+$R^2$            & 0.454 & 0.628      &  \\
+Within $R^2$     &       &            & 0.281 \\
 \bottomrule
 \end{tabular}
 \vspace{4pt}
-
-\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable:
-output gap $y_{ik}$ (pp of potential GDP). 38 OECD countries,
-Q1\,2020--Q2\,2022 (10~quarters). Standard errors clustered by country
-in parentheses. Column~(1): pooled OLS. Column~(2): country fixed
-effects. Column~(3): two-way fixed effects (country + quarter), additive
-specification. Column~(4): adds the lockdown hysteresis interaction
-$S \times y_{k-1}$. Column~(5): full specification with all three
-interaction terms from Section~\ref{sec:trilemma}. $F^{CP}$ is
-insignificant without the $S \times F^{CP}$ interaction (cols.~3--4) but
-highly significant in the full specification (col.~5), confirming that
-capacity preservation operates through the state-dependent channels
-formalized in Property~3. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: output gap $y_{ik}$ (pp of potential GDP). 38 OECD countries, Q1\,2020--Q2\,2022 (10~quarters). All columns include the identical set of regressors; columns differ only in the estimator. Standard errors clustered by country in parentheses. Column~(1): pooled OLS. Column~(2): country fixed effects. Column~(3): two-way fixed effects (country + quarter). The OLS estimate of $\eta_p$ ($-0.024$) is inflated by cross-country confounding; country FE absorb this and the coefficient collapses to $-0.005$ (insignificant). Quarter FE restore identification from within-country variation across quarters, yielding $\eta_p = -0.011$ ($p < 0.001$). The lockdown amplification parameter $\psi$ follows a parallel pattern: negative in OLS (sign reversal from omitted-variable bias), zero under country FE, and correctly signed and significant under TWFE. The level of $F^{CP}$ is omitted because the theoretical framework predicts no contemporaneous level effect; a specification including $F^{CP}$ as a level control is reported in Section~\ref{subsec:robustness}. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
 

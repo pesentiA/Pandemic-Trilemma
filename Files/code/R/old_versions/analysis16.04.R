@@ -1653,21 +1653,21 @@ summary(retest)
 #main sample (4.2019-Q2.2022-> makes sense, robustness only until Q1.2022, feols is the best and the AER Standard SE are top, bootstrap only for robustness)
 
 # ==============================================================================
-#  STEP 6 — ROBUSTNESS CHECKS (feols, V3 persistence-channel specification)
+#  STEP 6 — ROBUSTNESS CHECKS (feols, main sample t_idx 4-14, AER SE)
 #  Estimator: feols with Country + Quarter FE
 #  Sample:    Q1.2020–Q2.2022 (t_idx >= 5 & t_idx <= 14), 380 obs
 #  SE:        Clustered by Country (AER standard)
-#  Main spec (V3, 16.04.2026):
-#    y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 +
+#  Formula shorthand for main spec:
+#    y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
 #              F_DI_lag2 + p_proj_all_ages | Country + Quarter
 # ==============================================================================
 
 cat("\n", strrep("=",70), "\n")
-cat("  STEP 6: ROBUSTNESS CHECKS (feols, V3 spec, Q1.2020-Q2.2022, AER SE)\n")
+cat("  STEP 6: ROBUSTNESS CHECKS (feols, Q1.2020-Q2.2022, AER SE)\n")
 cat(strrep("=",70), "\n\n")
 
 # --- Helper: main formula and sample filter ---
-main_fml <- y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 +
+main_fml <- y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
   F_DI_lag2 + p_proj_all_ages | Country + Quarter
 main_sub <- ~ t_idx >= 5 & t_idx <= 14
 
@@ -1684,13 +1684,21 @@ get_cp <- function(m, param) {
 # --- 6A: Functional form ---
 cat("--- 6A: Functional Form ---\n")
 
+# Quadratic CP
+m_6a1 <- feols(
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + I(F_CP^2) + F_CP:y_lag1 +
+    F_DI_lag2 + p_proj_all_ages | Country + Quarter,
+  data = pdataY, subset = main_sub, cluster = ~Country)
+cp2 <- get_cp(m_6a1, "I(F_CP^2)")
+cat(sprintf("  Quadratic F_CP²: β=%+.5f, p=%.3f\n", cp2$est, cp2$pval))
+
 # Alternative S measure (S_max_tw)
-m_6a_smax <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_max_tw*y_lag1 +
+m_6a2 <- feols(
+  y_t_pct ~ S_max_tw*y_lag1 + S_max_tw*F_CP + F_CP*y_lag1 +
     F_DI_lag2 + p_proj_all_ages | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
 cat("  S_max_tw specification:\n")
-print(summary(m_6a_smax, cluster = ~Country)$coeftable[, c("Estimate","Pr(>|t|)")])
+print(summary(m_6a2, cluster = ~Country)$coeftable[, c("Estimate","Pr(>|t|)")])
 cat("\n")
 
 # --- 6B: Outlier exclusion ---
@@ -1704,77 +1712,80 @@ for (nm in names(outlier_list)) {
   m_o <- feols(main_fml,
     data = pdataY %>% filter(!Country %in% outlier_list[[nm]]),
     subset = main_sub, cluster = ~Country)
-  psi_o  <- get_cp(m_o, "y_lag1:S_mean_tw")
-  etap_o <- get_cp(m_o, "y_lag1:F_CP_lag2")
-  di_o   <- get_cp(m_o, "F_DI_lag2")
-  cat(sprintf("  %-14s  ψ=%+.5f(p=%.3f)  η_p=%+.5f(p=%.3f)  α_DI=%+.5f(p=%.3f)\n",
-              nm, psi_o$est, psi_o$pval, etap_o$est, etap_o$pval,
-              di_o$est, di_o$pval))
+  psi_o <- get_cp(m_o, "S_mean_tw:y_lag1")
+  eta_o <- get_cp(m_o, "S_mean_tw:F_CP")
+  etp_o <- get_cp(m_o, "y_lag1:F_CP")
+  cat(sprintf("  %-14s  ψ=%+.5f(p=%.3f)  η̃=%+.5f(p=%.3f)  η_p=%+.5f(p=%.3f)\n",
+              nm, psi_o$est, psi_o$pval, eta_o$est, eta_o$pval,
+              ifelse(is.na(etp_o$est), 0, etp_o$est),
+              ifelse(is.na(etp_o$pval), 1, etp_o$pval)))
 }
 cat("\n")
 
 # --- 6C: Alternative containment measure ---
 cat("--- 6C: Alternative Containment (S_max_tw) ---\n")
 m_6c <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_max_tw*y_lag1 +
+  y_t_pct ~ S_max_tw*y_lag1 + S_max_tw*F_CP + F_CP*y_lag1 +
     F_DI_lag2 + p_proj_all_ages | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
-etap_6c <- get_cp(m_6c, "y_lag1:F_CP_lag2")
-cat(sprintf("  η_p(S_max)=%+.5f(p=%.3f)\n\n", etap_6c$est, etap_6c$pval))
+eta_6c <- get_cp(m_6c, "S_max_tw:F_CP")
+cat(sprintf("  η̃(S_max)=%+.5f(p=%.3f)\n\n", eta_6c$est, eta_6c$pval))
 
 # --- 6D: Alternative output measures ---
 cat("--- 6D: Alternative Output Measures ---\n")
 for (dv in c("y_t", "QReal.GDP.Growth_gr")) {
   if (!dv %in% names(pdataY)) next
-  fml_d <- as.formula(paste0(dv, " ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 + p_proj_all_ages | Country + Quarter"))
+  fml_d <- as.formula(paste0(dv, " ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 + F_DI_lag2 + p_proj_all_ages | Country + Quarter"))
   m_d <- tryCatch(feols(fml_d, data = pdataY, subset = main_sub, cluster = ~Country),
                   error = function(e) NULL)
   if (is.null(m_d)) next
-  etap_d <- get_cp(m_d, "y_lag1:F_CP_lag2")
-  cat(sprintf("  %-25s  η_p=%+.5f(p=%.3f)\n", dv, etap_d$est, etap_d$pval))
+  eta_d <- get_cp(m_d, "S_mean_tw:F_CP")
+  cat(sprintf("  %-25s  η̃=%+.5f(p=%.3f)\n", dv, eta_d$est, eta_d$pval))
 }
 cat("\n")
 
 # --- 6E: Fear term specification ---
 cat("--- 6E: Fear Term Specification ---\n")
 m_6e1 <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 +
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
     F_DI_lag2 + theta_pct | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
 m_6e2 <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 +
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
     F_DI_lag2 + p_avg_all_ages | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
-cat(sprintf("  theta_pct:       η_p=%+.5f(p=%.3f)\n",
-            get_cp(m_6e1,"y_lag1:F_CP_lag2")$est, get_cp(m_6e1,"y_lag1:F_CP_lag2")$pval))
-cat(sprintf("  p_avg_all_ages:  η_p=%+.5f(p=%.3f)\n\n",
-            get_cp(m_6e2,"y_lag1:F_CP_lag2")$est, get_cp(m_6e2,"y_lag1:F_CP_lag2")$pval))
+cat(sprintf("  theta_pct:       η̃=%+.5f(p=%.3f)\n",
+            get_cp(m_6e1,"S_mean_tw:F_CP")$est, get_cp(m_6e1,"S_mean_tw:F_CP")$pval))
+cat(sprintf("  p_avg_all_ages:  η̃=%+.5f(p=%.3f)\n\n",
+            get_cp(m_6e2,"S_mean_tw:F_CP")$est, get_cp(m_6e2,"S_mean_tw:F_CP")$pval))
 
 # --- 6F: Additional controls ---
 cat("--- 6F: Additional Controls ---\n")
 for (ctrl in c("vax_rate", "F_H", "icu_occ_pm")) {
   if (!ctrl %in% names(pdataY)) next
   fml_c <- as.formula(paste0(
-    "y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 + p_proj_all_ages + ",
+    "y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 + F_DI_lag2 + p_proj_all_ages + ",
     ctrl, " | Country + Quarter"))
   m_c <- tryCatch(feols(fml_c, data = pdataY, subset = main_sub, cluster = ~Country),
                   error = function(e) NULL)
   if (is.null(m_c)) next
-  etap_c <- get_cp(m_c, "y_lag1:F_CP_lag2")
+  eta_c <- get_cp(m_c, "S_mean_tw:F_CP")
   ctrl_c <- get_cp(m_c, ctrl)
-  cat(sprintf("  + %-14s  η_p=%+.5f(p=%.3f)  %s=%+.4f(p=%.3f)\n",
-              ctrl, etap_c$est, etap_c$pval, ctrl, ctrl_c$est, ctrl_c$pval))
+  cat(sprintf("  + %-14s  η̃=%+.5f(p=%.3f)  %s=%+.4f(p=%.3f)\n",
+              ctrl, eta_c$est, eta_c$pval, ctrl, ctrl_c$est, ctrl_c$pval))
 }
 cat("\n")
 
-# --- 6G: F_CP level effect test (should be zero in V3) ---
-cat("--- 6G: F_CP Level Effect Test ---\n")
+# --- 6G: DI-CP complementarity ---
+cat("--- 6G: DI-CP Complementarity ---\n")
 m_6g <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + F_CP_lag2 + S_mean_tw*y_lag1 +
-    F_DI_lag2 + p_proj_all_ages | Country + Quarter,
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_DI_lag2*F_CP +
+    p_proj_all_ages | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
-fcp_level <- get_cp(m_6g, "F_CP_lag2")
-cat(sprintf("  F_CP_lag2 level: β=%+.5f, p=%.3f (should be ≈0)\n\n", fcp_level$est, fcp_level$pval))
+compl <- get_cp(m_6g, "F_CP:F_DI_lag2")
+if (!is.na(compl$est))
+  cat(sprintf("  F_DI_lag2:F_CP interaction: β=%+.6f, p=%.3f\n", compl$est, compl$pval))
+cat("\n")
 
 # --- 6H: Sample splits ---
 cat("--- 6H: Sample Splits ---\n\n")
@@ -1803,12 +1814,14 @@ for (sp in split_list) {
           subset = main_sub, cluster = ~Country),
     error = function(e) NULL)
   if (is.null(m_sp)) { cat(sprintf("  %-26s: [insufficient data]\n", sp$nm)); next }
-  psi_sp  <- get_cp(m_sp, "y_lag1:S_mean_tw")
-  etap_sp <- get_cp(m_sp, "y_lag1:F_CP_lag2")
-  di_sp   <- get_cp(m_sp, "F_DI_lag2")
-  cat(sprintf("  %-26s  ψ=%+.5f(p=%.3f)  η_p=%+.5f(p=%.3f)  α_DI=%+.4f(p=%.3f)\n",
-              sp$nm, psi_sp$est, psi_sp$pval, etap_sp$est, etap_sp$pval,
-              di_sp$est, di_sp$pval))
+  psi_sp <- get_cp(m_sp, "S_mean_tw:y_lag1")
+  eta_sp <- get_cp(m_sp, "S_mean_tw:F_CP")
+  etp_sp <- get_cp(m_sp, "y_lag1:F_CP")
+  di_sp  <- get_cp(m_sp, "F_DI_lag2")
+  cat(sprintf("  %-26s  ψ=%+.5f(p=%.3f)  η̃=%+.5f(p=%.3f)  η_p=%+.5f  α_DI=%+.4f\n",
+              sp$nm, psi_sp$est, psi_sp$pval, eta_sp$est, eta_sp$pval,
+              ifelse(is.na(etp_sp$est), 0, etp_sp$est),
+              ifelse(is.na(di_sp$est), 0, di_sp$est)))
 }
 cat("\n")
 
@@ -1832,9 +1845,9 @@ print(summary(m_low, cluster = ~Country)$coeftable[, c("Estimate","Pr(>|t|)")])
 
 
 # ==============================================================================
-# FULL ROBUSTNESS TABLE (Table 3) — feols, V3 specification
+# FULL ROBUSTNESS TABLE (Table 3) — feols
 # ==============================================================================
-cat("\n--- Table 3: Full Robustness Table (V3) ---\n")
+cat("\n--- Table 3: Full Robustness Table ---\n")
 
 m_baseline <- feols(main_fml, data = pdataY, subset = main_sub, cluster = ~Country)
 
@@ -1844,7 +1857,7 @@ m_noTUR <- feols(main_fml,
   data = pdataY %>% filter(Country != "TUR"), subset = main_sub, cluster = ~Country)
 
 m_vax <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 +
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
     F_DI_lag2 + p_proj_all_ages + vax_rate | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
 
@@ -1856,10 +1869,10 @@ m_ext <- feols(main_fml, data = pdataY,
 m_w12 <- feols(main_fml, data = pdataY,
   subset = ~ t_idx >= 4 & t_idx <= 8, cluster = ~Country)
 
-# F_CP level control (V3 predicts zero)
-m_fcp_level <- feols(
-  y_t_pct ~ y_lag1 + y_lag1:F_CP_lag2 + F_CP_lag2 + S_mean_tw*y_lag1 +
-    F_DI_lag2 + p_proj_all_ages | Country + Quarter,
+# CP×DI complementarity
+m_compl <- feols(
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + F_CP*y_lag1 +
+    F_DI_lag2 + F_CP:F_DI_lag2 + p_proj_all_ages | Country + Quarter,
   data = pdataY, subset = main_sub, cluster = ~Country)
 
 # Robustness sample: Q1.2020-Q1.2022 (without Q4.2019 reference)
@@ -1876,18 +1889,21 @@ rob_list <- list(
   "(7) Low soc.nets"      = m_low,
   "(8) Ext. Q4.2022"      = m_ext,
   "(9) Only 2020"         = m_w12,
-  "(10) +F_CP level"      = m_fcp_level,
+  "(10) CP×DI compl."     = m_compl,
   "(11) Q1.20-Q1.22"      = m_rob_sample
 )
 
 coef_map_rob <- c(
   "S_mean_tw"             = "S  [-alpha_S]",
   "y_lag1"                = "y(t-1)  [rho_y]",
-  "y_lag1:S_mean_tw"      = "S x y(t-1)  [psi]",
-  "y_lag1:S_max_tw"       = "S_max x y(t-1)  [psi]",
-  "y_lag1:F_CP_lag2"      = "F^CP_lag2 x y(t-1)  [-eta_p]",
-  "F_CP_lag2"             = "F^CP_lag2 level (should be ~0)",
+  "S_mean_tw:y_lag1"      = "S x y(t-1)  [psi]",
+  "S_max_tw:y_lag1"       = "S_max x y(t-1)  [psi]",
+  "F_CP"                  = "F^CP  [alpha_CP]",
+  "S_mean_tw:F_CP"        = "S x F^CP  [eta_tilde]",
+  "S_max_tw:F_CP"         = "S_max x F^CP  [eta_tilde]",
+  "y_lag1:F_CP"           = "F^CP x y(t-1)  [-eta_p]",
   "F_DI_lag2"             = "F^DI lag2  [alpha_DI]",
+  "F_CP:F_DI_lag2"        = "F^CP x F^DI  [complementarity]",
   "vax_rate"              = "Vaccination rate",
   "p_proj_all_ages"       = "Fear term  [beta_d]"
 )
@@ -1897,7 +1913,7 @@ modelsummary(rob_list,
   stars   = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
   coef_map = coef_map_rob,
   gof_map  = c("nobs", "r.squared.within"),
-  title    = "Table 3: Robustness Checks — Output Gap Equation, V3 (feols, AER SE)")
+  title    = "Table 3: Robustness Checks — Output Gap Equation (feols, AER SE)")
 
 modelsummary(rob_list,
   vcov    = ~Country,
@@ -1905,7 +1921,7 @@ modelsummary(rob_list,
   coef_map = coef_map_rob,
   gof_map  = c("nobs", "r.squared.within"),
   output   = file.path(safetable, "tab_3_robustness.tex"),
-  title    = "Robustness Checks: Output Gap Equation (V3)")
+  title    = "Robustness Checks: Output Gap Equation")
 cat("  -> Saved: tab_3_robustness.tex\n")
 
 
@@ -2725,7 +2741,7 @@ pdataD <- pdataD %>%
 # Country-FE (debt_dN und debt_dR nehmen
 # Pandemie-Sample mit F
 debt1 <- plm(
-  debt_dR ~ y_t_pct+ F_CP_above +  F_CP_below + F_DI + as.numeric(Quarter),
+  debt_dR ~ y_t_pct+ F_CP_above +  F_CP_below + F_DI_lag1 + as.numeric(Quarter),
   data = pdataD,  model = "within", index=c("Country","Quarter"), effect= "individual")
 
 coeftest(debt1)
@@ -3026,8 +3042,13 @@ pdataD <- pdataD %>%
 # ==============================================================================
 debt_sub <- pdataD$t_idx >= 5 & pdataD$t_idx <= 14
 
+y_q4.2019 <- feols(
+  y_t_pct ~ S_mean_tw*y_lag1 + S_mean_tw*F_CP + y_lag1:F_CP + F_DI_lag2+ p_proj_all_ages |
+    Country + Quarter, data=pdataY, panel.id = ~Country + Quarter, subset = ~ t_idx >= 5 & t_idx <= 12)
+#base main
+
 d_main <- feols(
-  debt_dR~ y_t_pct+ F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI + F_H_lag1| Country,
+  debt_dR~ y_t_pct+ F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI + Quarter | Country,
   data = pdataD, panel.id = ~Country + Quarter, subset = ~ t_idx >= 5 & t_idx <= 14)
 
 summary(d_main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
@@ -3044,27 +3065,27 @@ setFixest_ssc(ssc(adj = TRUE, fixef.K = "none", cluster.adj = TRUE))
 
 # (1) OLS — pooled CP and DI, no FE
 d1_ols <- feols(
-  debt_dR ~ y_t_pct + F_CP + F_DI,
+  debt_dR ~ y_t_pct + F_CP + F_DI_lag1,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
 # (2) Country FE — pooled CP
 d2_pooled <- feols(
-  debt_dR ~ y_t_pct + F_CP + F_DI | Country,
+  debt_dR ~ y_t_pct + F_CP + F_DI_lag1 | Country,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
 # (3) Country FE — CP split above/below (unadjusted)
 d3_split_raw <- feols(
-  debt_dR ~ y_t_pct + F_CP_above + F_CP_below + F_DI| Country,
+  debt_dR ~ y_t_pct + F_CP_above + F_CP_below + F_DI_lag1 | Country,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
 # (4) Country FE — CP split above/below (below adjusted 35% take-up)
 d4_split_adj <- feols(
-  debt_dR ~ y_t_pct + F_CP_above + F_CP_below_adj_mid + F_DI | Country,
+  debt_dR ~ y_t_pct + F_CP_above + F_CP_below_adj_mid + F_DI_lag1 | Country,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
 # (5) Country FE — CP three-way: above + loans + guarantees (adj 35%)
 d5_3way <- feols(
-  debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI | Country,
+  debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI_lag1 | Country,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
 # --- Model list with descriptive column headers ---
@@ -3086,7 +3107,7 @@ debt_main_coefmap <- c(
   "F_CP_above_3"       = "CP above-the-line",
   "F_CP_loans"         = "CP government loans",
   "F_CP_guar_adj"      = "CP guarantees (adj.\\ 35\\%)",
-  "F_DI"          = "Demand injection ($F^{DI}_{i,k-1}$)"
+  "F_DI_lag1"          = "Demand injection ($F^{DI}_{i,k-1}$)"
 )
 
 # --- Custom rows for table footer ---
