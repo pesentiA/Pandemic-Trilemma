@@ -1385,23 +1385,115 @@ pdataY <- pdataY %>%
   )
 
 
-#MAIN SPECIFICATION 16.04.2026
-main<-feols(y_t_pct ~ y_lag1 +  y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
-      + p_proj_all_ages | Country + Quarter, 
-      data = pdataY, subset = ~t_idx >= 5 & t_idx <= 14, 
+library(dplyr)
+
+# Sicherstellen, dass die Daten nach country und Zeit sortiert sind
+pdataD1 <- pdataD %>%
+  arrange(Country, t_idx)
+
+# Lag-2 für alle CP-Subkategorien erstellen
+pdataD1 <- pdataD1 %>%
+  group_by(Country) %>%
+  mutate(
+    # Two-way decomposition (above/below)
+    F_CP_above_lag2       = lag(F_CP_above, 2),
+    F_CP_below_adj_lag2   = lag(F_CP_below_adj_lo, 2),
+    
+    # Three-way decomposition (above/loans/guarantees)
+    F_CP_loans_lag2       = lag(F_CP_loans, 2),
+    F_CP_guar_adj_lag2    = lag(F_CP_guar_adj, 2)
+  ) %>%
+  ungroup()
+
+
+##alles vor COVID auf 0 setzten-> korrekt
+pdataD1 <- pdataD1 %>%
+  mutate(
+    F_CP_below_adj_lag2 = ifelse(t_idx <= 5 & is.na(F_CP_below_adj_lag2), 
+                                 0, 
+                                 F_CP_below_adj_lag2),
+    F_CP_above_lag2 = ifelse(t_idx <= 5 & is.na(F_CP_above_lag2), 
+                             0, 
+                             F_CP_above_lag2)
+  )
+
+#MAIN SPECIFICATION 16.04.2026-> but with splitted channels of F_CP
+main<-feols(y_t_pct ~ y_lag1:F_CP_above_lag2 + y_lag1:F_CP_below_adj_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
+      + p_proj_all_ages| Country + Quarter, 
+      data = pdataD1, subset = ~t_idx >= 5 & t_idx <= 14, 
       vcov = ~Country)
 
 summary(main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
 
 
+
+
+
 ##verification with plm
 plm_test<-plm(y_t_pct ~y_lag1+  y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
-              + p_proj_all_ages, data=pdataY, model="within", effect="twoways", subset = t_idx >= 4 & t_idx <= 14)
+              + p_proj_all_ages, data=pdataY, model="within", effect="twoways", subset = t_idx >= 5 & t_idx <= 14)
 
 coeftest(plm_test, vcov = vcovHC(plm_test, cluster = "group", type = "HC1"))
 
 fixef(plm_test, effect = "individual")
 ##
+
+
+##MUNDLAK REGRESSION
+# Sample filtern auf Estimation Window
+df <- pdataY %>%
+  filter(t_idx >= 5 & t_idx <= 14)
+
+# Country-Means berechnen (Between-Komponenten)
+df <- df %>%
+  group_by(Country) %>%
+  mutate(
+    F_CP_lag2_between = mean(F_CP_lag2, na.rm = TRUE),
+    S_mean_tw_between = mean(S_mean_tw, na.rm = TRUE),
+    y_lag1_between    = mean(y_lag1, na.rm = TRUE),
+    F_DI_lag2_between = mean(F_DI_lag2, na.rm = TRUE),
+    p_proj_between    = mean(p_proj_all_ages, na.rm = TRUE)
+  ) %>%
+  # Within-Komponenten (Abweichung vom Länder-Mittel)
+  mutate(
+    F_CP_lag2_within = F_CP_lag2 - F_CP_lag2_between,
+    S_mean_tw_within = S_mean_tw - S_mean_tw_between,
+    y_lag1_within    = y_lag1 - y_lag1_between,
+    F_DI_lag2_within = F_DI_lag2 - F_DI_lag2_between,
+    p_proj_within    = p_proj_all_ages - p_proj_between
+  ) %>%
+  ungroup()
+
+# Interaktionsterme für Within-Komponenten berechnen
+df <- df %>%
+  mutate(
+    # Within-Interaktionen
+    y_F_CP_within = y_lag1_within * F_CP_lag2_within,
+    y_S_within    = y_lag1_within * S_mean_tw_within,
+    # Between-Interaktionen (Länder-Mittel × Länder-Mittel)
+    y_F_CP_between = y_lag1_between * F_CP_lag2_between,
+    y_S_between    = y_lag1_between * S_mean_tw_between
+  )
+
+# Mundlak-Regression: beide Komponenten simultan, nur Quarter FE
+mundlak_model <- feols(
+  y_t_pct ~ 
+    # Within-Komponenten (identifizieren den Within-Effekt)
+    y_lag1_within + F_CP_lag2_within + S_mean_tw_within + 
+    F_DI_lag2_within + p_proj_within +
+    y_F_CP_within + y_S_within +
+    # Between-Komponenten (identifizieren den Between-Effekt)
+    y_lag1_between + F_CP_lag2_between + S_mean_tw_between + 
+    F_DI_lag2_between + p_proj_between +
+    y_F_CP_between + y_S_between
+  | Quarter,
+  data = df,
+  cluster = ~Country,
+  ssc = ssc(adj = TRUE, cluster.adj = TRUE)
+)
+
+summary(mundlak_model)
+
 
 
 
@@ -3027,7 +3119,7 @@ pdataD <- pdataD %>%
 debt_sub <- pdataD$t_idx >= 5 & pdataD$t_idx <= 14
 
 d_main <- feols(
-  debt_dR~ y_t_pct+ F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI + F_H_lag1| Country,
+  debt_dR~ y_t_pct+ F_CP_above_3 + F_CP_loans + F_CP_guar_adj + F_DI + F_H| Country,
   data = pdataD, panel.id = ~Country + Quarter, subset = ~ t_idx >= 5 & t_idx <= 14)
 
 summary(d_main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
