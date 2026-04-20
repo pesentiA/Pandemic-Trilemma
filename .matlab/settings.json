@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" -e \":*)",
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" --vanilla -e \"cat\\(''hello''\\)\")",
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" --vanilla \"C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/R/analysis_subsamples.R\")",
+      "Bash(\"/c/Program Files/R/R-4.5.1/bin/Rscript.exe\" --vanilla -e \"source\\(''''C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/R/analysis.R''''\\)\")"
+    ]
+  }
+}
