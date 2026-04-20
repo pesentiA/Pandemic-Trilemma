@@ -1385,8 +1385,89 @@ pdataY <- pdataY %>%
   )
 
 
-library(dplyr)
+#MAIN SPECIFICATION 16.04.2026
+main<-feols(y_t_pct ~ y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
+            + p_proj_all_ages| Country +Quarter, 
+            data = pdataY, subset = ~t_idx >= 5 & t_idx <= 14, 
+            vcov = ~Country)
 
+summary(main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
+
+
+##Dekomposition der zu identifizierenden Varianz
+# Restrict to estimation sample
+df_est <- pdataY %>% 
+  filter(t_idx >= 5, t_idx <= 14) %>%
+  as.data.frame()
+
+# Build interaction terms matching the paper spec
+df_est$S_x_ylag1        <- df_est$S_mean_tw * df_est$y_lag1
+df_est$F_CP_lag2_x_ylag1 <- df_est$F_CP_lag2 * df_est$y_lag1
+
+# Variables to decompose
+vars <- c(
+  "y_t_pct",
+  "y_lag1",
+  "S_mean_tw",
+  "F_CP_lag2",
+  "F_DI_lag2",
+  "p_proj_all_ages",
+  "S_x_ylag1",
+  "F_CP_lag2_x_ylag1"
+)
+
+# Function: three-level decomposition
+decompose_var <- function(v, data) {
+  x <- data[[v]]
+  keep <- !is.na(x)
+  x <- x[keep]
+  country <- data$Country[keep]
+  # Level 1: raw
+  total_sd   <- sd(x)
+  between_sd <- tapply(x, country, mean) |> sd()
+  within_sd  <- sqrt(max(total_sd^2 - between_sd^2, 0))
+  # Level 2: residual after FE
+  fml_cfe  <- as.formula(paste0(v, " ~ 1 | Country"))
+  fml_cqfe <- as.formula(paste0(v, " ~ 1 | Country + Quarter"))
+  m_cfe   <- feols(fml_cfe,  data = data, notes = FALSE)
+  m_cqfe  <- feols(fml_cqfe, data = data, notes = FALSE)
+  resid_sd_cfe  <- sd(resid(m_cfe))
+  resid_sd_cqfe <- sd(resid(m_cqfe))
+  r2_cfe  <- 1 - (resid_sd_cfe^2  / total_sd^2)
+  r2_cqfe <- 1 - (resid_sd_cqfe^2 / total_sd^2)
+  data.frame(
+    variable         = v,
+    total_sd         = round(total_sd, 3),
+    between_sd       = round(between_sd, 3),
+    within_sd        = round(within_sd, 3),
+    resid_sd_CFE     = round(resid_sd_cfe, 3),
+    resid_sd_CQFE    = round(resid_sd_cqfe, 3),
+    R2_absorbed_CFE  = round(r2_cfe, 3),
+    R2_absorbed_CQFE = round(r2_cqfe, 3)
+  )
+}
+
+decomp_tbl <- do.call(rbind, lapply(vars, decompose_var, data = df_est))
+print(decomp_tbl, row.names = FALSE)
+
+
+# Residuals after two-way FE on the estimation sample
+r_S         <- resid(feols(S_mean_tw         ~ 1 | Country + Quarter, data = df_est))
+r_F_CP_l2   <- resid(feols(F_CP_lag2         ~ 1 | Country + Quarter, data = df_est))
+r_F_DI_l2   <- resid(feols(F_DI_lag2         ~ 1 | Country + Quarter, data = df_est))
+r_fear      <- resid(feols(p_proj_all_ages   ~ 1 | Country + Quarter, data = df_est))
+
+cor_resid <- cor(cbind(
+  S         = r_S,
+  F_CP_lag2 = r_F_CP_l2,
+  F_DI_lag2 = r_F_DI_l2,
+  fear      = r_fear
+))
+round(cor_resid, 3)
+
+
+
+#SPLIT AUCH IN Y 16.04.2026-> but with splitted channels of F_CP
 # Sicherstellen, dass die Daten nach country und Zeit sortiert sind
 pdataD1 <- pdataD %>%
   arrange(Country, t_idx)
@@ -1417,16 +1498,12 @@ pdataD1 <- pdataD1 %>%
                              F_CP_above_lag2)
   )
 
-#MAIN SPECIFICATION 16.04.2026-> but with splitted channels of F_CP
 main<-feols(y_t_pct ~ y_lag1:F_CP_above_lag2 + y_lag1:F_CP_below_adj_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
       + p_proj_all_ages| Country + Quarter, 
       data = pdataD1, subset = ~t_idx >= 5 & t_idx <= 14, 
       vcov = ~Country)
 
 summary(main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
-
-
-
 
 
 ##verification with plm
@@ -3123,6 +3200,90 @@ d_main <- feols(
   data = pdataD, panel.id = ~Country + Quarter, subset = ~ t_idx >= 5 & t_idx <= 14)
 
 summary(d_main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
+
+
+
+# Restrict to estimation sample
+df_debt <- pdataD %>% 
+  filter(t_idx >= 5, t_idx <= 14) %>%
+  as.data.frame()
+
+# Variables to decompose
+vars_debt <- c(
+  "debt_dR",
+  "y_t_pct",
+  "F_CP_above_3",
+  "F_CP_loans",
+  "F_CP_guar_adj",
+  "F_DI",
+  "F_H"
+)
+
+# Two-level decomposition (Country FE only)
+decompose_var_debt <- function(v, data) {
+  x <- data[[v]]
+  keep <- !is.na(x)
+  x <- x[keep]
+  country <- data$Country[keep]
+  total_sd   <- sd(x)
+  between_sd <- tapply(x, country, mean) |> sd()
+  within_sd  <- sqrt(max(total_sd^2 - between_sd^2, 0))
+  fml_cfe  <- as.formula(paste0(v, " ~ 1 | Country"))
+  m_cfe    <- feols(fml_cfe, data = data, notes = FALSE)
+  resid_sd_cfe <- sd(resid(m_cfe))
+  r2_cfe   <- 1 - (resid_sd_cfe^2 / total_sd^2)
+  data.frame(
+    variable        = v,
+    total_sd        = round(total_sd, 3),
+    between_sd      = round(between_sd, 3),
+    within_sd       = round(within_sd, 3),
+    resid_sd_CFE    = round(resid_sd_cfe, 3),
+    R2_absorbed_CFE = round(r2_cfe, 3)
+  )
+}
+
+decomp_debt <- do.call(rbind, lapply(vars_debt, decompose_var_debt, data = df_debt))
+print(decomp_debt, row.names = FALSE)
+
+# Residual correlations after Country FE only
+r_y      <- resid(feols(y_t_pct       ~ 1 | Country, data = df_debt))
+r_above  <- resid(feols(F_CP_above_3  ~ 1 | Country, data = df_debt))
+r_loans  <- resid(feols(F_CP_loans    ~ 1 | Country, data = df_debt))
+r_guar   <- resid(feols(F_CP_guar_adj ~ 1 | Country, data = df_debt))
+r_DI     <- resid(feols(F_DI          ~ 1 | Country, data = df_debt))
+r_H      <- resid(feols(F_H           ~ 1 | Country, data = df_debt))
+
+cor_debt <- cor(cbind(
+  y      = r_y,
+  above  = r_above,
+  loans  = r_loans,
+  guar   = r_guar,
+  DI     = r_DI,
+  H      = r_H
+))
+round(cor_debt, 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ==============================================================================
 #  DEBT EQUATION: MAIN RESULTS TABLE (5 columns)
 #  Sample: Q1.2020–Q2.2022 (t_idx 5–14, N=380)
