@@ -36,7 +36,7 @@
 
 % Der Trick: \setcounter{footnote}{1} schiebt den Zähler unsichtbar vor, 
 % sodass \thanks direkt als zweites Symbol das Kreuz wählt.
-\author{Aulis Pesenti\setcounter{footnote}{1}\thanks{University of Basel, Wirtschaftswissenschaftliche Fakultät, Peter Merian-Weg 6, 4002 Basel, Switzerland; (e-mail: a.pesenti@unibas.ch).} \\ University of Basel}
+\author{Aulis Pesenti\setcounter{footnote}{1}\thanks{University of Basel, Wirtschaftswissenschaftliche Fakultät, Peter Merian-Weg 6, 4002 Basel, Switzerland; (e-mail: aulis.pesenti@unibas.ch).} \\ University of Basel}
 
 \date{\today}
 
@@ -95,22 +95,13 @@ Closing these three gaps enables an analysis that no existing framework can deli
 % --- Contributions ---
 
 %Überarbeiten wenn Section fertig
-To analyze this question, this paper makes three contributions. First, I develop a formal optimization framework---an iterative Linear-Quadratic Regulator (iLQR) following \citet{bertsekas2017dynamic}---that solves the full trilemma: the planner jointly optimizes containment intensity $S_k$ and the fiscal instruments $F_k^{DI}$ and $F_k^{CP}$ across the multi-dimensional state space $(y_k, d_k, b_k, \theta_k)$, capturing the bilinear interactions between containment and economic persistence that define the pandemic trilemma. Existing approaches solve simpler variants of this problem: Alvarez et al.\ (2021) apply Pontryagin's maximum principle to a single-instrument continuous-time problem, and \citet{eichenbaum2021macro} solve a Ramsey problem over a scalar containment tax. The iLQR extends this to a multi-instrument setting while preserving analytical tractability: the backward Riccati recursion yields time-varying feedback gains $K_k$ that are directly interpretable as the planner's marginal policy response to state deviations, without requiring numerical value function iteration over a high-dimensional state space.%\footnote{The bilinear term $\phi_S S_k \theta_k$ renders the full problem non-convex. The iterative linearization converges to a local optimum. %In the economically relevant region---where the planner responds monotonically to rising infections---local and global solutions coincide, as verified numerically in Appendix~\ref{app:convergence}.} The resulting state-dependent feedback law $u_k^* = -K_k x_k$ yields closed-form optimality conditions (Appendix~\ref{app:optimality}) that characterize the optimal policy trajectory---including the optimal intensity, timing, and composition of the fiscal response---as a function of the evolving state of the system. The quadratic objective penalizing $(y_k, d_k, b_k)$ can be interpreted as a second-order approximation to a welfare function in which the planner assigns explicit weights to output stabilization, mortality reduction, and fiscal sustainability---a Tinbergen-style formulation that takes the multi-objective nature of pandemic policy as given rather than deriving it from a single representative agent's preferences.\footnote{This abstracts from the distributional dimension emphasized by \citet{KaplanMollViolante2020}. The present framework addresses a logically prior question: what is the optimal \textit{aggregate} fiscal composition? The distributional incidence of a given composition is a complementary but distinct problem.}
+[CONTRIBUTION]
 
-Second, I construct a new daily micro-level database of 2,290 fiscal policy measures across all 38 OECD member states during 2020--2021 \citep{pesenti2025}. Unlike existing databases that aggregate fiscal responses at the package level, this dataset disaggregates individual measures by instrument type, target group, and IMF fiscal accounting category---the granularity required to operationalize the distinction between demand injection and capacity preservation and thus to adress it in the analyisis. Each of the 49 policy instrument codes is mapped to the theoretical categories (DI or CP) based on a transparent classification protocol that identifies the primary transmission channel. The whole  classification is documented in detail in Section~\ref{sec:classification} or in \citep{Codebook}. 
-
-%instruments that sustain aggregate expenditure through direct income replacement are classified as demand injection, while instruments that preserve productive capacity by maintaining employment relationships, firm solvency, or sectoral viability are classified as capacity preservation.Without this disaggregation, the composition question cannot be empirically addressed: aggregate fiscal impulse measures conflate instruments with fundamentally different transmission mechanisms and fiscal cost profiles.
-
-
-%EMPIRICAL: DAILY DATA-> GANZER ABSATZ ÜBERARBEITEN
-Third, I estimate the structural parameters of the transition system to solve for the optimal trajectory using panel Local Projections \citep{jorda2025} across 38 OECD economies during 2020--2021. 
 
 %The identification strategy exploits cross-country variation in fiscal composition conditional on comparable containment trajectories. A two-stage approach first estimates the policy reaction function---fiscal composition as a function of containment stringency, pre-crisis fiscal position, and institutional characteristics---and then uses deviations from predicted composition as identifying variation.\footnote{The exclusion restriction requires that residual variation in fiscal composition affects economic outcomes only through the fiscal channel. Section~\ref{sec:identification} discusses potential threats, including the possibility that political economy variables driving composition choices (government ideology, coalition structure) independently affect expectations and hence outcomes.} The estimated parameters calibrate the theoretical model and enable two counterfactual exercises. The primary exercise takes each country's observed containment path as given and computes the conditionally optimal fiscal composition---quantifying the excess debt attributable to suboptimal instrument choice, holding the containment trajectory constant. This conditional design reflects the institutional reality that fiscal authorities responded to containment decisions rather than determining them, and isolates the margin over which fiscal policymakers had actual discretion. A secondary exercise computes the fully optimal trajectory across all three instruments, providing an upper bound on the welfare gains from joint optimization of containment and fiscal policy.
 
 % --- Preview of results ---
-
-The main findings are as follows. \textsc{[Placeholder -- to be completed after
-estimation.]}
+[MAIN FINDINGS]
 
 %\textsc{[Result 1: Estimated structural parameters.]} The demand injection multiplier $\hat{\alpha}_F^{DI}$ is estimated at \textsc{[XX]}, while the capacity preservation effectiveness $\hat{\eta}$ is \textsc{[XX]}. The fiscal cost of capacity preservation $\hat{\kappa}_F^{CP}$ is \textsc{[XX]} lower than that of demand injection $\hat{\kappa}_F^{DI}$, reflecting \textsc{[the lower realized cost of guarantees and conditional instruments / the partial recovery of loans and guarantees]}.
 
@@ -121,35 +112,24 @@ estimation.]}
 %\textsc{[Result 4: Counterfactual -- full optimum.]} Joint optimization over containment and fiscal policy yields additional welfare gains of \textsc{[XX]}, suggesting that the composition margin accounts for approximately \textsc{[XX\%]} of the total welfare distance between observed policy and the unconstrained optimum.
 
 % --- Related literature ---
+
+[LITERATURE]
+
 This paper builds up and contributes to three strands of literature. First, it extends the pandemic-macro modeling literature that integrates SIR dynamics with macroeconomic frameworks \citet{Atkeson2020, eichenbaum2021macro, alvarez2021, KaplanMollViolante2020, Jones2021, acemoglu2021} by incorporating fiscal sustainability as an explicit optimization objective and disaggregating fiscal instruments by transmission mechanism. Second, it contributes to the fiscal multiplier literature \citet{blanchard2002, ramey2018, romer2010} by estimating instrument-specific multipliers under pandemic conditions, where Keynesian supply shocks \citet{guerrieri2022} and voluntary demand reductions \citet{GOOLSBEE2021} render pre-crisis estimates unreliable. Third, it contributes to the empirical literature on cross-country fiscal responses to COVID-19 \citet{deb2021,chetty2020, Autor2022} by providing the first micro-level database with instrument-level granularity and source documentation across all OECD member states, enabling compositional analysis beyond aggregate fiscal impulse comparisons.
-
+[RELEVANCE]
 % --- Motivation / policy relevance ---
-
-The question addressed here is not only of historical interest. The fiscal legacy of
-the pandemic---average OECD government debt increased by approximately \textsc{[XX]}
-percentage points of GDP between 2019 and 2021---directly shaped the fiscal space
-available when subsequent shocks materialized. The inflation surge of 2022--2023
-raised sovereign borrowing costs across advanced economies \citep{jorda2023}; the
-energy crisis following the invasion of Ukraine required additional fiscal responses in
-an environment of already elevated debt; and the prevailing macroeconomic uncertainty
-continues to constrain fiscal policy options. Countries that achieved comparable
-health and economic outcomes during the pandemic but at lower fiscal cost---through
-more effective instrument composition---entered this sequence of subsequent shocks in
-a structurally stronger position. Understanding which fiscal strategies achieved this
-outcome, and why, is therefore directly relevant to the current fiscal policy
-environment and to the management of future crises that share the pandemic's
-structural characteristics.
 
 % --- Roadmap ---
 
 The paper proceeds as follows. Section~\ref{sec:trilemma} establishes the four
 constitutive properties of the pandemic trilemma and its structural uniqueness relative
-to other crisis types. Section~\ref{sec:model} develops the iLQR optimization
-framework. Section~\ref{sec:data} describes the micro-level fiscal policy database.
+to other crisis types. Section~\ref{sec:planner} develops the iLQR optimization
+framework. Section~\ref{sec:estimation} describes the micro-level fiscal policy database.
 Section~\ref{sec:estimation} presents the estimation strategy and structural parameter
-estimates. Section~\ref{sec:results} reports the optimal composition trajectories and
+estimates. Section~\ref{sec:results_empirical} reports the optimal composition trajectories and
 counterfactual exercises. Section~\ref{sec:conclusion} concludes.
 
+\newpage
 
 \section{The Pandemic Trilemma}
 \label{sec:trilemma}
@@ -225,6 +205,15 @@ A natural objection to Property~2 is that alternative instruments, such as testi
 
 Vaccination, by contrast, is the instrument that dissolves the trilemma by invalidating Property~2. It operates through both channels: reducing viral transmission among the immunized population (lowering $\rho_\theta$) and reducing the lethality of breakthrough infections (lowering $\delta_\theta$)---which, as demonstrated in Appendix~\ref{app:Theta import}, is the critical mechanism. Crucially, vaccination achieves both effects without operating through the suppression channel $S_k$---it requires no restriction of economic activity \citep{Giordano2021V}, thereby eliminating the contractionary link that constitutes Property~2. However, effective vaccines were not widely available until mid-2021, and the critical vaccination thresholds required to sustainably decouple mortality from infection rates were not reached in most OECD economies until the end of 2021 \citep{OECD2021}. Consequently, for the main phase of the pandemic (Q1 2020--Q4 2021)---the period during which critical policy decisions were taken \citep{Hale2021}---NPIs remained the only available suppression instrument, and were thus inherently contractionary.
 
+
+
+Figure~\ref{fig:planing_horizon} illustrates with the OECD average the 
+mechanism through which vaccination dissolves the trilemma. During Waves~1--3, infection prevalence and excess mortality move in parallel, and governments maintain elevated containment. With the onset of Wave~4 (Omicron, late 2021), the relationship breaks: infection prevalence reaches its pandemic peak, yet excess mortality declines sharply---reflecting the reduction in $\delta_\theta$ achieved by widespread vaccination. Governments respond by withdrawing containment to near-zero levels despite record case counts. This decoupling is precisely the condition 
+$\delta_\theta \to 0$ formalized above: once the fatality rate 
+falls sufficiently, the rational to act vanishes, and the trilemma ceases to bind. This observation defines the planner's  horizon: the trilemma is operative from Q1\,2020 through Q4\,2021---the period during which the joint condition of positive lethality ($\delta_\theta > 0$) and absence of effective vaccination necessitated the health--economy--fiscal trade-off. Beyond the terminal date, the planner faces no further trilemma and deals exclusively with the fiscal legacy of the crisis.
+
+
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{fig_theta_excess_stringency.pdf}
@@ -232,13 +221,6 @@ Vaccination, by contrast, is the instrument that dissolves the trilemma by inval
     and Containment}
     \label{fig:planing_horizon}
 \end{figure}
-
-
-\noindent Figure~\ref{fig:planing_horizon} illustrates with the OECD average the 
-mechanism through which vaccination dissolves the trilemma. During Waves~1--3, infection prevalence and excess mortality move in parallel, and governments maintain elevated containment. With the onset of Wave~4 (Omicron, late 2021), the relationship breaks: infection prevalence reaches its pandemic peak, yet excess mortality declines sharply---reflecting the reduction in $\delta_\theta$ achieved by widespread vaccination. Governments respond by withdrawing containment to near-zero levels despite record case counts. This decoupling is precisely the condition 
-$\delta_\theta \to 0$ formalized above: once the fatality rate 
-falls sufficiently, the rational to act vanishes, and the trilemma ceases to bind. This observation defines the planner's  horizon: the trilemma is operative from Q1\,2020 through Q4\,2021---the period during which the joint condition of positive lethality ($\delta_\theta > 0$) and absence of effective vaccination necessitated the health--economy--fiscal trade-off. Beyond the terminal date, the planner faces no further trilemma and deals exclusively with the fiscal legacy of the crisis.
-%Anpassen
 
 \medskip
 \noindent\textit{Summary.} Property~2 introduces the suppression instrument $S_k$, its epidemiological effectiveness $\phi_S$, its direct economic cost $\alpha_S$, the behavioral cost $\beta_d$ driven by observed mortality, and the output gap $y_k$. It establishes that pandemic suppression is inherently contractionary: the planner cannot protect health without damaging the economy unless an effective vaccine is available.
@@ -394,7 +376,7 @@ subject to~\eqref{eq:plan_theta}--\eqref{eq:plan_b} and the non-negativity const
 
 The transition equations are specified as reduced-form relationships governing the evolution of the state vector, rather than equilibrium conditions derived from household and firm optimization. This places the model in the tradition of optimal policy analysis with reduced-form constraints---an approach with established precedents in the pandemic-macro literature \citep{alvarez2020, acemoglu2021}. The alternative---a fully microfounded DSGE framework---would derive the output dynamics from household and firm optimization, as in \citet{eichenbaum2021macro} and \citet{KaplanMollViolante2020}. However, the output response to containment in such models depends sensitively on functional form assumptions, household heterogeneity, and market structure, none of which bear directly on the fiscal composition question that this paper addresses. Section~\ref{sec:lit} discusses the relationship to this macro-modeling literature in more detail.
 
-This choice of specification enables a decomposition that has not been formulated in the macroeconomic literature on pandemic policy: the separation of capacity preservation from demand injection on the basis of their transmission mechanism---level versus persistence---rather than their budgetary accounting. \citet{guerrieri2022} identify firm exit and job destruction as propagation mechanisms that amplify the initial sectoral shock, providing the theoretical foundation for the persistence channel, but do not formalize capacity preservation as a distinct fiscal instrument operating through this channel. \citet{deb2021} document empirically that emergency lifeline measures are more effective under strict containment while demand-support measures dominate during reopening, but their classification follows budgetary accounting conventions---above-the-line versus below-the-line---rather than the economic transmission channel.\footnote{These categories cut across the distinction drawn here: above-the-line spending includes both demand-oriented measures (transfers, tax cuts) and capacity-preserving measures (short-time work, direct grants), while below-the-line spending captures part but not all of the capacity preservation category (loans and guarantees, but not payroll subsidies).} \citet{gourinchas2021} quantify the firm-failure channel at the micro level, showing that fiscal support reduced SME failure rates by approximately 4.7 percentage points through liquidity preservation rather than demand stimulation---evidence for the persistence mechanism at the firm level that the present framework formalizes at the macro level. Together, the existing literature and the formalized framework motivate the central research question of this paper: \textit{What is the optimal composition of fiscal support between capacity preservation and demand injection over the course of a pandemic, and what are the costs—in foregone output stabilization and excess debt—of deviating from this optimum?}
+This choice of specification enables a decomposition that has not been formulated in the macroeconomic literature on pandemic policy: the separation of capacity preservation from demand injection on the basis of their transmission mechanism---level versus persistence---rather than their budgetary accounting. \citet{guerrieri2022} identify firm exit and job destruction as propagation mechanisms that amplify the initial sectoral shock, providing the theoretical foundation for the persistence channel, but do not formalize capacity preservation as a distinct fiscal instrument operating through this channel. \citet{deb2021} document empirically that emergency lifeline measures are more effective under strict containment while demand-support measures dominate during reopening, but their classification follows budgetary accounting conventions---above-the-line versus below-the-line---rather than the economic transmission channel.\footnote{These categories cut across the distinction drawn here: above-the-line spending includes both demand-oriented measures (transfers, tax cuts) and capacity-preserving measures (short-time work, direct grants), while below-the-line spending captures part but not all of the capacity preservation category (loans and guarantees, but not payroll subsidies).} \citet{gourinchas2021} quantify the firm-failure channel at the micro level, showing that fiscal support reduced SME failure rates by approximately 4.7 percentage points through liquidity preservation rather than demand stimulation---evidence for the persistence mechanism at the firm level that the present framework formalizes at the macro level. Together, the existing literature and the formalized framework motivate the central research question of this paper: \textit{What is the optimal composition of fiscal support between capacity preservation and demand injection over the course of a pandemic, given the containment trajectory and epidemiological state, and what are the costs—in foregone output stabilization and excess debt—of deviating from this optimum?}
 
 To answer this research question, the remainder of the paper proceeds the following steps. In Section~\ref{sec:estimation} I estimate the structural parameters governing the transmission channels---$\rho_y$, $\psi$, $\eta_p$, $\alpha_S$, $\alpha_{DI}$, and $\beta_d$---from the cross-country panel, identifying the empirical strength and timing of each channel and providing estimates of the effectiveness and fiscal cost of each instrument. Section~\ref{sec:calibration} calibrates the model using these estimates together with country-specific fixed effects and the epidemiological parameters ($\rho_\theta$, $\delta_\theta$, $\phi_S$) obtained from the data. Section~\ref{sec:counterfactuals} uses the calibrated model to solve the planner's minimization problem, constructing an optimal trajectory at the aggregate level and running scenario and country-specific counterfactuals: holding each country's observed pandemic conditions fixed---its containment trajectory, its epidemiological state, and the behavioral response to mortality---to answer which fiscal composition would have minimized the planner's loss given his pandemic conditions they faced and how far each country's realized policy departed from that conditional optimum.
 
@@ -1101,6 +1083,94 @@ Low social safety nets          & $-0.012$ & (0.009) & 0.182 &     & 190 \\
 \end{table}
 
 
+
+Table~\ref{tab:variance_decomp} decomposes the variance of each 
+regressor into between-country, within-country, and residual 
+components after two-way fixed effects absorption. Two patterns 
+are central to identification.
+
+\begin{table}[H]
+\centering
+\caption{Variance Decomposition of Regressors}
+\label{tab:variance_decomp}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r r r r @{}}
+\toprule
+ & Total SD & Between SD & Within SD & $R^2$ absorbed (C+Q FE) \\
+\midrule
+Output gap, $y_{ik}$                   
+  & $4.77$ & $3.05$ & $3.66$ & $0.843$ \\[2pt]
+Output gap, $y_{i,k-1}$                
+  & $4.72$ & $2.79$ & $3.81$ & $0.827$ \\[2pt]
+Stringency, $S_{ik}$                   
+  & $18.70$ & $6.22$ & $17.63$ & $0.756$ \\[2pt]
+Capacity preservation, $F^{CP}_{i,k-2}$
+  & $3.03$ & $0.70$ & $2.95$ & $0.448$ \\[2pt]
+Demand injection, $F^{DI}_{i,k-2}$     
+  & $0.71$ & $0.25$ & $0.66$ & $0.246$ \\[2pt]
+Excess mortality, $d_{ik}$             
+  & $14.87$ & $7.70$ & $12.73$ & $0.433$ \\[2pt]
+$S_{ik} \cdot y_{i,k-1}$               
+  & $240.77$ & $122.80$ & $207.10$ & $0.725$ \\[2pt]
+$F^{CP}_{i,k-2} \cdot y_{i,k-1}$       
+  & $38.14$ & $10.39$ & $36.70$ & $0.428$ \\
+\bottomrule
+\end{tabular*}
+
+\vspace{3pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Estimation sample 
+(Q1\,2020--Q2\,2022, $N=380$). $R^2$ absorbed reports the share of 
+raw variance explained by country and quarter fixed effects jointly.}
+\end{table}
+
+\noindent First, containment and the output gap are strongly 
+synchronized across countries---fixed effects absorb 76\% and 84\% 
+of their variance, respectively---reflecting the common 
+epidemiological cycle. Fiscal deployment, by contrast, is 
+substantially less synchronized: 55\% of the variance in 
+$F^{CP}_{k-2}$ and 75\% in $F^{DI}_{k-2}$ remains as identifying 
+variation after absorption of fixed effects. This asymmetry 
+reflects the institutional separation between health authorities, 
+which coordinated containment along the epidemiological cycle, 
+and finance ministries, which deployed fiscal instruments along 
+national administrative timetables.
+
+Second, Table~\ref{tab:residual_corr} reports the correlation 
+matrix of the fixed-effects residuals. The correlation between 
+containment and fiscal instruments is effectively zero 
+($-0.014$ with $F^{CP}_{k-2}$; $-0.020$ with $F^{DI}_{k-2}$), and 
+the two fiscal instruments are only weakly correlated with each 
+other ($0.082$). The non-negligible correlation between 
+containment and excess mortality ($0.182$) reflects the well-known 
+feedback from observed lethality to policy stringency; conditional 
+on both $S_{ik}$ and $d_{ik}$, the fiscal coefficients are 
+identified from variation in instrument composition orthogonal 
+to the severity of the crisis.
+
+\begin{table}[H]
+\centering
+\caption{Residual Correlations after Country and Quarter FE}
+\label{tab:residual_corr}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular*}{0.7\textwidth}{@{\extracolsep{\fill}} l r r r r @{}}
+\toprule
+ & $S_{ik}$ & $F^{CP}_{i,k-2}$ & $F^{DI}_{i,k-2}$ & $d_{ik}$ \\
+\midrule
+$S_{ik}$          & $1.000$  & $-0.014$ & $-0.020$ & $0.182$ \\
+$F^{CP}_{i,k-2}$  & $-0.014$ & $1.000$  & $0.082$  & $0.015$ \\
+$F^{DI}_{i,k-2}$  & $-0.020$ & $0.082$  & $1.000$  & $-0.064$ \\
+$d_{ik}$          & $0.182$  & $0.015$  & $-0.064$ & $1.000$ \\
+\bottomrule
+\end{tabular*}
+
+\vspace{3pt}
+\parbox{0.7\textwidth}{\scriptsize\textit{Notes:} Correlations of 
+residuals after two-way fixed effects demeaning. Estimation sample 
+(Q1\,2020--Q2\,2022, $N=380$).}
+\end{table}
+
 \begin{table}[H]
 \centering
 \caption{Main Results: Debt Equation}
@@ -1166,7 +1236,101 @@ announcement effects but most are never drawn, generating no realized
 debt. $F^{DI}$ enters at lag~1. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
+\subsection{Identifying Variation in the Debt Equation}
 
+Table~\ref{tab:variance_decomp_debt} reports the analogous 
+variance decomposition for the debt equation. Because the debt 
+equation does not include quarter fixed effects---the output gap 
+$y_{ik}$ absorbs common temporal dynamics through the automatic 
+stabilizer channel---the relevant benchmark is within-country, 
+across-quarter variation.
+
+\begin{table}[H]
+\centering
+\caption{Variance Decomposition of Regressors, Debt Equation}
+\label{tab:variance_decomp_debt}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r r r r @{}}
+\toprule
+ & Total SD & Between SD & Within SD & $R^2$ absorbed (C FE) \\
+\midrule
+Change in debt, $\Delta b_{ik}$              
+  & $2.48$ & $0.54$ & $2.42$ & $0.047$ \\[2pt]
+Output gap, $y_{ik}$                         
+  & $4.77$ & $3.05$ & $3.66$ & $0.401$ \\[2pt]
+CP above-the-line, $F^{CP,\text{above}}_{ik}$
+  & $0.98$ & $0.27$ & $0.94$ & $0.076$ \\[2pt]
+CP loans, $F^{CP,\text{loans}}_{ik}$         
+  & $1.02$ & $0.30$ & $0.97$ & $0.084$ \\[2pt]
+CP guarantees (adj.), $F^{CP,\text{guar}}_{ik}$
+  & $0.73$ & $0.18$ & $0.71$ & $0.058$ \\[2pt]
+Demand injection, $F^{DI}_{ik}$              
+  & $0.71$ & $0.25$ & $0.66$ & $0.127$ \\[2pt]
+Health, $F^{H}_{ik}$                         
+  & $0.38$ & $0.12$ & $0.36$ & $0.104$ \\
+\bottomrule
+\end{tabular*}
+
+\vspace{3pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Estimation sample 
+(Q1\,2020--Q2\,2022, $N = 380$). $R^2$ absorbed reports the share 
+of raw variance explained by country fixed effects alone.}
+\end{table}
+
+\noindent Country fixed effects absorb only a small share of the 
+variance in pandemic-era fiscal variables---between 6\% and 13\%---
+because pandemic-specific fiscal instruments had no pre-pandemic 
+counterpart and cross-country level differences are therefore 
+limited. More than 85\% of the variance in each fiscal component 
+is identifying.
+
+Table~\ref{tab:residual_corr_debt} reports residual correlations 
+after country fixed effects. Two features merit discussion. 
+First, the fiscal components are moderately correlated with one 
+another (0.15--0.33), reflecting a common pattern of fiscal 
+generosity: countries that deployed large volumes in one channel 
+also deployed in others. This correlation is a source of 
+multicollinearity that enlarges standard errors on the individual 
+$\kappa$ coefficients, especially for guarantees, whose residual 
+correlation with above-the-line (0.333) and loans (0.301) is the 
+highest in the matrix. Second, the output gap is negatively 
+correlated with all fiscal components ($-0.20$ to $-0.23$), 
+consistent with deeper recessions eliciting larger fiscal 
+responses. The $\gamma_y$ coefficient is therefore identified from 
+residual variation in $y_{ik}$ net of this common countercyclical 
+deployment pattern.
+
+\begin{table}[H]
+\centering
+\caption{Residual Correlations after Country FE, Debt Equation}
+\label{tab:residual_corr_debt}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r r r r r r @{}}
+\toprule
+ & $y$ & above & loans & guar & $F^{DI}$ & $F^{H}$ \\
+\midrule
+$y_{ik}$                 
+  & $1.000$ & $-0.218$ & $-0.227$ & $-0.215$ & $-0.198$ & $-0.197$ \\
+$F^{CP,\text{above}}$    
+  & $-0.218$ & $1.000$ & $0.161$ & $0.333$ & $0.258$ & $0.207$ \\
+$F^{CP,\text{loans}}$    
+  & $-0.227$ & $0.161$ & $1.000$ & $0.301$ & $0.219$ & $0.205$ \\
+$F^{CP,\text{guar}}$     
+  & $-0.215$ & $0.333$ & $0.301$ & $1.000$ & $0.161$ & $0.152$ \\
+$F^{DI}$                 
+  & $-0.198$ & $0.258$ & $0.219$ & $0.161$ & $1.000$ & $0.199$ \\
+$F^{H}$                  
+  & $-0.197$ & $0.207$ & $0.205$ & $0.152$ & $0.199$ & $1.000$ \\
+\bottomrule
+\end{tabular*}
+
+\vspace{3pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Correlations of 
+residuals after country fixed effects demeaning. Estimation sample 
+(Q1\,2020--Q2\,2022, $N = 380$).}
+\end{table}
 %5NEXT STEPS
 %Fix Identification-> no linear trend anymore
 %Do the interpretation, what do I find? DI is nothing (both sphere)
@@ -1277,6 +1441,7 @@ The estimated parameters identify the two transmission channels that the theoret
 
 
 \section{Conclusion}
+\label{sec:conclusion}
 
 \newpage
 \section{Robustness}
