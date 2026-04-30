@@ -72,33 +72,49 @@
 #  `m_baseline`).
 # =============================================================================
 
-##Install Packages and load Data ----
-#.rs.restartR()
+# =============================================================================
+#  STAGE 1 - SESSION SETUP
+#  Clear workspace, load packages, fix function-name conflicts, set the
+#  random seed, point at the input/output folders, then load the processed
+#  RData bundle and the fiscal-measures spreadsheet.
+# =============================================================================
 
-rm(list=ls())
+# .rs.restartR()   # uncomment in RStudio if a prior run polluted the session
+rm(list = ls())
 
-packages_vector <- c( "did2s","haven", "dplyr",  "sandwich",  "jtools", "data.table",
-                      "fBasics","gtools","rnaturalearth", "rnaturalearthdata", "foreign","gt", "Synth","gridExtra", "fixest","huxtable", 
-                      "xtable", "foreign", "stargazer", "AER", "causalweight", "tidyr","expss","stringr","pscore","AER","ggplot2","haven","lubridate" ,"knitr",
-                      "kableExtra", "psych", "pastecs","purrr","magrittr","did","remote", "did2s", "patchwork", "readxl", "did2s", "plm", "scales", "mFilter", 
-                      "countrycode", "tidyverse", "corrplot", "rnaturalearthdata", "ggExtra", "gt", "sf", "RColorBrewer","UpSetR", "lmtest", "modelsummary")
+# --- Packages ---------------------------------------------------------------
+# Install once with: install.packages(packages_vector)
+# (Some are loaded for transitive convenience; not every package is used by
+# every block. The set is kept conservative so the script runs end-to-end.)
+packages_vector <- c(
+  "did2s", "haven", "dplyr", "sandwich", "jtools", "data.table",
+  "fBasics", "gtools", "rnaturalearth", "rnaturalearthdata", "foreign", "gt",
+  "Synth", "gridExtra", "fixest", "huxtable",
+  "xtable", "foreign", "stargazer", "AER", "causalweight", "tidyr", "expss",
+  "stringr", "pscore", "AER", "ggplot2", "haven", "lubridate", "knitr",
+  "kableExtra", "psych", "pastecs", "purrr", "magrittr", "did", "remote",
+  "did2s", "patchwork", "readxl", "did2s", "plm", "scales", "mFilter",
+  "countrycode", "tidyverse", "corrplot", "rnaturalearthdata", "ggExtra",
+  "gt", "sf", "RColorBrewer", "UpSetR", "lmtest", "modelsummary"
+)
+lapply(packages_vector, require, character.only = TRUE)
+(.packages())   # echo currently loaded packages
 
-
-
-#install.packages(packages_vector)
-lapply(packages_vector, require, character.only = TRUE) 
-# List loaded packages 
-(.packages())
-
-# Set options
+# Console output: keep wide, suppress scientific notation, hide NAs.
 options(max.print = 99, scipen = 999, na.print = "")
 
+# Working directory pinned to the R-code folder; safedata / safeplots /
+# safetable below point at the input and output trees.
 dir <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/R"
 setwd(dir)
 
+# Global seed. Bootstrap section sets its own seed (16031995).
 set.seed(1234)
 
-#### Set preferences:
+# --- Resolve function-name conflicts ----------------------------------------
+# Several packages mask each other (dplyr vs. lubridate vs. data.table vs.
+# stats). Pin the version this script expects so the calls below behave
+# deterministically.
 conflicted::conflict_prefer("select", "dplyr")
 conflicted::conflict_prefer("filter", "dplyr")
 conflicted::conflicts_prefer(dplyr::lag)
@@ -116,29 +132,43 @@ conflicted::conflicts_prefer(dplyr::lead)
 conflicted::conflicts_prefer(modelsummary::SD)
 conflicted::conflicts_prefer(lubridate::union)
 
-##Load Data
-
-safedata <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/data/processed"
+# --- Load processed data ----------------------------------------------------
+# `dataforanalysis.RData` is built upstream by the data-construction scripts
+# (not part of this file). It supplies: qdata (state vars), theta_quarterly_full
+# (infection prevalence), panel_w (stringency), hosp_d (hospitalisations),
+# google_mobility_d (Google Mobility), fm and pdata (legacy objects used
+# in a few later blocks).
+safedata  <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/data/processed"
 load(file.path(safedata, "dataforanalysis.RData"))
 
-#Output Location Plots und Table
+# Output directories for figures (PDF/PNG) and tables (LaTeX/CSV).
 safeplots <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/figures"
 safetable <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/tables"
 
-#Create one Analysis Dataset with main specifications
-##Load modified FM Dataset V.1.7 (cleaned classification, see fix_classifications_v2.R)
+# --- Load fiscal-measures dataset (FM v1.7) ---------------------------------
+# Cleaned classification of every fiscal measure into transmission_channel
+# (CP / DI / H) and category (above-the-line vs. below-the-line).
+# See fix_classifications_v2.R for the cleaning step.
 fm1 <- readxl::read_excel("C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/data/raw/fiscal measures/fiscal_classified_v1_7.xlsx")
 
+# Build a quarter label "Qq.YYYY" and a percentage-of-GDP volume column.
+# YQ_ord is the same string but as an ordered factor for chronological
+# arrangement later in the script.
 fm1 <- fm1 %>%
   mutate(
     YQ       = paste0("Q", Quarter, ".", Year),
-    YQ_ord   = factor(YQ, levels = sort(unique(paste0("Q", Quarter, ".", Year))), ordered = TRUE),
+    YQ_ord   = factor(YQ, levels = sort(unique(paste0("Q", Quarter, ".", Year))),
+                      ordered = TRUE),
     size_pct = broad_fiscal_gdp * 100
   )
 
-# Check
+# Sanity check: first 10 rows of the relevant columns.
 fm1 %>% select(Country, Year, Quarter, YQ, YQ_ord, broad_fiscal_gdp, size_pct) %>% head(10)
 
+# Inspect (do not yet drop) the policy codes 5, 6, 11, 12, 15, 16 - these
+# are tax-deferral / liquidity / contingent items that we exclude from the
+# headline fiscal aggregate because they don't translate one-for-one into
+# realised debt or output effects.
 fm1 %>%
   filter(PolicyCode %in% c(5, 6, 11, 12, 15, 16)) %>%
   group_by(PolicyCode, transmission_channel, category) %>%
@@ -148,29 +178,47 @@ fm1 %>%
     .groups = "drop"
   )
 
+# Drop the excluded policy codes from fm1 going forward.
 fm1 <- fm1 %>%
   filter(!PolicyCode %in% c(5, 6, 11, 12, 15, 16))
 
-cat(sprintf("Verbleibende Maßnahmen: %d\n", nrow(fm1)))
+cat(sprintf("Verbleibende Massnahmen: %d\n", nrow(fm1)))
 
+## Note: F^H (health-channel fiscal) carries no detectable output effect in
+## the regressions below. We retain it as a separate aggregate for transparency
+## but it does not enter the main output-gap specification.
+# =============================================================================
+#  STAGE 2 - MASTER ANALYSIS DATASET CONSTRUCTION
+#  Output: df  - balanced (or near-balanced) Country x Quarter panel.
+#  Merge key: Country (ISO3) + Quarter (string "Q1.2020").
+#  Sample window pulled from each source: Q1.2019 - Q4.2022 (16 quarters).
+#  The trilemma estimation window (Q1.2020 - Q1/Q2.2022) is selected later
+#  via t_idx in the regression code.
+#
+#  The script first builds 6 source blocks, all keyed on (Country, Quarter):
+#    Block 1  qdata                  -> state vars (output gap, debt gap, etc.)
+#    Block 2  theta_quarterly_full   -> theta_k (infection prevalence)
+#    Block 3  fm1                    -> fiscal measures aggregated to F^CP, F^DI, F^H
+#    Block 4  panel_w                -> stringency (population-weighted)
+#    Block 5  hosp_d                 -> hospitalisations
+#    Block 6  google_mobility_d      -> Google Mobility (6 categories)
+#  These are then left-joined into df_qdata to produce df.
+# =============================================================================
 
-##H hat ekinen Einlfuss, H ist separat aufgeführt
-# ==============================================================================
-#  STAGE 2 — MASTER ANALYSIS DATASET CONSTRUCTION
-#  Output: df — Country × Quarter panel for structural estimation
-#  Merge key: Country + Quarter (format "Q1.2020")
-#  Sample: Q1.2020 – Q4.2021 (trilemma period), 38 OECD countries
-# ==============================================================================
-
+# Quarter labels included in every source block. Order matters: this same
+# vector becomes the factor-level order on `Quarter` after the master merge.
 pandemic_qs <- c(
   "Q1.2019", "Q2.2019", "Q3.2019", "Q4.2019",
   "Q1.2020", "Q2.2020", "Q3.2020", "Q4.2020",
   "Q1.2021", "Q2.2021", "Q3.2021", "Q4.2021",
   "Q1.2022", "Q2.2022", "Q3.2022", "Q4.2022"
 )
-# ==============================================================================
-#  BLOCK 1: qdata — State variables y_k, b_k and controls
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 1: qdata  ->  state variables y_k, b_k and country-level controls
+#  Selected columns include both the main and robustness variants of each
+#  outcome (output gap, debt-to-GDP), plus pre-COVID levels used as
+#  initial conditions / heterogeneity proxies.
+# -----------------------------------------------------------------------------
 
 df_qdata <- qdata %>%
   filter(Quarter %in% pandemic_qs) %>%
@@ -207,15 +255,21 @@ df_qdata <- qdata %>%
 cat(sprintf("Block 1 (qdata):     %d obs, %d countries\n",
             nrow(df_qdata), n_distinct(df_qdata$Country)))
 
-pop_2019 <- df_qdata[df_qdata$Quarter=="Q4.2019", c("Country","Qpopulation_th")]
+# Snapshot population in Q4.2019 and broadcast it to every row as `pop_2019`
+# (used later for population-weighted aggregates and for sanity-checking
+# the panel size).
+pop_2019 <- df_qdata[df_qdata$Quarter == "Q4.2019", c("Country", "Qpopulation_th")]
 names(pop_2019)[names(pop_2019) == "Qpopulation_th"] <- "pop_2019"
-df_qdata <- merge(df_qdata, pop_2019, by="Country")
+df_qdata <- merge(df_qdata, pop_2019, by = "Country")
 rm(pop_2019)
 
 
-# ==============================================================================
-#  BLOCK 2: theta_quarterly_full — State variable θ_k
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 2: theta_quarterly_full  ->  theta_k (infection prevalence)
+#  Source provides weekly + monthly variants; we use the within-quarter mean
+#  as the main measure and keep lag-2 / lag-4 / lo / hi variants for
+#  sensitivity analysis.
+# -----------------------------------------------------------------------------
 
 df_theta <- theta_quarterly_full %>%
   mutate(Quarter = as.character(YQ)) %>%
@@ -235,10 +289,12 @@ cat(sprintf("Block 2 (theta):     %d obs, %d countries\n",
             nrow(df_theta), n_distinct(df_theta$Country)))
 
 
-# ==============================================================================
-#  BLOCK 3: fm (fiscal measures) — Control variables F^CP, F^DI, F^H
-#  Aggregate measure-level data to Country × Quarter
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 3: fm1 (fiscal measures)  ->  controls F^CP, F^DI, F^H
+#  Aggregate measure-level rows in fm1 to one row per (Country, Quarter)
+#  per channel. Composition shares (CP_share, DI_share) are computed from
+#  the totals; counts of active measures are kept for descriptive use.
+# -----------------------------------------------------------------------------
 
 df_fiscal <- fm1 %>%
   filter(broad_fiscal == 1) %>%
@@ -263,10 +319,14 @@ cat(sprintf("Block 3 (fiscal):    %d obs, %d countries\n",
             nrow(df_fiscal), n_distinct(df_fiscal$Country)))
 
 
-# ==============================================================================
-#  BLOCK 4: S_mean already in theta_quarterly_full (Block 2)
-#  Additional stringency variables from panel_w if needed
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 4: panel_w  ->  stringency aggregates
+#  panel_w is a daily panel of the Oxford Stringency Index (population-
+#  weighted within country). Aggregate to Country x Quarter:
+#    S_mean_pw  - within-quarter mean (main S regressor)
+#    S_max_pw   - within-quarter max  (robustness)
+#    S_sd       - within-quarter SD   (volatility check)
+# -----------------------------------------------------------------------------
 
 df_stringency <- panel_w %>%
   filter(!is.na(S_mean)) %>%
@@ -288,9 +348,12 @@ cat(sprintf("Block 4 (stringency): %d obs, %d countries\n",
             nrow(df_stringency), n_distinct(df_stringency$Country)))
 
 
-# ==============================================================================
-#  BLOCK 5: hosp_d — Hospitalisation (33 countries, quarterly aggregation)
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 5: hosp_d  ->  hospitalisations (33 countries with available data)
+#  Daily/weekly admissions and occupancies (per million), aggregated to
+#  the within-quarter mean. Coverage is narrower than the full 38-country
+#  panel; controls in some specs only.
+# -----------------------------------------------------------------------------
 
 df_hosp <- hosp_d %>%
   mutate(date = as.Date(date)) %>%
@@ -314,9 +377,13 @@ cat(sprintf("Block 5 (hosp):      %d obs, %d countries\n",
             nrow(df_hosp), n_distinct(df_hosp$Country)))
 
 
-# ==============================================================================
-#  BLOCK 6: google_mobility_d — Behavioural controls (quarterly aggregation)
-# ==============================================================================
+# -----------------------------------------------------------------------------
+#  BLOCK 6: google_mobility_d  ->  behavioural controls (Google Mobility)
+#  Six categories per (Country, Day). We aggregate to Country x Quarter,
+#  then pivot from long to wide so each category is its own column.
+#  The crosswalk below maps Google's English country names to ISO3 codes
+#  that match the rest of the panel.
+# -----------------------------------------------------------------------------
 country_crosswalk <- tibble(
   country_name = c("Australia", "Austria", "Belgium", "Canada", "Chile",
                    "Colombia", "Costa Rica", "Czechia", "Denmark", "Estonia",
@@ -365,9 +432,13 @@ df_mobility <- google_mobility_d %>%
 cat(sprintf("Block 6 (mobility):  %d obs, %d countries\n",
             nrow(df_mobility), n_distinct(df_mobility$Country)))
 
-# ==============================================================================
+# -----------------------------------------------------------------------------
 #  MASTER MERGE
-# ==============================================================================
+#  Left-join blocks 2-6 onto df_qdata (which is the most complete in terms
+#  of country coverage). After the joins, we add `quarter_num` and `date`
+#  helpers, convert Quarter to an ordered factor, and replace NA fiscal
+#  values with 0 (no measure deployed = zero spend, NOT missing).
+# -----------------------------------------------------------------------------
 
 cat("\n--- Merging blocks ---\n")
 
@@ -397,9 +468,12 @@ df <- df_qdata %>%
   arrange(Country, Quarter)
 
 
-# ==============================================================================
+# -----------------------------------------------------------------------------
 #  DIAGNOSTICS
-# ==============================================================================
+#  Print panel size, NA counts on key variables, and a min/max/modal check
+#  on observations per country. Useful for catching merge mismatches in a
+#  single glance before proceeding to estimation.
+# -----------------------------------------------------------------------------
 
 cat("\n", strrep("=", 70), "\n")
 cat("  MASTER DATASET df — DIAGNOSTICS\n")
