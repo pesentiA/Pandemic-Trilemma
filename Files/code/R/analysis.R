@@ -1,3 +1,77 @@
+# =============================================================================
+#  PANDEMIC TRILEMMA — MAIN ANALYSIS SCRIPT
+# =============================================================================
+#  Paper:   "The Pandemic Trilemma: Health, Output, and Public Debt during
+#            COVID-19" (PhD Paper 1)
+#  Sample:  38 OECD countries, quarterly, Q1.2018 – Q4.2022.
+#           Trilemma estimation window: Q1.2020 – Q1.2022 (T = 9 per country).
+#  Outputs: tables (LaTeX) under  Files/output/tables
+#           figures (PDF/PNG)    under Files/output/figures
+#           a CSV of country-level state/control panels for the MATLAB iLQR
+#           solver (see end of file).
+#
+#  INPUT FILES (must exist before running):
+#    Files/data/processed/dataforanalysis.RData
+#        -> objects: qdata, theta_quarterly_full, panel_w, hosp_d,
+#                    google_mobility_d, fm, pdata
+#    Files/data/raw/fiscal measures/fiscal_classified_v1_7.xlsx
+#        -> object loaded as fm1
+#    Files/data/raw/outcomes and controls/Quarterly/hh_inidcators_legende.xlsx
+#        -> OECD HH dashboard (used only for Step 9 unemployment robustness)
+#
+#  PIPELINE (top to bottom in this file):
+#    1. Load packages, set paths, set seed, resolve dplyr/lubridate conflicts.
+#    2. Build master country x quarter panel `df` from 6 source blocks
+#       (state vars, theta, fiscal measures, stringency, hospitalisations,
+#       Google mobility) and create estimation samples `df_estimation`,
+#       `pdata`, `pdataY`, `pdataD`.
+#    3. Output-gap equation:
+#         - Identification descriptives (D1-D5, Figures 1-3, Tables 1).
+#         - Step 1: identification strategy (orthogonality of S and F).
+#         - Step 2: OLS -> Country FE -> TWFE progression (Table 2).
+#         - Step 3: main V3 specification with feols + plm verification.
+#         - Multicollinearity / mean-centering diagnostics.
+#         - Variance decomposition + Mundlak regression.
+#         - Local Projections (V3, Jorda 2005).
+#         - Step 5: wild cluster bootstrap (fwildclusterboot).
+#         - Step 6: robustness checks (Table 3, Panels A and B).
+#         - Local Projections re-run for instruments and interactions.
+#         - Step 7: GMM Arellano-Bond.
+#         - Step 8: cross-estimator comparison.
+#         - Step 9: unemployment-rate robustness.
+#    4. Debt equation:
+#         - Sample preparation (first-differenced real-debt share, with
+#           chronological lag construction).
+#         - CP sub-component construction (above-the-line / loans /
+#           guarantees, with three guarantee take-up scenarios).
+#         - Debt main results (Country FE, 5 columns).
+#         - Debt robustness (5 columns) and appendix (additional checks).
+#         - Guarantee take-up sensitivity grid.
+#    5. Descriptive comparisons (group means, country pairs, CAN-vs-CHE
+#       case study) and OECD-average time-series plots.
+#    6. Export country panel to CSV for MATLAB iLQR solver.
+#
+#  REPLICATION NOTES:
+#    - All fiscal variables F_CP, F_DI, F_H are in pp of 2019 GDP. Within
+#      `pdata` they are scaled x100 (line "Modify values and construct
+#      lagged variables").
+#    - Stringency (S_mean_pw, S_max_pw) is on a 0-1 scale at source and is
+#      rescaled to 0-100 (S_mean_tw, S_max_tw, S_sd_tw) inside `pdata`.
+#    - The trilemma window uses t_idx in [5, 14] = Q1.2020 - Q2.2022 for
+#      most regressions. Step 6 main robustness uses [5, 13] = Q1.2020 -
+#      Q1.2022. Local Projections at horizon h truncate the window at the
+#      far end.
+#    - Standard errors: clustered by Country with feols (CRV1, AER style).
+#      plm models use vcovHC(cluster = "group", type = "HC1").
+#    - Seed: set.seed(1234) is global; bootstrap uses set.seed(16031995)
+#      separately.
+#
+#  This script must be run top-to-bottom in a clean R session (the script
+#  itself starts with rm(list=ls())). Some downstream blocks rely on
+#  variables created upstream (e.g. `id_cs`, `pdataD`, `fiscal_subcomp`,
+#  `m_baseline`).
+# =============================================================================
+
 ##Install Packages and load Data ----
 #.rs.restartR()
 
@@ -485,7 +559,7 @@ library(boot)
 # Note: F_CP, F_DI, F_H in pdataY are already in pp-GDP units (×100 from pdata)
 
 pdataY <- pdata %>%
-  filter(Quarter %in% c("Q4.2019","Q1.2020", "Q2.2020", "Q3.2020", "Q4.2020",
+  filter(Quarter %in% c("Q1.2018","Q2.2018","Q3.2018","Q4.2018","Q1.2019","Q2.2019","Q3.2019","Q4.2019","Q1.2020", "Q2.2020", "Q3.2020", "Q4.2020",
                         "Q1.2021", "Q2.2021", "Q3.2021", "Q4.2021",
                         "Q1.2022", "Q2.2022", "Q3.2022", "Q4.2022"))
 
@@ -1386,12 +1460,157 @@ pdataY <- pdataY %>%
 
 
 #MAIN SPECIFICATION 16.04.2026
-main<-feols(y_t_pct ~ y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
-            + p_proj_all_ages| Country +Quarter, 
+main<-feols(y_t_pct ~ y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2
+            + p_proj_all_ages| Country + Quarter, 
             data = pdataY, subset = ~t_idx >= 5 & t_idx <= 14, 
             vcov = ~Country)
 
 summary(main, cluster = ~Country, ssc = ssc(K.adj = TRUE,  G.adj = TRUE))
+
+##verification with plm
+plm_test<-plm(y_t_pct ~y_lag1+  y_lag1:F_CP_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
+              + p_proj_all_ages + Quarter + Country , data=pdataY, model="within", effect="twoway", subset = t_idx >= 5 & t_idx <= 14)
+
+coeftest(plm_test, vcov = vcovHC(plm_test, cluster = "group", type = "HC1"))
+
+fixef(plm_test, effect = "time")
+
+#including Q4.2019 als robustness
+
+# ============================================================================
+#  CP Level vs. Persistence: Three Diagnostics
+#  Tests whether F_CP_lag2 (level) and F_CP_lag2 x y_lag1 (interaction)
+#  identify two distinct effects, or whether the joint significance is
+#  a multicollinearity artifact.
+#
+#  Assumes a panel data.frame `pdata` with columns:
+#    Country, Quarter (or t_idx), y_t_pct, F_CP_lag2, S_mean_tw,
+#    y_lag1, F_DI_lag2, p_proj_all_ages
+#
+#  Estimation sample: t_idx in [5, 14], N = 380
+# ============================================================================
+
+
+library(car)         # for linearHypothesis (Wald test)
+
+# Estimation sample
+est <- pdataY %>% filter(t_idx >= 5, t_idx <= 14)
+
+# ----------------------------------------------------------------------------
+#  DIAGNOSTIC 1: Multicollinearity between level and interaction
+# ----------------------------------------------------------------------------
+#  Goal: quantify how much the level term (F_CP_lag2) and the interaction
+#  (F_CP_lag2 * y_lag1) share variation after absorbing fixed effects.
+#  If the within-FE correlation is very high (|r| > 0.7) and the VIF on the
+#  level/interaction is large (> 10), the unrestricted specification cannot
+#  cleanly separate the two effects.
+# ----------------------------------------------------------------------------
+
+cat("\n========== DIAGNOSTIC 1: Multicollinearity ==========\n\n")
+
+# Within-FE residuals: project out Country and Quarter FE from each regressor
+demean_fe <- function(x, country, quarter) {
+  df <- data.frame(x = x, c = country, q = quarter)
+  res <- feols(x ~ 1 | c + q, data = df)$residuals
+  res
+}
+
+est <- est %>%
+  mutate(
+    F_CP_x_y     = F_CP_lag2 * y_lag1,
+    F_CP_dm      = demean_fe(F_CP_lag2, Country, Quarter),
+    F_CP_x_y_dm  = demean_fe(F_CP_x_y,  Country, Quarter),
+    y_lag1_dm    = demean_fe(y_lag1,    Country, Quarter),
+    S_dm         = demean_fe(S_mean_tw, Country, Quarter)
+  )
+
+cor_within <- cor(est$F_CP_dm, est$F_CP_x_y_dm, use = "complete.obs")
+cat(sprintf("Within-FE correlation r(F_CP_lag2, F_CP_lag2 x y_lag1) = %.4f\n", cor_within))
+
+# VIF computation via auxiliary regression: regress one regressor on all others,
+# all in within-FE-demeaned form (so the VIF reflects the actual identifying
+# variation, not the absorbed between-country / between-quarter variation).
+vif_aux <- function(target, others, data) {
+  fml <- as.formula(paste(target, "~", paste(others, collapse = " + ")))
+  r2  <- summary(lm(fml, data = data))$r.squared
+  1 / (1 - r2)
+}
+
+vars_dm <- c("F_CP_dm", "F_CP_x_y_dm", "y_lag1_dm", "S_dm")
+vif_lvl <- vif_aux("F_CP_dm",     setdiff(vars_dm, "F_CP_dm"),     est)
+vif_int <- vif_aux("F_CP_x_y_dm", setdiff(vars_dm, "F_CP_x_y_dm"), est)
+
+cat(sprintf("VIF(F_CP_lag2 level)       = %.2f\n", vif_lvl))
+cat(sprintf("VIF(F_CP_lag2 interaction) = %.2f\n", vif_int))
+cat("\nRule of thumb: VIF > 10 indicates problematic multicollinearity.\n")
+cat("If r > 0.7 AND VIF > 10, the unrestricted specification likely\n")
+cat("cannot separate level from interaction.\n")
+
+# ----------------------------------------------------------------------------
+#  DIAGNOSTIC 2: Mean-centered specification
+# ----------------------------------------------------------------------------
+#  Mean-centering the components of the interaction reduces mechanical
+#  correlation between the level and the interaction term. After centering,
+#  the level coefficient represents the effect at the SAMPLE MEAN of y_lag1,
+#  not at y_lag1 = 0. Compare:
+#    - level coefficient: should change substantially if the original was
+#      driven by extrapolation to y_lag1 = 0
+#    - interaction coefficient: should be IDENTICAL to the un-centered
+#      specification (mean-centering does not affect the interaction slope)
+# ----------------------------------------------------------------------------
+
+cat("\n========== DIAGNOSTIC 2: Mean-Centering ==========\n\n")
+
+y_bar    <- mean(est$y_lag1,    na.rm = TRUE)
+fcp_bar  <- mean(est$F_CP_lag2, na.rm = TRUE)
+cat(sprintf("Sample mean of y_lag1     = %.3f\n", y_bar))
+cat(sprintf("Sample mean of F_CP_lag2  = %.3f\n", fcp_bar))
+
+est <- est %>%
+  mutate(
+    y_lag1_c    = y_lag1    - y_bar,
+    F_CP_lag2_c = F_CP_lag2 - fcp_bar
+  )
+
+# Original specification (un-centered)
+m_orig <- feols(
+  y_t_pct ~ F_CP_lag2 + S_mean_tw + y_lag1 + F_DI_lag2 + p_proj_all_ages
+  + y_lag1:F_CP_lag2 + y_lag1:S_mean_tw
+  | Country + Quarter,
+  data    = est,
+  cluster = ~ Country
+)
+
+# Mean-centered specification
+m_cent <- feols(
+  y_t_pct ~ F_CP_lag2_c + S_mean_tw + y_lag1_c + F_DI_lag2 + p_proj_all_ages
+  + y_lag1_c:F_CP_lag2_c + y_lag1_c:S_mean_tw
+  | Country + Quarter,
+  data    = est,
+  cluster = ~ Country
+)
+
+cat("\n--- Original specification ---\n")
+print(coef(m_orig)[c("F_CP_lag2", "y_lag1:F_CP_lag2")])
+cat("\n--- Mean-centered specification ---\n")
+print(coef(m_cent)[c("F_CP_lag2_c", "y_lag1_c:F_CP_lag2_c")])
+
+cat("\nInterpretation:\n")
+cat("  - If the interaction coefficient is identical across both -> sanity check passes.\n")
+cat("  - If the level coefficient changes sign or becomes insignificant under\n")
+cat("    centering, the original negative level was an extrapolation artifact:\n")
+cat("    it described the effect of CP at y_lag1 = 0, a sparsely populated region.\n")
+cat("  - If the level coefficient remains negative and significant after centering,\n")
+cat("    the misallocation interpretation is empirically defensible at sample-mean states.\n")
+
+# Wald test of the original restriction alpha^CP_F = 0 (in original specification)
+cat("\n--- Wald test of restriction alpha^CP_F = 0 ---\n")
+wald <- linearHypothesis(m_orig, "F_CP_lag2 = 0", test = "F")
+print(wald)
+print(coef(m_orig))   # alle Koeffizienten anzeigen
+
+
+##Level Test fertig
 
 
 ##Dekomposition der zu identifizierenden Varianz
@@ -1498,7 +1717,7 @@ pdataD1 <- pdataD1 %>%
                              F_CP_above_lag2)
   )
 
-main<-feols(y_t_pct ~ y_lag1:F_CP_above_lag2 + y_lag1:F_CP_below_adj_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
+main<-feols(y_t_pct ~ y_lag1*F_CP_above_lag2 + y_lag1*F_CP_below_adj_lag2 + S_mean_tw*y_lag1 + F_DI_lag2 
       + p_proj_all_ages| Country + Quarter, 
       data = pdataD1, subset = ~t_idx >= 5 & t_idx <= 14, 
       vcov = ~Country)
@@ -1570,6 +1789,9 @@ mundlak_model <- feols(
 )
 
 summary(mundlak_model)
+
+
+
 
 
 
@@ -3499,15 +3721,6 @@ d_di2 <- feols(
   debt_dR ~ y_t_pct + F_CP_above + F_CP_below_adj_mid + F_DI_lag2 | Country,
   data = pdataD, subset = debt_sub, cluster = ~Country)
 
-# --- Sample horizon ---
-d_strict <- feols(
-  debt_dR ~ y_t_pct + F_CP_above + F_CP_below_adj_mid + F_DI_lag1 | Country,
-  data = pdataD, subset = strict_sub, cluster = ~Country)
-
-d_extend <- feols(
-  debt_dR ~ y_t_pct + F_CP_above + F_CP_below_adj_mid + F_DI_lag1 | Country,
-  data = pdataD, subset = extend_sub, cluster = ~Country)
-
 # --- Net effect (without y_t_pct → total debt cost incl. stabilizer channel) ---
 d_netto <- feols(
   debt_dR ~ F_CP_above + F_CP_below_adj_mid + F_DI_lag1 | Country,
@@ -3520,8 +3733,6 @@ debt_app_list <- list(
   "Excl. EST"        = d_noEST,
   "DI contemp."      = d_di0,
   "DI lag 2"         = d_di2,
-  "Q1.20--Q4.21"     = d_strict,
-  "Q1.20--Q4.22"     = d_extend,
   "Net effect"       = d_netto
 )
 
@@ -3608,153 +3819,6 @@ for (j in seq_along(take_ups)) {
               tu_labels[j], k, stars_fn(pv), se, tv, pv, cp_mean, k * cp_mean))
 }
 cat("  debt_eff = kappa_CP * mean(F_CP_eff) = avg quarterly debt increase (pp 2019 GDP)\n")
-
-
-
-# ================================================================
-#  LP 8b: COUNTRY-FE ONLY (no Quarter FE) — ROBUSTNESS
-#
-#  Motivation: TWFE absorbs the common deployment timing, which is
-#  the primary source of fiscal variation. Country-FE-only preserves
-#  the temporal variation (Deb et al. 2021 IMF, Chetty et al. 2020).
-#  Tradeoff: more power but risk of omitted common shocks.
-#  Controls (S, theta, y_lag1) mitigate this.
-#  If results are qualitatively similar -> robust identification.
-#  If stronger -> TWFE was overly conservative (absorbed signal).
-# ================================================================
-cat("\n=== LP 8b: COUNTRY-FE ONLY (no Quarter FE) — ROBUSTNESS ===\n\n")
-
-# --- Output: Joint CP + DI, Country FE only ---
-res_y_joint_cfe <- run_lp(lp_panel, dy_vars, "F_CP + F_DI",
-                          controls = c("S_mean_tw", "y_lag1", "theta_pct"),
-                          fe = "Country")
-print_lp(res_y_joint_cfe, "OUTPUT (Country FE only): Joint LP (CP + DI)")
-
-# --- Output: State-dependent, Country FE only ---
-res_y_state_cfe <- run_lp(lp_panel, dy_vars, "F_CP + S_x_FCP + F_DI",
-                          controls = c("S_mean_tw", "y_lag1", "theta_pct"),
-                          fe = "Country")
-print_lp(res_y_state_cfe, "OUTPUT (Country FE only): State-Dependent (F_CP + S*F_CP + F_DI)")
-
-# --- Output: CP sub-components, Country FE only ---
-res_y_cp_sub_cfe <- run_lp(lp_panel, dy_vars,
-                           "F_CP_above_3 + F_CP_loans + F_CP_guar_adj",
-                           controls = c("F_DI", "S_mean_tw", "y_lag1", "theta_pct"),
-                           fe = "Country")
-print_lp(res_y_cp_sub_cfe, "OUTPUT (Country FE only): CP Sub-Components")
-
-# --- Output: DI sub-components, Country FE only ---
-res_y_di_sub_cfe <- run_lp(lp_panel, dy_vars,
-                           "F_DI_transfers + F_DI_demand",
-                           controls = c("F_CP", "S_mean_tw", "y_lag1", "theta_pct"),
-                           fe = "Country")
-print_lp(res_y_di_sub_cfe, "OUTPUT (Country FE only): DI Sub-Components")
-
-# --- Debt: Joint, Country FE only (same as TWFE version since debt already uses Country FE) ---
-# (Debt LP already uses Country FE, so this is identical — skip to save time)
-
-# --- Comparison table: TWFE vs Country-FE-only ---
-cat("\n\n")
-cat(strrep("=", 80), "\n")
-cat("  COMPARISON: TWFE vs COUNTRY-FE-ONLY (Output LP, joint CP + DI)\n")
-cat(strrep("=", 80), "\n\n")
-
-cat(sprintf("  %3s  %24s  %24s\n", "h", "--- TWFE ---", "--- Country FE only ---"))
-cat(sprintf("  %3s  %11s  %11s  %11s  %11s\n", "", "CP", "DI", "CP", "DI"))
-cat("  ", strrep("-", 55), "\n")
-
-stars_fn <- function(pv) ifelse(pv<0.001,"***",ifelse(pv<0.01,"** ",ifelse(pv<0.05,"*  ",ifelse(pv<0.1,".  ","   "))))
-
-for (hh in 0:H_max) {
-  cp_tw <- res_y_joint %>% filter(variable == "F_CP", .data$h == hh)
-  di_tw <- res_y_joint %>% filter(variable == "F_DI", .data$h == hh)
-  cp_cf <- res_y_joint_cfe %>% filter(variable == "F_CP", .data$h == hh)
-  di_cf <- res_y_joint_cfe %>% filter(variable == "F_DI", .data$h == hh)
-
-  fmt <- function(r) if(nrow(r)>0) sprintf("%7.4f%s", r$coef, stars_fn(r$pval)) else "       ---"
-  cat(sprintf("  %3d  %11s  %11s  %11s  %11s\n", hh,
-              fmt(cp_tw), fmt(di_tw), fmt(cp_cf), fmt(di_cf)))
-}
-
-# --- Comparison: State-dependent LP ---
-cat("\n")
-cat(strrep("=", 80), "\n")
-cat("  COMPARISON: TWFE vs COUNTRY-FE-ONLY (State-Dependent: F_CP + S*F_CP + F_DI)\n")
-cat(strrep("=", 80), "\n\n")
-
-cat(sprintf("  %3s  %34s  %34s\n", "h", "------- TWFE -------", "--- Country FE only ---"))
-cat(sprintf("  %3s  %11s  %11s  %11s  %11s  %11s  %11s\n",
-            "", "F_CP", "S*F_CP", "F_DI", "F_CP", "S*F_CP", "F_DI"))
-cat("  ", strrep("-", 75), "\n")
-
-for (hh in 0:H_max) {
-  tw_cp  <- res_y_state %>% filter(variable == "F_CP", .data$h == hh)
-  tw_sx  <- res_y_state %>% filter(variable == "S_x_FCP", .data$h == hh)
-  tw_di  <- res_y_state %>% filter(variable == "F_DI", .data$h == hh)
-  cf_cp  <- res_y_state_cfe %>% filter(variable == "F_CP", .data$h == hh)
-  cf_sx  <- res_y_state_cfe %>% filter(variable == "S_x_FCP", .data$h == hh)
-  cf_di  <- res_y_state_cfe %>% filter(variable == "F_DI", .data$h == hh)
-
-  fmt <- function(r) if(nrow(r)>0) sprintf("%7.4f%s", r$coef, stars_fn(r$pval)) else "       ---"
-  cat(sprintf("  %3d  %11s  %11s  %11s  %11s  %11s  %11s\n", hh,
-              fmt(tw_cp), fmt(tw_sx), fmt(tw_di),
-              fmt(cf_cp), fmt(cf_sx), fmt(cf_di)))
-}
-
-# --- Comparison: CP sub-components ---
-cat("\n")
-cat(strrep("=", 80), "\n")
-cat("  COMPARISON: TWFE vs COUNTRY-FE-ONLY (CP Sub-Components -> Output)\n")
-cat(strrep("=", 80), "\n\n")
-
-cat(sprintf("  %3s  %34s  %34s\n", "h", "------- TWFE -------", "--- Country FE only ---"))
-cat(sprintf("  %3s  %11s  %11s  %11s  %11s  %11s  %11s\n",
-            "", "Above", "Loans", "Guar(adj)", "Above", "Loans", "Guar(adj)"))
-cat("  ", strrep("-", 75), "\n")
-
-for (hh in 0:H_max) {
-  tw_a <- res_y_cp_sub %>% filter(variable == "F_CP_above_3", .data$h == hh)
-  tw_l <- res_y_cp_sub %>% filter(variable == "F_CP_loans", .data$h == hh)
-  tw_g <- res_y_cp_sub %>% filter(variable == "F_CP_guar_adj", .data$h == hh)
-  cf_a <- res_y_cp_sub_cfe %>% filter(variable == "F_CP_above_3", .data$h == hh)
-  cf_l <- res_y_cp_sub_cfe %>% filter(variable == "F_CP_loans", .data$h == hh)
-  cf_g <- res_y_cp_sub_cfe %>% filter(variable == "F_CP_guar_adj", .data$h == hh)
-
-  fmt <- function(r) if(nrow(r)>0) sprintf("%7.4f%s", r$coef, stars_fn(r$pval)) else "       ---"
-  cat(sprintf("  %3d  %11s  %11s  %11s  %11s  %11s  %11s\n", hh,
-              fmt(tw_a), fmt(tw_l), fmt(tw_g),
-              fmt(cf_a), fmt(cf_l), fmt(cf_g)))
-}
-
-# --- Cumulative multipliers: Country FE only ---
-cat("\n")
-cat(strrep("=", 80), "\n")
-cat("  CUMULATIVE MULTIPLIERS: Country FE only\n")
-cat(strrep("=", 80), "\n\n")
-
-cat("  --- Output Multipliers (Country FE only) ---\n")
-cat(sprintf("  %3s  %14s  %14s\n", "h", "CP multiplier", "DI multiplier"))
-cat("  ", strrep("-", 40), "\n")
-for (hh in 0:H_max) {
-  cp_r <- res_y_joint_cfe %>% filter(variable == "F_CP", .data$h == hh)
-  di_r <- res_y_joint_cfe %>% filter(variable == "F_DI", .data$h == hh)
-  cp_s <- if(nrow(cp_r)>0) sprintf("%8.4f%s", cp_r$coef, ifelse(cp_r$pval<0.05,"*",ifelse(cp_r$pval<0.1,"."," "))) else "     ---"
-  di_s <- if(nrow(di_r)>0) sprintf("%8.4f%s", di_r$coef, ifelse(di_r$pval<0.05,"*",ifelse(di_r$pval<0.1,"."," "))) else "     ---"
-  cat(sprintf("  %3d  %14s  %14s\n", hh, cp_s, di_s))
-}
-
-# Interpretation block
-# The Country-FE-only results tell us:
-# - If output multipliers become significant -> TWFE was absorbing genuine
-#   fiscal effect (the temporal deployment pattern IS the treatment).
-# - If S*F_CP remains significant and similar magnitude -> the state-dependent
-#   channel is robust to the FE specification.
-# - If CP sub-component pattern is preserved -> the guarantee vs loan
-#   decomposition is not an artifact of the time FE structure.
-# - Key diagnostic: compare the S*F_CP coefficient. If it's stable across
-#   TWFE and Country-FE, the interaction (not the level) is driving
-#   identification, and the FE choice is secondary for this channel.
-
 
 
 # ================================================================
