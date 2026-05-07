@@ -5,27 +5,29 @@ caption={Debt Equation: Additional Robustness (Appendix)},
 note{}={. p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
-colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
-hline{2}={1-9}{solid, black, 0.05em},
-hline{14}={1-9}{solid, black, 0.05em},
-hline{1}={1-9}{solid, black, 0.1em},
-hline{15}={1-9}{solid, black, 0.1em},
-column{2-9}={}{halign=c},
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-11}{solid, black, 0.05em},
+hline{16}={1-11}{solid, black, 0.05em},
+hline{1}={1-11}{solid, black, 0.1em},
+hline{17}={1-11}{solid, black, 0.1em},
+column{2-11}={}{halign=c},
 column{1}={}{halign=l},
 }                     %% tabularray inner close
-& Excl. IRL & Excl. TUR & Excl. EST & DI contemp. & DI lag 2 & Q1.20--Q4.21 & Q1.20--Q4.22 & Net effect \\
-Output gap & \num{-0.220}*** & \num{-0.208}*** & \num{-0.215}*** & \num{-0.230}*** & \num{-0.235}*** & \num{-0.218}*** & \num{-0.215}*** &  \\
-& (\num{0.037}) & (\num{0.036}) & (\num{0.036}) & (\num{0.039}) & (\num{0.041}) & (\num{0.041}) & (\num{0.035}) &  \\
-CP above-the-line & \num{0.405}* & \num{0.422}* & \num{0.344}. & \num{0.377}. & \num{0.406}* & \num{0.359}. & \num{0.418}* & \num{0.536}* \\
-& (\num{0.178}) & (\num{0.179}) & (\num{0.174}) & (\num{0.191}) & (\num{0.177}) & (\num{0.191}) & (\num{0.178}) & (\num{0.202}) \\
-CP below-the-line (adj. 35\%) & \num{0.326}* & \num{0.309}* & \num{0.342}** & \num{0.290}* & \num{0.308}* & \num{0.322}* & \num{0.328}* & \num{0.529}** \\
-& (\num{0.124}) & (\num{0.125}) & (\num{0.123}) & (\num{0.129}) & (\num{0.129}) & (\num{0.119}) & (\num{0.124}) & (\num{0.156}) \\
-Demand injection (contemp.) &  &  &  & \num{0.215} &  &  &  &  \\
-&  &  &  & (\num{0.283}) &  &  &  &  \\
-Demand injection (lag 1) & \num{0.386} & \num{0.394} & \num{0.388} &  &  & \num{0.316} & \num{0.385} & \num{0.695}. \\
-& (\num{0.268}) & (\num{0.263}) & (\num{0.259}) &  &  & (\num{0.222}) & (\num{0.260}) & (\num{0.354}) \\
-Demand injection (lag 2) &  &  &  &  & \num{-0.020} &  &  &  \\
-&  &  &  &  & (\num{0.195}) &  &  &  \\
-Num.Obs. & \num{370} & \num{370} & \num{370} & \num{380} & \num{380} & \num{304} & \num{380} & \num{380} \\
+& Excl. IRL & Excl. TUR & Excl. EST & DI contemp. & DI lag 2 & Net effect & COVID-only & Narrow window & Quarter trend & No trend \\
+Output gap & \num{-0.197}*** & \num{-0.183}*** & \num{-0.185}*** & \num{-0.201}*** & \num{-0.207}*** &  & \num{-0.186}*** & \num{-0.187}*** & \num{-0.182}*** & \num{-0.199}*** \\
+& (\num{0.032}) & (\num{0.032}) & (\num{0.032}) & (\num{0.034}) & (\num{0.035}) &  & (\num{0.039}) & (\num{0.044}) & (\num{0.032}) & (\num{0.032}) \\
+Capacity preservation ($F^{CP}$) & \num{0.166}** & \num{0.173}** & \num{0.164}** & \num{0.152}** & \num{0.166}** & \num{0.241}*** & \num{0.137}** & \num{0.134}** & \num{0.156}** & \num{0.194}*** \\
+& (\num{0.047}) & (\num{0.049}) & (\num{0.048}) & (\num{0.051}) & (\num{0.049}) & (\num{0.057}) & (\num{0.049}) & (\num{0.049}) & (\num{0.048}) & (\num{0.048}) \\
+Demand injection (contemp.) &  &  &  & \num{0.281} &  &  &  &  &  &  \\
+&  &  &  & (\num{0.267}) &  &  &  &  &  &  \\
+Demand injection (lag 1) & \num{0.403} & \num{0.443}. & \num{0.435}. &  &  & \num{0.701}* & \num{0.327} & \num{0.321} & \num{0.409}. & \num{0.470}. \\
+& (\num{0.246}) & (\num{0.249}) & (\num{0.248}) &  &  & (\num{0.322}) & (\num{0.238}) & (\num{0.218}) & (\num{0.242}) & (\num{0.257}) \\
+Demand injection (lag 2) &  &  &  &  & \num{0.021} &  &  &  &  &  \\
+&  &  &  &  & (\num{0.199}) &  &  &  &  &  \\
+Year trend & \num{-0.269}** & \num{-0.221}* & \num{-0.260}** & \num{-0.263}** & \num{-0.279}** & \num{-0.360}*** & \num{-0.403}* & \num{-0.470}* &  &  \\
+& (\num{0.087}) & (\num{0.083}) & (\num{0.088}) & (\num{0.091}) & (\num{0.095}) & (\num{0.098}) & (\num{0.157}) & (\num{0.184}) &  &  \\
+Quarter trend &  &  &  &  &  &  &  &  & \num{-0.086}*** &  \\
+&  &  &  &  &  &  &  &  & (\num{0.020}) &  \\
+Num.Obs. & \num{481} & \num{481} & \num{481} & \num{494} & \num{494} & \num{494} & \num{380} & \num{342} & \num{494} & \num{494} \\
 \end{talltblr}
 \end{table}

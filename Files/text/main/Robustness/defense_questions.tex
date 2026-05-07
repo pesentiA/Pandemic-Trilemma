@@ -1,0 +1,221 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\setlength{\parskip}{0.4em}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\setlist[enumerate]{leftmargin=*, itemsep=0.4em}
+
+\title{Anticipated Defense Questions \\
+\large Pandemic Trilemma \& The Wrong Side of Disruption}
+\author{Aulis Pesenti --- University of Basel}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\noindent The questions below are organized by topic and ordered, within each topic, from most likely to be raised in a defense to more technical follow-ups. Each is phrased in the form a discussant or referee would actually use.
+
+\section{Framing, Scope, and Contribution}
+
+\begin{enumerate}
+\item \textbf{Trilemma terminology.} The Mundell--Fleming impossible trinity is a discrete pairwise impossibility under a \emph{single} policy instrument (the monetary regime). Your setup has \emph{two} instruments ($S$, $F$) against \emph{three} objectives, with continuous trade-offs along a Pareto surface. Why is this a ``trilemma'' rather than a constrained two-instrument planner problem with a shadow-priced debt constraint? What do you lose by dropping the MF analogy?
+
+\item \textbf{Property~4 redundancy.} If passive fiscal erosion (Property~4) implies inaction is dominated, then debt is not really a third independent objective but a shadow constraint on the output--mortality problem. Is the trilemma not effectively a dilemma with a state-dependent budget cost?
+
+\item \textbf{Horizon truncation.} You set $N=8$ at Q4 2021 because vaccination ``dissolves the binding constraint.'' Vaccination diffused gradually and heterogeneously across countries; the IFR did not drop discontinuously. How sensitive are your structural estimates and Pareto frontiers to extending $N$ to Q2 2022 or Q4 2022?
+
+\item \textbf{Why fix $S$?} Conditioning on the observed containment trajectory yields a second-best optimum. A first-best planner would re-optimize $S$ jointly with $F$. What share of the welfare loss you measure is attributable to suboptimal $S$ rather than suboptimal fiscal composition?
+
+\item \textbf{Scope.} The paper combines (i) a theoretical trilemma framework, (ii) a novel 2{,}301-measure database, (iii) panel estimation of structural parameters, (iv) iLQR optimization, and (v) cross-country welfare decomposition. AER referees will likely demand each component to stand on its own. Which is the primary contribution, and would you split the paper if pushed?
+\end{enumerate}
+
+\section{Theoretical Framework}
+
+\begin{enumerate}
+\item \textbf{Two-instrument mapping.} The mapping between two damage channels (level vs.\ persistence) and two fiscal instruments ($F^{DI}$, $F^{CP}$) is conceptually clean but empirically blurred: above-the-line CP measures arguably operate partly through demand. How do you defend the dichotomy as identifying rather than as a labeling convention?
+
+\item \textbf{Multiplicative persistence channel.} The term $\eta_p\, F^{CP}_{k-1}\, y_k$ implies CP is effective only in recession ($y_k<0$). Why is this multiplicative structure preferred over an additive level effect plus an additive persistence shifter? What would the data say if you nested both?
+
+\item \textbf{Linear transition system.} Transitions are linear in states and controls. Pandemic dynamics — non-linear epidemiology, threshold healthcare-capacity effects, hysteresis in firm exit — are notoriously non-linear. What evidence supports the linear approximation?
+
+\item \textbf{Closure of $\theta$.} Equation (2) is a reduced-form SIR with $S_k$ entering multiplicatively. The endogenous behavioral response (fear) is captured in the output equation but not in $\theta$. Why does fear depress output without depressing transmission?
+\end{enumerate}
+
+\section{Identification: Output Equation}
+
+\begin{enumerate}
+\item \textbf{Nickell bias.} Equation (6) is a dynamic panel with $T=10$ and country fixed effects. The Nickell (1981) bias on $\rho_y$ is $-(1+\rho_y)/(T-1) \approx -0.15$, which is large relative to your point estimate of 0.311. Have you implemented Anderson--Hsiao, Arellano--Bond, or Blundell--Bond as the main specification rather than as a robustness check?
+
+\item \textbf{Three-way interaction with $y_{k-1}$.} Both $\psi$ and $\eta_p$ enter through interactions with the lagged endogenous variable. The identifying variation for these interactions is the covariance of the within-demeaned product with the within-demeaned outcome. With $N=380$, the effective sample for the interaction is much smaller. What is the effective rank of your design matrix on the interaction terms?
+
+\item \textbf{Fiscal flow vs.\ announcement.} Does $F^{CP}_{ik}$ measure announced commitments, legislated outlays, or actual disbursements? The lag-2 specification is justified by ``capacity preserved during shutdown materializes upon reopening,'' but if announcements precede disbursements, lag~2 may capture the announcement effect rather than the disbursement effect.
+
+\item \textbf{Lag selection and pre-test bias.} The lag structure was selected ``empirically.'' Selecting the lag that maximizes $|\hat\eta_p|$ inflates the type-I error. Have you bonferroni-corrected for the lag search, or estimated all lags jointly via distributed-lag regression?
+
+\item \textbf{Reverse causality on $F^{CP}$.} Countries with stronger expected recoveries may have deployed CP earlier and more aggressively. Two-way FE absorbs country-mean and quarter-mean variation, but not country-specific-quarterly forecasts conditional on which the policy was set. Can you rule this out with an instrument or a placebo test on pre-period growth forecasts?
+
+\item \textbf{Conditional orthogonality vs.\ full exogeneity.} $r(S, F^{CP}) = -0.014$ after FE-demeaning is a partial correlation. Identification requires $E[\varepsilon_{ik}\mid F^{CP}_{i,k-2}, S_{ik}, \gamma_i, \delta_k] = 0$. What unobservable could plausibly violate this conditional moment, and how do you test for it?
+
+\item \textbf{The fragility of $\eta_p$.} You report $\eta_p$ significant in 19/20 specifications, with the null in the low-stringency subsample interpreted as ``mechanism validation.'' But the same null also obtains under the diffuse alternative that CP simply has no effect. How do you distinguish ``no recession to dampen'' from ``no effect at all''?
+
+\item \textbf{Functional form of fear.} $d_{ik}$ enters linearly. Behavioral responses to mortality are typically convex in salience (Gourio--Carroll, hyperbolic discounting under uncertainty). What does a piecewise or log specification yield?
+\end{enumerate}
+
+\section{Identification: Debt Equation}
+
+\begin{enumerate}
+\item \textbf{Omission of quarter FE.} The argument is that $S_k$ does not enter, so omitted-variable bias from a global pandemic cycle is weaker. But common interest-rate shocks (ECB, Fed, BoJ pivots) and global commodity-price movements affect debt through interest payments and revenue. How is this absorbed?
+
+\item \textbf{Reverse causality.} $\Delta b_{ik}$ in quarter $k$ depends on $F_{ik}$, but countries facing rising borrowing costs may have curtailed CP loans, generating a downward bias on $\kappa^{loans}$. Have you instrumented $F^{CP}_{ik}$ in the debt equation?
+
+\item \textbf{Guarantees take-up rate.} The 35\% adjustment is sourced from ECB and IMF aggregates. National take-up rates ranged from below 10\% (Switzerland) to above 60\% (Italy). How sensitive is $\hat\kappa^{guar}$ and the implied policy ranking to country-specific take-up rates?
+
+\item \textbf{Economic interpretation of $\hat\kappa^{above} \approx 0.42$.} If above-the-line CP costs only 42 cents of debt per euro outlayed, the missing 58 cents must be offset by higher revenue, lower transfers, or lower interest. Which mechanism dominates, and is the implied multiplier internally consistent with $\alpha_{DI}$?
+
+\item \textbf{Statistical separation between $\kappa^{loans}$ and $\kappa^{guar}$.} The point estimates differ by 0.26 with overlapping confidence bands. What is the formal $p$-value of $H_0: \kappa^{loans} = \kappa^{guar}$? Without rejection, the policy claim that ``contingent instruments dominate'' is not supported by the debt equation alone.
+\end{enumerate}
+
+\section{Measurement and Data}
+
+\begin{enumerate}
+\item \textbf{HP filter on a five-year window.} HP filtering on 2015--2019 with $\lambda=1600$ on quarterly data leaves only twenty observations to identify trend. Hamilton (2018) and Phillips--Shi (2021) document severe end-point bias. Why HP rather than the Hamilton regression filter, a linear trend, or a production-function approach?
+
+\item \textbf{Excess-mortality baseline.} Different methodologies (Msemburi et al., OWID linear projection, EuroMOMO seasonal regression) yield national point estimates differing by up to 30\%. Have you tested the sensitivity of $\hat\beta_d$ and the recovered $\hat\theta$ to alternative baselines?
+
+\item \textbf{Recovery of $\theta$ via age-adjusted IFR.} Country-specific IFRs from Levin et al.\ (2020) are pre-Delta and pre-Omicron. Variant composition shifted IFRs substantially over your sample. How do you handle the time-varying mapping from deaths to infections?
+
+\item \textbf{Stringency Index.} The OxCGRT Index aggregates eight to ten components with equal weights and was repeatedly criticized (Goodman-Bacon \& Marcus, 2020) for measurement error and policy-coding inconsistencies. Population-weighting helps but does not address the within-country temporal noise. How does measurement error in $S$ bias $\hat\psi$?
+
+\item \textbf{Classification of 2{,}301 measures.} Who classified the measures, with what protocol, and what is the inter-rater reliability? Many measures are hybrid (e.g., furlough schemes with grant components). How are these handled?
+
+\item \textbf{Aggregation level of fiscal data.} Are subnational fiscal measures (US states, German Länder, Italian regions) included? If only federal, how is regional support to firms treated?
+
+\item \textbf{Output gap denominator.} Real GDP from OECD QNA is reported under different vintages. Real-time vs.\ revised data give different gaps. Robustness to vintage?
+\end{enumerate}
+
+\section{Optimal Control and iLQR}
+
+\begin{enumerate}
+\item \textbf{Off-support extrapolation.} The point of optimization is to find policies different from observed ones. By construction, the optimum may lie outside the empirical support of $(S, F^{CP}, F^{DI})$. The estimated coefficients are local linear approximations. How do you defend extrapolation, and how do you bound the estimated welfare gains within the convex hull of observed treatments?
+
+\item \textbf{Linearization point.} iLQR linearizes around a nominal trajectory. The Pareto frontier may depend on this initialization. How is the nominal chosen, and how stable is the frontier across initializations?
+
+\item \textbf{Quadratic loss on mortality.} Quadratic costs imply doubling deaths quadruples disutility. Standard VSL frameworks impose linear loss in expected lives. Why quadratic, and what does linear loss change for the optimal $F^{CP}/F^{DI}$ split?
+
+\item \textbf{Discount factor.} What value of $\beta$? With $r$ in the debt equation potentially differing from $\beta$ in the planner, you have two implicit discount rates. Are they reconciled?
+
+\item \textbf{Terminal cost on debt only.} $Q_N$ penalizes only debt. But output gaps did not close immediately at $k=N$, and post-2022 mortality remained elevated. What does the model say about post-pandemic recovery costs that the terminal condition omits?
+
+\item \textbf{Existence and uniqueness of the optimum.} iLQR is a local-search method on a non-convex problem (because of the bilinear terms $S\cdot y$ and $F^{CP}\cdot y$). Are there multiple local optima? Have you used multi-start or trust-region methods?
+\end{enumerate}
+
+\section{Calibration and Welfare Decomposition}
+
+\begin{enumerate}
+\item \textbf{Revealed-preference circularity.} You calibrate the OECD-average preference weights such that the unconstrained optimum reproduces the realized OECD-average path. By construction, the OECD average is then on its frontier, and country deviations are decomposed against this anchor. If the OECD average itself was suboptimal --- as your finding of guarantees dominating direct expenditure suggests --- the anchor is not normative. How do you avoid this circularity?
+
+\item \textbf{Identifiability of preference vs.\ efficiency.} The decomposition of country deviations into ``position along the frontier'' (preference) and ``distance to the frontier'' (efficiency) requires the frontier to be uniquely traceable. Two parameter vectors $(w_y, w_d, w_b)$ and $(w'_y, w'_d, w'_b)$ may produce frontiers that intersect a given realized point at different points. How is the decomposition identified?
+
+\item \textbf{Welfare units.} Output gap is in pp of GDP, debt in pp of 2019 GDP, mortality in deaths per million. The relative weights determine the entire policy ranking. Without external benchmarks (VSL, deadweight loss of taxation), are the weights anything more than free parameters?
+
+\item \textbf{Heterogeneity in preferences vs.\ heterogeneity in parameters.} A country-specific frontier is computed using common structural parameters. If parameters are heterogeneous (per the Mundlak decomposition), part of what you label ``preference'' is unmodeled parameter heterogeneity.
+\end{enumerate}
+
+\section{Cross-Country Heterogeneity and External Validity}
+
+\begin{enumerate}
+\item \textbf{Pooled estimation across 38 OECD countries.} Mexico, Korea, Switzerland, and Estonia differ in fiscal capacity, labor-market institutions, and sectoral composition. The Mundlak decomposition you reference shows ``sign-flips'' in between estimates. How can a single $\hat\eta_p$ be both ``the'' structural parameter and consistent with such heterogeneity?
+
+\item \textbf{Sectoral composition.} Service-heavy economies (Greece, Spain) faced larger contact-intensive shocks than manufacturing economies (Germany). The optimal $F^{CP}/F^{DI}$ split likely depends on sector mix. Why is this not in the state vector?
+
+\item \textbf{Monetary policy.} Eurozone members shared a common monetary stance; the US, UK, Switzerland, Japan did not. QE altered the effective fiscal cost via interest rates. How is monetary policy controlled for, given that it does not enter the state space?
+
+\item \textbf{Labor-market institutions.} The CP persistence channel runs through firm--worker matches. Countries with strong employment protection (France, Italy) may have less to preserve at the margin than those with at-will employment (US). Is the effect of CP heterogeneous in EPL?
+\end{enumerate}
+
+\section{Robustness and Inference}
+
+\begin{enumerate}
+\item \textbf{Cluster count.} 38 clusters is the lower end for cluster-robust SE. The CRV1 critical values are oversized. Wild cluster bootstrap is in your plan; what about Ibragimov--M\"uller (2010, 2016) for paired permutation, or randomization inference treating quarters as units?
+
+\item \textbf{DCDH negative weights.} You list this in the robustness plan, but de Chaisemartin--D'Haultfœuille (2020) is for staggered binary treatment. The continuous-treatment extension (Callaway, Goodman-Bacon, Sant'Anna 2024) applies. What are the negative-weight diagnostics for your specification?
+
+\item \textbf{Local projections vs.\ TWFE.} Jordà LPs would estimate impulse responses non-parametrically and are robust to dynamic mis-specification. With $T=9$ pandemic quarters, LP horizons are limited but identification of the on-impact effect is feasible. Have you implemented LP for at least the level coefficients?
+
+\item \textbf{System GMM.} With $T=10$ and $N=38$, system GMM is the canonical dynamic-panel estimator. Roodman's (2009) too-many-instruments concern requires lag truncation. What is your instrument count, and what does the Hansen $J$-test say?
+
+\item \textbf{Outliers.} Greece, Italy, and Spain experienced extreme output gaps; Mexico had unusual fiscal composition. How sensitive is $\hat\eta_p$ to leave-one-out at the country level?
+\end{enumerate}
+
+\section{Connection to the Existing Literature}
+
+\begin{enumerate}
+\item \textbf{Guerrieri et al.\ (2022).} Their model predicts that DI fails when supply is constrained, consistent with your $\hat\alpha_{DI}\approx 0$. But they also show that DI can stabilize incomplete-markets economies through insurance. Your reduced-form estimate cannot separate the two channels. Does this matter for the welfare claim?
+
+\item \textbf{Chetty et al.\ (2020).} Real-time evidence that direct transfers had limited spending effects during US containment. Your estimate is consistent with theirs in sign but not directly comparable in magnitude. What does a back-of-the-envelope comparison yield?
+
+\item \textbf{Faria-e-Castro (2021).} A non-linear DSGE that ranks liquidity assistance above transfers. Your reduced form ranks $F^{CP}$ above $F^{DI}$. To what extent is your finding a reduced-form replication of his structural prediction, and what is the new evidence?
+
+\item \textbf{Deb et al.\ (2021).} Cross-country evidence with state-dependent effectiveness — your closest competitor. They classify by IMF budgetary category; you by transmission mechanism. What does your specification say about \emph{their} headline finding when re-estimated on your sample?
+
+\item \textbf{Ramey--Zubairy (2018).} Multiplier of 0.6--0.8 in expansions. Your $\hat\alpha_{DI}\approx 0.18$ is far below. Is the discrepancy attributable to the supply constraint, the lag specification, or the within-quarter measurement?
+\end{enumerate}
+
+\section{Paper~2: The Wrong Side of Disruption}
+
+\subsection{Identification (Digital Dividend IV)}
+
+\begin{enumerate}
+\item \textbf{Exclusion restriction.} Pre-treatment terrestrial-TV share correlates with rurality, age structure, income, and pre-existing illicit-market structures. Each of these may directly affect drug consumption. What is your defense of the exclusion restriction beyond ``mechanically determined''?
+
+\item \textbf{Shift-share identification.} Goldsmith-Pinkham, Sorkin, Swift (2020) require exogenous shares; Borusyak, Hull, Jaravel (2022) require exogenous shocks. Which assumption do you invoke, and what is the effective number of independent shocks (national switch-off dates)?
+
+\item \textbf{First-stage strength.} What is the first-stage $F$-statistic, and how does it compare to the Lee, McCrary, Moreira, Porter (2022) tF threshold for valid 5\% inference?
+
+\item \textbf{Confounding by Colombian supply.} Cocaine consumption rose during a period of unprecedented Colombian production expansion (2014--2020). The price-quantity pattern you cite as evidence of demand expansion is also consistent with a supply-led equilibrium. How do you separate?
+
+\item \textbf{Mechanism specificity.} Mobile internet enables many things: information about drug effects, normalization through exposure, peer-network amplification, payment systems, and platform-mediated transactions. Your design instruments mobile internet, not the platform mechanism per se. What is the LATE you actually identify?
+\end{enumerate}
+
+\subsection{Data and Outcomes}
+
+\begin{enumerate}
+\item \textbf{SCORE wastewater limitations.} Single-week annual campaigns sample less than 2\% of the year. Day-of-week and seasonality effects can dominate the signal. With campaigns moving to higher frequency only recently, what is your effective $T$ for the IV?
+
+\item \textbf{Selection into SCORE.} Cities self-select into SCORE based on local research infrastructure. Are these cities representative of European drug markets, or biased toward ``policy-progressive'' urban centers?
+
+\item \textbf{COVID-19 contamination.} The second Digital Dividend window (2015--2020) is contaminated by the 2020 lockdowns. How do you separate the effect of mobile broadband expansion from the effect of mandated reduction in physical street markets in 2020--2021?
+
+\item \textbf{Cross-substance heterogeneity.} Cocaine, MDMA, methamphetamine, and cannabis differ in market structure, buyer demographics, and platform reliance. A pooled effect masks substance-level heterogeneity. What does your design say substance by substance?
+
+\item \textbf{Spillovers.} Digital channels are not city-bounded: a buyer in city A may use a Telegram dealer based in city B. SUTVA is violated. How is this addressed?
+\end{enumerate}
+
+\subsection{Complementary Designs}
+
+\begin{enumerate}
+\item \textbf{Food-delivery launch DiD.} The launch sequence is plausibly exogenous to drug demand, but cities with growing young populations attract both food delivery and recreational drug use. How do you control for the underlying demographic shift?
+
+\item \textbf{Durov-arrest event study.} Wastewater frequency is the binding constraint. Daily monitoring exists in only $\sim$10 European cities. With one event and ten cities, what is your effective sample for inference?
+\end{enumerate}
+
+\section{Big-Picture Defense Questions}
+
+\begin{enumerate}
+\item \textbf{Why this paper, why now?} The pandemic episode is closed. What does your structural framework say about the next pandemic, the next supply-driven recession, or the current high-debt environment, that policymakers do not already know from Deb et al.\ (2021)?
+
+\item \textbf{Internal vs.\ external validity.} Your design optimizes internal validity (within-country, within-quarter identification). But the policy claim is about the optimal composition of fiscal support across countries. How does within-country variation identify a between-country policy ranking?
+
+\item \textbf{What would change your mind?} What empirical result would falsify the claim that contingent instruments dominate direct expenditure? Is the framework set up such that this falsification is feasible?
+\end{enumerate}
+
+\end{document}

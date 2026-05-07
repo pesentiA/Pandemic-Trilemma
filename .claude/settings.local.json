@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"C:\\\\Program Files\\\\R\\\\R-4.5.1\\\\bin\\\\Rscript.exe\" --vanilla \"C:\\\\tmp\\\\twfew_test\\\\debug_diag.R\" 2>&1)",
+      "Bash(Rscript --vanilla analysis.R)",
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//c/Program Files/R/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(where Rscript)",
+      "Bash(where R)",
+      "Bash(\"C:/Program Files/R/R-4.5.1/bin/Rscript.exe\" --version)"
+    ]
+  }
+}

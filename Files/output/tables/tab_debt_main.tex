@@ -7,31 +7,34 @@ note{}={. p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001
 {                     %% tabularray inner open
 colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
 hline{2}={1-6}{solid, black, 0.05em},
-hline{18}={1-6}{solid, black, 0.05em},
+hline{20}={1-6}{solid, black, 0.05em},
 hline{1}={1-6}{solid, black, 0.1em},
-hline{21}={1-6}{solid, black, 0.1em},
+hline{24}={1-6}{solid, black, 0.1em},
 column{2-6}={}{halign=c},
 column{1}={}{halign=l},
 }                     %% tabularray inner close
 & OLS & Pooled CP & Above/Below & Above/Below (adj.) & Above/Loans/Guar. \\
-Output gap ($y_{ik}$) & \num{-0.156}*** & \num{-0.232}*** & \num{-0.230}*** & \num{-0.230}*** & \num{-0.224}*** \\
-& (\num{0.031}) & (\num{0.040}) & (\num{0.039}) & (\num{0.039}) & (\num{0.041}) \\
-Capacity preservation, pooled & \num{0.161}** & \num{0.146}** &  &  &  \\
-& (\num{0.052}) & (\num{0.050}) &  &  &  \\
-CP above-the-line &  &  & \num{0.377}. & \num{0.377}. & \num{0.386}* \\
-&  &  & (\num{0.191}) & (\num{0.191}) & (\num{0.186}) \\
-CP below-the-line (face value) &  &  & \num{0.101}* &  &  \\
+Output gap ($y_{ik}$) & \num{-0.130}*** & \num{-0.188}*** & \num{-0.185}*** & \num{-0.185}*** & \num{-0.181}*** \\
+& (\num{0.024}) & (\num{0.032}) & (\num{0.031}) & (\num{0.031}) & (\num{0.032}) \\
+Capacity preservation, pooled ($F^{CP}_{ik}$) & \num{0.179}*** & \num{0.173}** &  &  &  \\
+& (\num{0.050}) & (\num{0.049}) &  &  &  \\
+CP above-the-line &  &  & \num{0.412}* & \num{0.412}* & \num{0.434}* \\
+&  &  & (\num{0.194}) & (\num{0.194}) & (\num{0.191}) \\
+CP below-the-line (face value) &  &  & \num{0.119}* &  &  \\
 &  &  & (\num{0.045}) &  &  \\
-CP below-the-line (adj.\ 35\%) &  &  &  & \num{0.290}* &  \\
-&  &  &  & (\num{0.129}) &  \\
-CP government loans &  &  &  &  & \num{0.337}** \\
-&  &  &  &  & (\num{0.100}) \\
-CP guarantees (adj.\ 35\%) &  &  &  &  & \num{0.065} \\
-&  &  &  &  & (\num{0.167}) \\
-Demand injection ($F^{DI}_{i,k-1}$) & \num{0.375} & \num{0.261} & \num{0.215} & \num{0.215} & \num{0.181} \\
-& (\num{0.293}) & (\num{0.281}) & (\num{0.283}) & (\num{0.283}) & (\num{0.282}) \\
-Num.Obs. & \num{380} & \num{380} & \num{380} & \num{380} & \num{380} \\
+CP below-the-line (adj.\ 35\%) &  &  &  & \num{0.341}* &  \\
+&  &  &  & (\num{0.127}) &  \\
+CP government loans &  &  &  &  & \num{0.365}*** \\
+&  &  &  &  & (\num{0.073}) \\
+CP guarantees (adj.\ 35\%) &  &  &  &  & \num{0.107} \\
+&  &  &  &  & (\num{0.162}) \\
+Demand injection ($F^{DI}_{i,k-1}$) & \num{0.519}. & \num{0.427}. & \num{0.432}. & \num{0.432}. & \num{0.412} \\
+& (\num{0.284}) & (\num{0.245}) & (\num{0.255}) & (\num{0.255}) & (\num{0.257}) \\
+Year trend & \num{-0.296}** & \num{-0.250}** & \num{-0.215}* & \num{-0.215}* & \num{-0.216}* \\
+& (\num{0.087}) & (\num{0.087}) & (\num{0.100}) & (\num{0.100}) & (\num{0.100}) \\
+Num.Obs. & \num{494} & \num{494} & \num{494} & \num{494} & \num{494} \\
 Country FE & No & Yes & Yes & Yes & Yes \\
+Year trend & Yes & Yes & Yes & Yes & Yes \\
 Guarantee adj. & --- & --- & No & 35\% & 35\% \\
 \end{talltblr}
 \end{table}

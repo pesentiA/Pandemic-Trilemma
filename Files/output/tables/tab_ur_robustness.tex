@@ -1,0 +1,33 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Robustness V4: Output Gap vs Unemployment Rate},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]},
+hline{2}={1-3}{solid, black, 0.05em},
+hline{16}={1-3}{solid, black, 0.05em},
+hline{1}={1-3}{solid, black, 0.1em},
+hline{17}={1-3}{solid, black, 0.1em},
+column{2-3}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1) Output Gap (V4) & (2) Unemployment Rate \\
+y(t-1) & \num{0.408}*** &  \\
+& (\num{0.054}) &  \\
+UR(t-1) &  & \num{0.408}*** \\
+&  & (\num{0.053}) \\
+S [a\_S] & \num{-0.041}*** & \num{0.002} \\
+& (\num{0.011}) & (\num{0.007}) \\
+F\textasciicircum{}CP(t-2) x 1\{y<0\} [eta\_p] & \num{-0.010}*** &  \\
+& (\num{0.003}) &  \\
+F\textasciicircum{}CP(t-2) x UR(t-1) [eta\_p] &  & \num{-0.001} \\
+&  & (\num{0.002}) \\
+F\textasciicircum{}DI lag2 [a\_DI] & \num{0.193} & \num{-0.067} \\
+& (\num{0.122}) & (\num{0.040}) \\
+Fear term [beta\_d] & \num{-0.023}*** & \num{-0.009} \\
+& (\num{0.008}) & (\num{0.005}) \\
+Num.Obs. & \num{380} & \num{380} \\
+\end{talltblr}
+\end{table}
