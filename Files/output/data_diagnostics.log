@@ -1,0 +1,646 @@
+============================================================================== 
+  DATA QUALITY DIAGNOSTICS —  2026-05-13 08:44:51 
+============================================================================== 
+
+
+==============================================================================
+  LOAD dataforanalysis.RData
+==============================================================================
+Objects in RData:
+ [1] "che_vax"              "fm"                   "google_mobility_d"   
+ [4] "hosp_d"               "hosp_w"               "i"                   
+ [7] "idx"                  "lux_vax"              "oxd_d"               
+[10] "oxd_spatial_d"        "p_values_oecd_w"      "panel_hosp"          
+[13] "panel_w"              "pop"                  "pop_che"             
+[16] "pop_lux"              "qdata"                "theme_aer"           
+[19] "theme_aer_bar"        "theta_quarterly_full"
+  che_vax                class=data.frame dim=10 x 3
+  fm                     class=tbl_df/tbl/data.frame dim=1829 x 26
+  google_mobility_d      class=data.frame dim=216228 x 5
+  hosp_d                 class=tbl_df/tbl/data.frame dim=31963 x 10
+  hosp_w                 class=tbl_df/tbl/data.frame dim=5647 x 5
+  i                      class=integer dim=1
+  idx                    class=integer dim=1
+  lux_vax                class=data.frame dim=10 x 3
+  oxd_d                  class=data.frame dim=41648 x 51
+  oxd_spatial_d          class=data.frame dim=202760 x 160
+  p_values_oecd_w        class=data.frame dim=11171 x 43
+  panel_hosp             class=tbl_df/tbl/data.frame dim=4916 x 41
+  panel_w                class=tbl_df/tbl/data.frame dim=5659 x 43
+  pop                    class=tbl_df/tbl/data.frame dim=38 x 3
+  pop_che                class=numeric dim=1
+  pop_lux                class=numeric dim=1
+  qdata                  class=tbl_df/tbl/data.frame dim=1520 x 91
+  theme_aer              class=theme/ggplot2::theme/gg/S7_object dim=144
+  theme_aer_bar          class=theme/ggplot2::theme/gg/S7_object dim=144
+  theta_quarterly_full   class=tbl_df/tbl/data.frame dim=456 x 16
+
+==============================================================================
+  qdata — state variables
+==============================================================================
+Structure (str()):
+tibble [1,520 × 91] (S3: tbl_df/tbl/data.frame)
+ $ Country                                 : chr [1:1520] "AUS" "AUS" "AUS" "AUS" ...
+ $ Quarter                                 : chr [1:1520] "Q1.2015" "Q2.2015" "Q3.2015" "Q4.2015" ...
+ $ qtime                                   : num [1:1520] -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 ...
+ $ TimeIndex                               : num [1:1520] 1 2 3 4 5 6 7 8 9 10 ...
+ $ qtreatment                              : int [1:1520] 0 0 0 0 0 0 0 0 0 0 ...
+ $ StringencyIndex_Average                 : num [1:1520] 0 0 0 0 0 0 0 0 0 0 ...
+ $ log_gdp                                 : num [1:1520] 13.2 13.2 13.2 13.2 13.2 ...
+ $ log_gdp_trend                           : num [1:1520] 13.2 13.2 13.2 13.2 13.2 ...
+ $ gdp_trend                               : num [1:1520] 546194 549594 553016 556458 559919 ...
+ $ y_t                                     : num [1:1520] 0.082 -0.4216 -0.0736 -0.0758 0.2198 ...
+ $ y_t_pct                                 : num [1:1520] 0.082 -0.4207 -0.0736 -0.0758 0.22 ...
+ $ nGDP_an                                 : num [1:1520] 408257 407272 411874 412105 414520 ...
+ $ rGDP_ar                                 : num [1:1520] 1273520 1275011 1287422 1295406 1307322 ...
+ $ rGDP_LC                                 : num [1:1520] 546642 547282 552609 556036 561151 ...
+ $ QReal.GDP.Growth_gr                     : num [1:1520] 2.29 1.89 2.46 2.72 2.66 ...
+ $ rGDP_per_capita                         : num [1:1520] 53632 53536 53857 54010 54238 ...
+ $ rGDP_pc_combined                        : num [1:1520] NA -0.179 0.6 0.283 0.422 ...
+ $ rGDP_pc_qoq                             : num [1:1520] NA -0.179 0.6 0.283 0.422 ...
+ $ rGDP_pc_growth_2019                     : num [1:1520] -3.53 -3.73 -3.32 -3.29 -2.44 ...
+ $ Debt_an                                 : num [1:1520] 625883 640961 670976 673389 699928 ...
+ $ Debt_ar                                 : num [1:1520] 621109 638356 667215 673389 702251 ...
+ $ DebtN_share2019                         : num [1:1520] 38.2 39.1 40.9 41.1 41.2 ...
+ $ DebtN_share2019_growth                  : num [1:1520] NA 2.409 4.683 0.36 0.399 ...
+ $ DebtR_share2019                         : num [1:1520] 28.2 29 30.3 30.6 31 ...
+ $ DebtR_share2019_growth                  : num [1:1520] NA 2.777 4.521 0.925 1.541 ...
+ $ Debt_qoq                                : num [1:1520] NA 2.41 4.68 0.36 3.94 ...
+ $ DebtR_combined                          : num [1:1520] NA 2.777 4.521 0.925 4.286 ...
+ $ DebtN_combined                          : num [1:1520] NA 2.41 4.68 0.36 3.94 ...
+ $ Debt_growth_2019                        : num [1:1520] -23.7 -28.5 -26.2 -26.1 -13.8 ...
+ $ inflation_index                         : num [1:1520] 1.008 1.004 1.006 1 0.997 ...
+ $ Qpopulation_th                          : num [1:1520] 23746 23816 23904 23985 24103 ...
+ $ nGDP_2019_an                            : num [1:1520] 1994588 1994588 1994588 1994588 1994588 ...
+ $ QPrivate.Consumption.gr                 : num [1:1520] 2.46 2.68 2.64 2.46 2.89 ...
+ $ excess.deaths_a                         : num [1:1520] 36298 39406 43743 40471 36289 ...
+ $ ConfirmedDeaths.a                       : num [1:1520] 0 0 0 0 0 0 0 0 0 0 ...
+ $ ConfirmedCases.a                        : num [1:1520] 0 0 0 0 0 0 0 0 0 0 ...
+ $ PopulationVaccinated.x                  : num [1:1520] 0 0 0 0 0 0 0 0 0 0 ...
+ $ dl_gdp                                  : num [1:1520] 0.0226 0.0187 0.0243 0.0268 0.0262 ...
+ $ X_ln                                    : num [1:1520] 4.52 4.49 4.54 4.55 4.57 ...
+ $ Gov.cons_ln                             : num [1:1520] 4.32 4.33 4.35 4.35 4.37 ...
+ $ GDP_ln                                  : num [1:1520] 4.52 4.52 4.53 4.54 4.55 ...
+ $ Gross.fc_ln                             : num [1:1520] 4.64 4.62 4.61 4.6 4.6 ...
+ $ M_ln                                    : num [1:1520] 4.61 4.62 4.61 4.61 4.59 ...
+ $ Private.c_ln                            : num [1:1520] 4.57 4.58 4.59 4.59 4.6 ...
+ $ X_ln_yoy                                : num [1:1520] 0 0 0 0 0.0479 ...
+ $ Gov.cons_ln_yoy                         : num [1:1520] 0 0 0 0 0.0444 ...
+ $ GDP_ln_yoy                              : num [1:1520] 0 0 0 0 0.0262 ...
+ $ Gross.fc_ln_yoy                         : num [1:1520] 0 0 0 0 -0.0316 ...
+ $ M_ln_yoy                                : num [1:1520] 0 0 0 0 -0.0154 ...
+ $ Private.c_ln_yoy                        : num [1:1520] 0 0 0 0 0.0285 ...
+  [list output truncated]
+
+Class of Quarter: [1] "character"
+
+--- Country coverage ---
+  Countries: 38 unique
+ [1] "AUS" "AUT" "BEL" "CAN" "CHE" "CHL" "COL" "CRI" "CZE" "DEU" "DNK" "ESP"
+[13] "EST" "FIN" "FRA" "GBR" "GRC" "HUN" "IRL" "ISL" "ISR" "ITA" "JPN" "KOR"
+[25] "LTU" "LUX" "LVA" "MEX" "NLD" "NOR" "NZL" "POL" "PRT" "SVK" "SVN" "SWE"
+[37] "TUR" "USA"
+
+  Periods: 40 unique
+  Obs per country: min = 40, max = 40, modal = 40
+
+--- Quarter range ---
+
+Q1.2015 Q1.2016 Q1.2017 Q1.2018 Q1.2019 Q1.2020 Q1.2021 Q1.2022 Q1.2023 Q1.2024 
+     38      38      38      38      38      38      38      38      38      38 
+Q2.2015 Q2.2016 Q2.2017 Q2.2018 Q2.2019 Q2.2020 Q2.2021 Q2.2022 Q2.2023 Q2.2024 
+     38      38      38      38      38      38      38      38      38      38 
+Q3.2015 Q3.2016 Q3.2017 Q3.2018 Q3.2019 Q3.2020 Q3.2021 Q3.2022 Q3.2023 Q3.2024 
+     38      38      38      38      38      38      38      38      38      38 
+Q4.2015 Q4.2016 Q4.2017 Q4.2018 Q4.2019 Q4.2020 Q4.2021 Q4.2022 Q4.2023 Q4.2024 
+     38      38      38      38      38      38      38      38      38      38 
+
+--- Duplicates on (Country, Quarter) ---
+  Duplicate (Country+Quarter) rows: 0
+
+--- NA counts on key variables ---
+# A tibble: 20 × 3
+   var                          n_na pct_na
+   <chr>                       <int>  <dbl>
+ 1 vax_rate                     1064  70   
+ 2 StringencyIndex_PopWeighted  1064  70   
+ 3 p_proj_all_ages               914  60.1 
+ 4 p_avg_all_ages                778  51.2 
+ 5 DebtN_share2019_growth         38   2.5 
+ 6 DebtR_share2019_growth         38   2.5 
+ 7 excess.deaths_a                24   1.58
+ 8 y_t_pct                         0   0   
+ 9 y_t                             0   0   
+10 d_t_pct                         0   0   
+11 d_t_pct_r                       0   0   
+12 d_t                             0   0   
+13 DebtN_share2019                 0   0   
+14 DebtR_share2019                 0   0   
+15 Qpopulation_th                  0   0   
+16 nGDP_2019_an                    0   0   
+17 inflation_index                 0   0   
+18 rGDP_pc_2019                    0   0   
+19 debt_2019                       0   0   
+20 ConfirmedDeaths.a               0   0   
+
+--- Range summaries ---
+# A tibble: 20 × 9
+   var               n      min      p01      p50     mean     p99     max   inf
+   <chr>         <int>    <dbl>    <dbl>    <dbl>    <dbl>   <dbl>   <dbl> <int>
+ 1 y_t_pct        1520 -2.35e+1 -1.53e+1 -5.29e-1 -2.11e+0 5.54e+0 1.13e+1     0
+ 2 y_t            1520 -2.67e+1 -1.66e+1 -5.30e-1 -2.21e+0 5.39e+0 1.07e+1     0
+ 3 d_t_pct        1520 -2.96e+1 -1.66e+1  1.97e+0  1.07e+1 8.84e+1 2.05e+2     0
+ 4 d_t_pct_r      1520 -3.89e+1 -2.62e+1  1.18e+0  5.59e+0 6.10e+1 9.38e+1     0
+ 5 d_t            1520 -3.51e+1 -1.81e+1  1.95e+0  8.75e+0 6.33e+1 1.12e+2     0
+ 6 DebtN_share2…  1520  1.19e+1  1.38e+1  6.44e+1  7.58e+1 2.26e+2 2.86e+2     0
+ 7 DebtR_share2…  1520  6.42e+0  7.04e+0  5.54e+1  6.51e+1 2.12e+2 2.24e+2     0
+ 8 DebtN_share2…  1482 -1.49e+1 -7.73e+0  6.14e+0  2.08e+1 1.84e+2 7.05e+2     0
+ 9 DebtR_share2…  1482 -1.31e+1 -8.31e+0  2.71e+0  8.80e+0 6.97e+1 1.60e+2     0
+10 Qpopulation_…  1520  3.23e+2  3.23e+2  1.05e+4  3.58e+4 3.32e+5 3.41e+5     0
+11 nGDP_2019_an   1520  2.81e+4  2.81e+4  2.11e+6  1.03e+8 1.92e+9 1.92e+9     0
+12 inflation_in…  1520  9.45e-1  9.82e-1  1.08e+0  1.19e+0 2.00e+0 1.35e+1     0
+13 vax_rate        456  0        0        4.28e-1  3.78e-1 8.66e-1 9.03e-1     0
+14 rGDP_pc_2019   1520  1.74e+3  1.75e+3  4.82e+3  5.06e+3 1.25e+4 1.25e+4     0
+15 debt_2019      1520  3.39e+3  3.93e+3  1.03e+6  6.70e+7 1.12e+9 1.12e+9     0
+16 StringencyIn…   456  0        0        3.27e+1  3.25e+1 7.72e+1 8.56e+1     0
+17 p_proj_all_a…   606 -1.34e+1 -8.27e+0  5.59e+0  8.70e+0 5.75e+1 8.72e+1     0
+18 p_avg_all_ag…   742 -1.07e+1 -7.69e+0  9.76e+0  1.21e+1 6.34e+1 1.07e+2     0
+19 excess.death…  1496  4.97e+2  5.76e+2  2.80e+4  7.99e+4 7.60e+5 1.00e+6     0
+20 ConfirmedDea…  1520  0        0        0        1.32e+4 2.19e+5 1.08e+6     0
+
+--- Output-gap sanity (should be near 0 in 2019, large negative in Q2.2020) ---
+# A tibble: 13 × 6
+   Quarter     n   mean_y  sd_y  min_y  max_y
+   <chr>   <int>    <dbl> <dbl>  <dbl>  <dbl>
+ 1 Q1.2019    38   0.0940 0.635  -1.89  1.20 
+ 2 Q1.2020    38  -2.86   1.93   -7.90  1.37 
+ 3 Q1.2021    38  -4.68   4.21  -13.0   8.59 
+ 4 Q1.2022    38  -2.12   3.42   -7.98  9.81 
+ 5 Q2.2019    38   0.0282 0.504  -1.41  1.27 
+ 6 Q2.2020    38 -12.8    4.65  -23.5  -4.56 
+ 7 Q2.2021    38  -3.53   3.62  -10.6   9.75 
+ 8 Q3.2019    38  -0.297  0.779  -3.94  0.798
+ 9 Q3.2020    38  -6.00   3.70  -12.5   4.94 
+10 Q3.2021    38  -2.48   3.72   -9.33 11.1  
+11 Q4.2019    38  -0.635  0.875  -3.60  0.762
+12 Q4.2020    38  -5.47   2.97  -11.7   0.567
+13 Q4.2021    38  -1.68   3.50   -8.05  7.37 
+
+--- Stringency index source range (should be 0-1 or 0-100) ---
+# A tibble: 1 × 9
+  var                             n   min   p01   p50  mean   p99   max   inf
+  <chr>                       <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 StringencyIndex_PopWeighted   456     0     0  32.7  32.5  77.2  85.6     0
+
+--- Vaccination rate range (should be 0-1 fraction) ---
+# A tibble: 1 × 9
+  var          n   min   p01   p50  mean   p99   max   inf
+  <chr>    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 vax_rate   456     0     0 0.428 0.378 0.866 0.903     0
+
+==============================================================================
+  theta_quarterly_full — infection prevalence
+==============================================================================
+Columns:
+ [1] "Country"       "YQ"            "year"          "quarter"      
+ [5] "theta_mean"    "theta_sum"     "theta_max"     "theta_mean_l2"
+ [9] "theta_mean_l4" "theta_mean_lo" "theta_mean_hi" "S_mean"       
+[13] "S_max"         "n_periods"     "wave_dominant" "freq_source"  
+Quarter class: [1] "factor"
+
+--- Country coverage ---
+  Countries: 38 unique
+ [1] "AUS" "AUT" "BEL" "CAN" "CHE" "CHL" "COL" "CRI" "CZE" "DEU" "DNK" "ESP"
+[13] "EST" "FIN" "FRA" "GBR" "GRC" "HUN" "IRL" "ISL" "ISR" "ITA" "JPN" "KOR"
+[25] "LTU" "LUX" "LVA" "MEX" "NLD" "NOR" "NZL" "POL" "PRT" "SVK" "SVN" "SWE"
+[37] "TUR" "USA"
+
+  Periods: 12 unique
+  Obs per country: min = 12, max = 12, modal = 12
+
+--- Duplicates on (Country, YQ) ---
+  Duplicate (Country+YQ) rows: 0
+
+--- NA counts on theta_* columns ---
+# A tibble: 7 × 3
+  var            n_na pct_na
+  <chr>         <int>  <dbl>
+1 theta_mean        0      0
+2 theta_sum         0      0
+3 theta_max         0      0
+4 theta_mean_l2     0      0
+5 theta_mean_l4     0      0
+6 theta_mean_lo     0      0
+7 theta_mean_hi     0      0
+
+--- Range summary — theta should be in [0,1] ---
+# A tibble: 5 × 9
+  var               n   min   p01     p50   mean    p99    max   inf
+  <chr>         <int> <dbl> <dbl>   <dbl>  <dbl>  <dbl>  <dbl> <int>
+1 theta_mean      456     0     0 0.00606 0.0176 0.106  0.129      0
+2 theta_mean_l2   456     0     0 0.00598 0.0170 0.106  0.119      0
+3 theta_mean_l4   456     0     0 0.00595 0.0177 0.108  0.129      0
+4 theta_mean_lo   456     0     0 0.00395 0.0104 0.0605 0.0735     0
+5 theta_mean_hi   456     0     0 0.00893 0.0333 0.212  0.257      0
+
+--- Out-of-bounds theta_mean (>1 or <0) ---
+  Rows with theta_mean outside [0,1]: 0
+
+==============================================================================
+  panel_w — daily stringency
+==============================================================================
+Columns:
+ [1] "Country"             "isoyr"               "isowk"              
+ [4] "S_mean"              "S_max"               "n_days"             
+ [7] "date"                "time"                "p_proj"             
+[10] "excess"              "expected"            "observed"           
+[13] "p_15_64"             "p_65_74"             "p_75_84"            
+[16] "p_85p"               "cases_w"             "deaths_w"           
+[19] "pop_th"              "pop"                 "excess_pm"          
+[22] "deaths_confirmed_pm" "cases_pm"            "wave"               
+[25] "wave_label"          "wave_coarse"         "ifr"                
+[28] "ifr_lo"              "ifr_hi"              "rho_w"              
+[31] "rho_w_lo"            "rho_w_hi"            "d_pc"               
+[34] "d_lead2"             "d_lead3"             "d_lead4"            
+[37] "theta_hat"           "theta_hat_l2"        "theta_hat_l4"       
+[40] "theta_hat_next"      "theta_predicted"     "theta_hat_ifr_lo"   
+[43] "theta_hat_ifr_hi"   
+
+--- Date range ---
+  min: 2020-03-01   max: 2022-12-26 
+
+--- Country coverage ---
+  Countries: 38 unique
+ [1] "AUS" "AUT" "BEL" "CAN" "CHE" "CHL" "COL" "CRI" "CZE" "DEU" "DNK" "ESP"
+[13] "EST" "FIN" "FRA" "GBR" "GRC" "HUN" "IRL" "ISL" "ISR" "ITA" "JPN" "KOR"
+[25] "LTU" "LUX" "LVA" "MEX" "NLD" "NOR" "NZL" "POL" "PRT" "SVK" "SVN" "SWE"
+[37] "TUR" "USA"
+
+  Periods: 296 unique
+  Obs per country: min = 148, max = 149, modal = 149
+
+--- Duplicates on (Country, date) ---
+  Duplicate (Country+date) rows: 0
+
+--- NA on S_mean / S_max ---
+# A tibble: 2 × 3
+  var     n_na pct_na
+  <chr>  <int>  <dbl>
+1 S_mean     0      0
+2 S_max      0      0
+
+--- Stringency value range (raw scale) ---
+# A tibble: 2 × 9
+  var        n   min   p01   p50  mean   p99   max   inf
+  <chr>  <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 S_mean  5659     0     0 0.346 0.340 0.854 0.958     0
+2 S_max   5659     0     0 0.354 0.348 0.865 0.958     0
+
+==============================================================================
+  hosp_d — hospitalisations
+==============================================================================
+Columns:
+ [1] "Country"                                   
+ [2] "date"                                      
+ [3] "Daily.ICU.occupancy"                       
+ [4] "Daily.ICU.occupancy.per.million"           
+ [5] "Daily.hospital.occupancy"                  
+ [6] "Daily.hospital.occupancy.per.million"      
+ [7] "Weekly.new.hospital.admissions"            
+ [8] "Weekly.new.hospital.admissions.per.million"
+ [9] "Weekly.new.ICU.admissions"                 
+[10] "Weekly.new.ICU.admissions.per.million"     
+Date range:  2020-01-06  ->  2024-08-12 
+
+--- Country coverage ---
+  Countries: 33 unique
+ [1] "AUS" "AUT" "BEL" "CAN" "CHE" "CHL" "CZE" "DEU" "DNK" "ESP" "EST" "FIN"
+[13] "FRA" "GBR" "GRC" "HUN" "IRL" "ISL" "ISR" "ITA" "JPN" "KOR" "LTU" "LUX"
+[25] "LVA" "NLD" "NOR" "POL" "PRT" "SVK" "SVN" "SWE" "USA"
+
+  Periods: 1635 unique
+  Obs per country: min = 28, max = 1627, modal = 199
+
+--- NA counts ---
+# A tibble: 3 × 3
+  var                                         n_na pct_na
+  <chr>                                      <int>  <dbl>
+1 Weekly.new.hospital.admissions.per.million 14562   45.6
+2 Daily.hospital.occupancy.per.million        4253   13.3
+3 Daily.ICU.occupancy.per.million             4147   13.0
+
+--- Range ---
+# A tibble: 3 × 9
+  var                                n   min   p01   p50  mean   p99   max   inf
+  <chr>                          <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 Weekly.new.hospital.admission… 17401     0 1.14  56.7   83.3  450.  717.     0
+2 Daily.ICU.occupancy.per.milli… 27816     0 0      7.02  16.9  108.  181.     0
+3 Daily.hospital.occupancy.per.… 27710     0 0.754 71.7  120.   611.  935.     0
+
+==============================================================================
+  google_mobility_d — Google Mobility
+==============================================================================
+Columns:
+[1] "country" "date"    "place"   "trend"   "entity" 
+Date range:  2020-02-15  ->  2022-10-15 
+
+--- Unique 'place' categories ---
+
+ Grocery and pharmacy                 Parks           Residential 
+                36038                 36038                 36038 
+Retail and recreation      Transit stations            Workplaces 
+                36038                 36038                 36038 
+
+--- Unique countries ---
+  N = 37
+ [1] "Australia"      "Austria"        "Belgium"        "Canada"        
+ [5] "Chile"          "Colombia"       "Costa Rica"     "Czechia"       
+ [9] "Denmark"        "Estonia"        "Finland"        "France"        
+[13] "Germany"        "Greece"         "Hungary"        "Ireland"       
+[17] "Israel"         "Italy"          "Japan"          "Latvia"        
+[21] "Lithuania"      "Luxembourg"     "Mexico"         "Netherlands"   
+[25] "New Zealand"    "Norway"         "Poland"         "Portugal"      
+[29] "Slovakia"       "Slovenia"       "South Korea"    "Spain"         
+[33] "Sweden"         "Switzerland"    "Turkey"         "United Kingdom"
+[37] "United States" 
+
+--- NA on 'trend' ---
+# A tibble: 1 × 3
+  var    n_na pct_na
+  <chr> <int>  <dbl>
+1 trend   491   0.23
+
+--- Range of 'trend' (Google mobility units, typically -100 to +100) ---
+# A tibble: 1 × 9
+  var        n   min   p01   p50   mean   p99   max   inf
+  <chr>  <int> <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl> <int>
+1 trend 215737 -91.7 -65.3 -1.71 0.0164   158  367.     0
+
+==============================================================================
+  pdata (legacy)
+==============================================================================
+  (not present)
+
+==============================================================================
+  fm (legacy)
+==============================================================================
+Class: tbl_df/tbl/data.frame  dim: 1829 x 26 
+Columns:
+ [1] "ID"                   "Country"              "ifs"                 
+ [4] "income_group"         "region"               "NGDP_2019"           
+ [7] "Year"                 "Quarter"              "Month"               
+[10] "date"                 "description"          "link"                
+[13] "PolicyCode"           "PolicyCategory"       "broad_fiscal"        
+[16] "broad_fiscal_size"    "broad_fiscal_gdp"     "category"            
+[19] "transmission_channel" "is_extension"         "is_eu"               
+[22] "is_deferral"          "is_blw"               "YQ"                  
+[25] "YQ_ord"               "size_pct"            
+
+==============================================================================
+  fm1 — fiscal_classified_v1_7.xlsx
+==============================================================================
+Dim: 4683 x 23 
+Columns:
+ [1] "ID"                   "Country"              "ifs"                 
+ [4] "income_group"         "region"               "NGDP_2019"           
+ [7] "Year"                 "Quarter"              "Month"               
+[10] "date"                 "description"          "link"                
+[13] "PolicyCode"           "PolicyCategory"       "broad_fiscal"        
+[16] "broad_fiscal_size"    "broad_fiscal_gdp"     "category"            
+[19] "transmission_channel" "is_extension"         "is_eu"               
+[22] "is_deferral"          "is_blw"              
+
+--- Country coverage ---
+  N = 38 unique
+ [1] "AUS" "AUT" "BEL" "CAN" "CHE" "CHL" "COL" "CRI" "CZE" "DEU" "DNK" "ESP"
+[13] "EST" "FIN" "FRA" "GBR" "GRC" "HUN" "IRL" "ISL" "ISR" "ITA" "JPN" "KOR"
+[25] "LTU" "LUX" "LVA" "MEX" "NLD" "NOR" "NZL" "POL" "PRT" "SVK" "SVN" "SWE"
+[37] "TUR" "USA"
+
+--- Year / Quarter coverage ---
+      
+          1    2    3    4
+  2020 1681 1524  517  411
+  2021  210  124   90  126
+
+--- transmission_channel distribution ---
+
+  CP   DI    H <NA> 
+1506  563  232 2382 
+
+--- category distribution (above-the-line vs below-the-line) ---
+
+   1    2    3    4 <NA> 
+1713  412  154   22 2382 
+
+--- PolicyCode x transmission_channel ---
+         
+            CP   DI    H <NA>
+  1         11    0    0    0
+  10         1    0    0    0
+  11         1    0    0    0
+  12         5    0    0    0
+  13        18    0    0    0
+  14        43    0    0    0
+  15         5    0    0    0
+  16        14    0    0    0
+  17         0   22    0    0
+  18         0    2    0    0
+  19         0    2    0    0
+  2          4    0    0    0
+  20         0    5    0    0
+  21         0    3    0    0
+  22         0    4    0    0
+  23         0    0    1    0
+  24         0    0    5    0
+  25         0   18    0    0
+  26         0   39    0    0
+  27         0   58    0    0
+  28         0   24    0    0
+  29         0   23    0    0
+  3          4    0    0    0
+  30         0    0   29    0
+  31         0    0    9    0
+  32         0    0   95    0
+  33         0    0   23    0
+  34         0    0   14    0
+  35         0  112    0    0
+  36         0   36    0    0
+  37         0   50    0    0
+  38         0  148    0    0
+  39       159    0    0    0
+  4         17    0    0    0
+  40       173    0    0    0
+  41        68    0    0    1
+  42         0    7    0    0
+  43       196    0    0    0
+  45       326    0    0    1
+  46        61    0    0    0
+  47       159    0    0    0
+  48        28    0    0    0
+  49        14    0    0    0
+  5          7    0    0    0
+  6         91    0    0    1
+  7         57    0    0    0
+  8          8    0    0    0
+  9          1    0    0    0
+  general    0    0   56    0
+  other     32    9    0    0
+  <NA>       3    1    0 2379
+
+--- broad_fiscal flag distribution ---
+
+   0    1    2    3 
+2382 1829  443   29 
+
+--- broad_fiscal_gdp range (should be small fractions ~ 0-0.20) ---
+# A tibble: 1 × 9
+  var                  n   min   p01   p50    mean    p99   max   inf
+  <chr>            <int> <dbl> <dbl> <dbl>   <dbl>  <dbl> <dbl> <int>
+1 broad_fiscal_gdp  4674     0     0     0 0.00629 0.0308  5.96     0
+
+--- Suspicious entries: broad_fiscal_gdp < 0 or > 0.50 ---
+  N = 4
+# A tibble: 4 × 7
+  Country  Year Quarter PolicyCode transmission_channel category
+  <chr>   <dbl>   <dbl> <chr>      <chr>                   <dbl>
+1 POL      2020       1 <NA>       <NA>                       NA
+2 POL      2020       1 <NA>       <NA>                       NA
+3 POL      2020       2 <NA>       <NA>                       NA
+4 POL      2020       2 <NA>       <NA>                       NA
+# ℹ 1 more variable: broad_fiscal_gdp <dbl>
+
+--- NA on broad_fiscal_gdp / transmission_channel / category ---
+# A tibble: 7 × 3
+  var                   n_na pct_na
+  <chr>                <int>  <dbl>
+1 PolicyCode            2383  50.9 
+2 transmission_channel  2382  50.9 
+3 category              2382  50.9 
+4 broad_fiscal_gdp         9   0.19
+5 Year                     0   0   
+6 Quarter                  0   0   
+7 broad_fiscal             0   0   
+
+--- Cross-check: PolicyCodes 5/6/11/12/15/16 (excluded by analysis.R) ---
+# A tibble: 11 × 5
+   PolicyCode transmission_channel category     n total_vol_pct
+   <chr>      <chr>                   <dbl> <int>         <dbl>
+ 1 11         CP                          1     1         0    
+ 2 12         CP                          1     5         0    
+ 3 15         CP                          1     4         0    
+ 4 15         CP                          3     1         0.214
+ 5 16         CP                          1     4         0    
+ 6 16         CP                          3    10         3.64 
+ 7 5          CP                          1     3         0    
+ 8 5          CP                          3     4         0.372
+ 9 6          CP                          1    12         0.16 
+10 6          CP                          3    79        45.4  
+11 6          <NA>                       NA     1         0    
+
+==============================================================================
+  CROSS-DATASET country coverage
+==============================================================================
+  qdata:   38
+  theta:   38
+  string.: 38
+  hosp:    33
+  fm1:     38
+
+  In qdata but NOT in theta:
+character(0)
+
+  In theta but NOT in qdata:
+character(0)
+
+  In qdata but NOT in panel_w:
+character(0)
+
+  In qdata but NOT in hosp_d:
+[1] "COL" "CRI" "MEX" "NZL" "TUR"
+
+  In qdata but NOT in fm1:
+character(0)
+
+  In fm1 but NOT in qdata:
+character(0)
+
+==============================================================================
+  MASTER MERGE (replicated minimal pipeline) — V14 window checks
+==============================================================================
+Merged df dimensions: 608 x 17 
+
+--- Country-quarter coverage on the merged df (V14 window Q4.2019-Q2.2022) ---
+  V14 N = 418, countries = 38, quarters = 11
+  Obs per country (V14): min = 11, max = 11, modal = 11
+
+--- NA counts on key variables in V14 window ---
+# A tibble: 12 × 3
+   var              n_na pct_na
+   <chr>           <int>  <dbl>
+ 1 theta_mean         38   9.09
+ 2 S_mean_pw          38   9.09
+ 3 S_max_pw           38   9.09
+ 4 p_proj_all_ages    38   9.09
+ 5 vax_rate           38   9.09
+ 6 y_t_pct             0   0   
+ 7 d_t_pct             0   0   
+ 8 F_CP                0   0   
+ 9 F_DI                0   0   
+10 F_H                 0   0   
+11 DebtN_share2019     0   0   
+12 DebtR_share2019     0   0   
+
+--- Stringency unit check inside V14 window ---
+# A tibble: 2 × 9
+  var           n   min   p01   p50  mean   p99   max   inf
+  <chr>     <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 S_mean_pw   380     0     0 0.398 0.402 0.785 0.857     0
+2 S_max_pw    380     0     0 0.515 0.526 0.929 0.958     0
+
+--- Vaccination rate range in V14 window (expect 0-1 fraction) ---
+# A tibble: 1 × 9
+  var          n   min   p01   p50  mean   p99   max   inf
+  <chr>    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+1 vax_rate   380     0     0 0.125 0.313 0.855 0.897     0
+
+--- Fiscal aggregates in V14 window — flag negative values ---
+  F_CP < 0: 0  |  F_DI < 0: 0  |  F_H < 0: 0
+# A tibble: 3 × 9
+  var       n   min   p01      p50    mean    p99    max   inf
+  <chr> <int> <dbl> <dbl>    <dbl>   <dbl>  <dbl>  <dbl> <int>
+1 F_CP    418     0     0 0.000580 0.0119  0.158  0.254      0
+2 F_DI    418     0     0 0        0.00238 0.0301 0.0832     0
+3 F_H     418     0     0 0        0.00105 0.0176 0.0425     0
+
+--- Quarters where F_CP, F_DI, F_H are ALL exactly zero (no measures recorded) ---
+  N = 164  (countries=38, quarters=10)
+# A tibble: 10 × 2
+   Quarter     n
+   <chr>   <int>
+ 1 Q1.2020     1
+ 2 Q1.2021     6
+ 3 Q1.2022    38
+ 4 Q2.2021     7
+ 5 Q2.2022    38
+ 6 Q3.2020     2
+ 7 Q3.2021    15
+ 8 Q4.2019    38
+ 9 Q4.2020     5
+10 Q4.2021    14
+
+--- Q2.2020 output-gap distribution (should be deeply negative) ---
+# A tibble: 1 × 5
+  mean_y median_y min_y max_y n_pos
+   <dbl>    <dbl> <dbl> <dbl> <int>
+1  -12.8    -12.6 -23.5 -4.56     0
+  Countries with POSITIVE output gap in Q2.2020 (suspicious):
+# A tibble: 0 × 2
+# ℹ 2 variables: Country <chr>, y_t_pct <dbl>
+
+--- Theta sanity in V14 window — theta_mean should be in [0,1] ---
+  Rows with theta_mean outside [0,1]: 0
+
+==============================================================================
+  END OF DIAGNOSTICS
+==============================================================================

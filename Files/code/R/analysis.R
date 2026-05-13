@@ -6,7 +6,10 @@
 #  Paper:   "The Pandemic Trilemma: Health, Output, and Public Debt during
 #            COVID-19" (PhD Paper 1)
 #  Sample:  38 OECD countries, quarterly, Q1.2018 – Q4.2022.
-#           Trilemma estimation window: Q1.2020 – Q1.2022 (T = 9 per country).
+#           Trilemma estimation window for the V14 main spec:
+#             Q4.2019 – Q2.2022 (T = 11 per country, t_idx in [4, 14]).
+#           Some earlier specs / descriptives use Q1.2020 – Q1.2022 (T = 9)
+#           or Q1.2020 – Q2.2022 (T = 10); each block states its window.
 #  Outputs: tables (LaTeX) under  Files/output/tables
 #           figures (PDF/PNG)    under Files/output/figures
 #           a CSV of country-level state/control panels for the MATLAB iLQR
@@ -31,15 +34,23 @@
 #         - Identification descriptives (D1-D5, Figures 1-3, Tables 1).
 #         - Step 1: identification strategy (orthogonality of S and F).
 #         - Step 2: OLS -> Country FE -> TWFE progression (Table 2).
-#         - Step 3: main V3 specification with feols + plm verification.
-#         - Multicollinearity / mean-centering diagnostics.
-#         - Variance decomposition + Mundlak regression.
-#         - Local Projections (V3, Jorda 2005).
-#         - Step 5: wild cluster bootstrap (fwildclusterboot).
-#         - Step 6: robustness checks (Table 3, Panels A and B).
-#         - Local Projections re-run for instruments and interactions.
-#         - Step 7: GMM Arellano-Bond.
-#         - Step 8: cross-estimator comparison.
+#         - Step 3-V3 (frozen 16.04.2026): superseded V3 spec under TWFE
+#           (CP via y_lag1:F_CP_lag2 + contemporaneous S*F_CP). Retained
+#           for the bin / spline robustness and DCDH diagnostics that
+#           motivate V4 and V14.
+#         - V4 spec: state-dependent S * y_lag1_recession spline; DCDH
+#           on V4 isolates the S-spline as the main contamination source.
+#         - Step 3-V14 (MAIN, 12.05.2026): Above-Flow + Below-Stock
+#           decomposition of CP, DI * S push-on-string interaction,
+#           Country-FE-only identification. See the V14 header block
+#           for the full equation and the WHY V14 narrative.
+#         - V14 robustness battery: decay-stock, Year-FE / linear-trend,
+#           sample restrictions, alternative S measures, wild-cluster
+#           bootstrap, take-up sensitivity grid, outlier exclusion,
+#           Mundlak/Chamberlain decomposition, lag selection, asymmetry,
+#           sample splits (by S / income / pre-debt / social-net /
+#           regional groupings).
+#         - Alternative estimators: Deb-style regime switching.
 #         - Step 9: unemployment-rate robustness.
 #    4. Debt equation:
 #         - Sample preparation (first-differenced real-debt share, with
@@ -59,10 +70,15 @@
 #      lagged variables").
 #    - Stringency (S_mean_pw, S_max_pw) is on a 0-1 scale at source and is
 #      rescaled to 0-100 (S_mean_tw, S_max_tw, S_sd_tw) inside `pdata`.
-#    - The trilemma window uses t_idx in [5, 14] = Q1.2020 - Q2.2022 for
-#      most regressions. Step 6 main robustness uses [5, 13] = Q1.2020 -
-#      Q1.2022. Local Projections at horizon h truncate the window at the
-#      far end.
+#    - Window conventions:
+#        * V14 main spec & robustness battery: t_idx in [4, 14] =
+#          Q4.2019 - Q2.2022 (T = 11). Q4.2019 anchors the Below-Stock
+#          channel at near-zero pre-pandemic.
+#        * V3 / V4 era specs and the descriptives sample `main_sample`:
+#          t_idx in [5, 14] = Q1.2020 - Q2.2022.
+#        * Earlier robustness tables used [5, 13] = Q1.2020 - Q1.2022.
+#        * Local Projections at horizon h truncate the window at the
+#          far end.
 #    - Standard errors: clustered by Country with feols (CRV1, AER style).
 #      plm models use vcovHC(cluster = "group", type = "HC1").
 #    - Seed: set.seed(1234) is global; bootstrap uses set.seed(16031995)
@@ -2214,7 +2230,6 @@ etable(m1, m_S_alone, m_S_DI, m_S_persistence,
        keep = "^S_mean_tw$")
 
 
-
 ##brauche ich den hysterie term
 m_S_lag2 <- feols(
   y_t_pct ~ y_lag1 + S_mean_tw + 
@@ -2227,177 +2242,1097 @@ m_S_lag2 <- feols(
 )
 summary(m_S_lag2, cluster = ~ Country, ssc = ssc(adj = TRUE, cluster.adj = TRUE))
 
-##Insignifikatin, alles in y_lag1
-##nein, brauche ich nicht-> hyterie term zerstört meine identifikation-> Hysterie von S bereits in y_lag1
 
-df_bin$y_lag1_recession <- pmin(df_bin$y_lag1, 0) 
 
-df_bin$Quarter <- factor(df_bin$Quarter, 
-                         levels = c("Q4.2019","Q1.2020","Q2.2020","Q3.2020","Q4.2020",
-                                    "Q1.2021","Q2.2021","Q3.2021","Q4.2021",
-                                    "Q1.2022","Q2.2022"))
-##New Main Spec 06.05.2026
-main_full <- feols(
-  y_t_pct ~ y_lag1
-  + S_mean_tw                       # α_S Level               # ψ Persistence
-  + F_CP_lag2*y_lag1_recession        # η_p Spline
-  + F_DI_lag2                            # α_DI Level
-  + p_proj_all_ages                       # β_d Level
-  | Country+Quarter,
-  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14 #& !Country %in% c("IRL", "TUR", "LUX")
-)
-summary(main_full, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-#same in plm
-plm_test <- plm(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_lag2:y_lag1_recession 
-                + F_DI_lag2 + p_proj_all_ages,
-                data = df_bin %>% filter(t_idx >= 4 & t_idx <= 14),
-                model = "within", effect = "twoways",
-                index = c("Country","Quarter"))
-coeftest(plm_test)
+# ============================================================================
+# PANDEMIC TRILEMMA - V14 EMPIRICAL SPECIFICATION (Main Output Equation)
+# ============================================================================
+#
+# Final main model (12.05.2026):
+#
+#   y_{it} = mu_i + rho_y * y_{i,t-1} + alpha_S * S_{it}
+#          + alpha_above * F_CP_above_{i,t-2}              [FLOW]
+#          + alpha_below * K_below_{it}                    [STOCK]
+#          + alpha_DI    * F_DI_{i,t-1}
+#          + alpha_S_DI  * S_{it} * F_DI_{i,t-1}
+#          + eps_{it}
+#
+# with K_below_{it} = sum_{s<=t} (0.40 * F_loans_{is} + 0.25 * F_guar_{is})
+#
+# WHY V14 (evolution from earlier specs in this script):
+#   V3 (frozen 16.04.2026) used CP entering through a persistence-reduction
+#   channel (y_lag1:F_CP_lag2) plus a contemporaneous S*F_CP interaction
+#   under TWFE. V4 replaced the linear S level with a state-dependent
+#   spline (S * y_lag1_recession). DCDH diagnostics on V4 left the
+#   Above-Flow + DI channels robust but flagged the S-spline as the
+#   dominant source of negative-weight contamination. V14 keeps the
+#   substantive lessons of V3/V4 (CP works through both an acute and a
+#   persistent channel; DI is state-dependent) but replaces the
+#   single-aggregate F_CP with the institutionally motivated
+#   Above-Flow + Below-Stock decomposition, and lets DI's
+#   state-dependence run through F_DI * S directly.
+#
+# THEORETICAL CONTRIBUTION:
+#   Decomposition of CP into two mechanistically distinct channels:
+#   - Above-the-line (wage subsidies, direct grants): Flow with 2Q
+#     authorization-to-spending lag, captures acute cash-flow support
+#   - Below-the-line (loans, guarantees): Stock variable capturing
+#     persistent liquidity/solvency protection
+#
+#   DI is modeled with push-on-string mechanism: positive baseline multiplier
+#   but contractionary at high containment (break-even at S ~= 36).
+#
+# IDENTIFICATION:
+#   Country-FE only (NOT Quarter-FE). This is a deliberate change relative
+#   to the Step 2 / Step 3 / V3 / V4 specifications above, which used TWFE.
+#   Rationale: trilemma counterfactuals require the TOTAL F-effect within
+#   the realized global pandemic context, not the net-of-trends effect.
+#   Quarter-FE would absorb the global shock that is part of the policy
+#   environment we want to evaluate; cross-country differences in F
+#   conditional on S and voluntary responses are exactly what we want to
+#   identify.
+#
+#   Country-FE absorbs time-invariant structural heterogeneity (fiscal
+#   space, institutions, voluntary response patterns, pre-COVID trend).
+#   Time-varying global shocks are addressed via the AR(1) y_lag1 term
+#   plus the linear-trend / Year-FE robustness checks further down.
+# ============================================================================
 
-#extract FE
-fixef(plm_test, effect = "individual")
+library(fixest)
+library(dplyr)
+library(car)
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-##NEW07.05.2026
-#cum variable erstellen
-df_bin <- df_bin |> group_by(Country) |> arrange(t_idx) |>
-  mutate(F_CP_cum = cumsum(replace_na(F_CP, 0))) |> ungroup()
+# ============================================================================
+# STEP 0 -- PREPARATION
+# ============================================================================
 
-#Main 07.05.20206
-main_test <- feols(y_t_pct ~ y_lag1 +S_mean_tw + F_CP_cum +F_CP_lag2
-                   + F_DI_lag1*S_mean_tw | Country,
+# Recession spline (used for hysteresis tests only, not in main spec)
+df_bin$y_lag1_recession <- pmin(df_bin$y_lag1, 0)
+
+# Quarter as factor for Year-FE / Quarter-FE robustness checks.
+# Full ordered range Q1.2019 - Q4.2022 (16 levels) so that df_bin can be
+# used outside the V14 sample window without losing the factor metadata.
+# The V14 estimation subset (t_idx in [4, 14]) is selected via `subset =`
+# in each feols call rather than by trimming the factor.
+df_bin$Quarter <- factor(df_bin$Quarter,
+                         levels = c("Q1.2019", "Q2.2019", "Q3.2019", "Q4.2019",
+                                    "Q1.2020", "Q2.2020", "Q3.2020", "Q4.2020",
+                                    "Q1.2021", "Q2.2021", "Q3.2021", "Q4.2021",
+                                    "Q1.2022", "Q2.2022", "Q3.2022", "Q4.2022"))
+
+
+# ============================================================================
+# STEP 1 -- DI IDENTIFICATION VIA INTERACTION WITH STRINGENCY
+# ============================================================================
+# Hypothesis: DI is contingent on consumption channels being open.
+# Direct DI coefficient is insignificant in all lag specifications; the
+# interaction with S identifies a state-dependent multiplier.
+# ----------------------------------------------------------------------------
+
+DI_interact <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + F_CP_lag2 + F_DI_lag1 * S_mean_tw | Country,
   data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
 )
+summary(DI_interact, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-summary(main_test, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-#add year FE and also Quarter FE, show that CP is robust
-#mobility?
-#lag structure und interaktionen, fixen und robustness checks
-
-df_bin$mob
-##Extract Country FE
-fixef(main_test, effect="Country") |> as.data.frame()
-
-#initial shock
-df_sub <- df_bin |> filter(t_idx >= 4 & t_idx <= 14)
-df_sub$resid <- residuals(main_test)
-
-df_sub |> filter(Quarter == "Q2.2020") |> 
-  summarise(median(resid, na.rm=TRUE),
-            mean(resid, na.rm=TRUE))
-
-df_sub <- df_bin |> filter(t_idx >= 4 & t_idx <= 14)
-df_sub$resid <- residuals(main_test)
-
-eps_per_country <- df_sub |> 
-  filter(Quarter == "Q2.2020") |> 
-  select(Country, resid)
-
-print(eps_per_country, n=38)
+# RESULT: alpha_DI = +1.67**, alpha_S_DI = -0.045**. Break-even S* = 37.
+# DI is contractionary at high containment (push-on-string).
 
 
-##check daten
-colnames(df_bin)
-
-df_bin2 <- df_bin |>
-  select(Country, Quarter, year_only, t_idx,
-         y_t_pct, y_lag1,
-         S_mean_tw,S_max_tw, S_lag1,
-         F_CP, F_CP_lag1, F_CP_lag2, F_CP_cum,
-         F_DI, F_DI_lag1, F_DI_lag2,
-         F_CP_above_3, F_CP_loans, F_CP_guar_adj,    # für Robustness Splits
-         debt_dR, theta_pct, p_proj_all_ages         # für andere Equations
-  )
-
-view(df_bin2)
-
-
-# =====================================================
-# ROBUSTNESS BATTERY V11-BASE
-# =====================================================
+# ============================================================================
+# STEP 2 -- CP AS UNIFORM LEVEL (CUMULATIVE STOCK + RECENT FLOW)
+# ============================================================================
+# First-pass CP specification: F_CP_cum captures persistent component,
+# F_CP_lag2 captures recent flow impulse. Both significant, orthogonal.
+# ----------------------------------------------------------------------------
 
 df_bin <- df_bin |>
   group_by(Country) |> arrange(t_idx) |>
+  mutate(F_CP_cum = cumsum(replace_na(F_CP, 0))) |>
+  ungroup()
+
+main_test <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
+  + F_DI_lag1 * S_mean_tw | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(main_test, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+# RESULT: F_CP_cum = +0.103**, F_CP_lag2 = +0.108**. Both significant.
+
+# ---- Diagnostic checks for Step 2 ----
+df_sub <- df_bin |> filter(t_idx >= 4 & t_idx <= 14)
+cat("\nCor(F_CP_cum, F_CP_lag2) =",
+    round(cor(df_sub$F_CP_cum, df_sub$F_CP_lag2, use = "complete.obs"), 3), "\n")
+
+m_lm <- lm(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
+           + F_DI_lag1 + F_DI_lag1:S_mean_tw, data = df_sub)
+cat("\nVIF Step 2:\n"); print(vif(m_lm))
+
+# INTERPRETATION: Cor = 0.26, VIF < 1.5 for all main terms (interaction
+# VIFs ~14 are cosmetic artifacts of including F_DI*S, not collinearity).
+# Spec is statistically clean. ECONOMIC PROBLEM: F_CP_cum is monotonically
+# increasing -> trend-confounding risk. Sign flips under Year-FE.
+
+
+# ============================================================================
+# STEP 3 -- THEORETICAL DISAGGREGATION (V14 final)
+# ============================================================================
+# Above-the-line and below-the-line measures operate through DISTINCT
+# mechanisms and therefore require different aggregation:
+#
+#   Above (wage subsidies, Kurzarbeit, direct grants):
+#     One-shot cash transfers, acute cash-flow effect, no inherent
+#     persistence mechanism -> FLOW with 2Q lag (authorization -> spending)
+#
+#   Below (loans, guarantees):
+#     Multi-quarter liquidity/solvency protection, instrument remains
+#     active until repaid/expired -> STOCK (accumulated)
+#
+# Take-up adjustment (low scenario, lower bound of ECB SAFE Survey):
+#   Loans:      40% drawn down
+#   Guarantees: 25% called
+# ----------------------------------------------------------------------------
+
+# Loan take-up scenarios
+df_bin <- df_bin |>
+  mutate(F_CP_loans_lo  = F_CP_loans * 0.40,
+         F_CP_loans_mid = F_CP_loans * 0.60,
+         F_CP_loans_hi  = F_CP_loans * 0.80,
+         F_CP_loans_adj = F_CP_loans_mid)
+
+# Construct flow and stock variables
+df_bin <- df_bin |>
+  group_by(Country) |> arrange(t_idx) |>
   mutate(
-    F_CP_above_3_lag2 = lag(F_CP_above_3, 2),
-    F_CP_loans_lag2   = lag(F_CP_loans, 2),
-    F_CP_guar_adj_lag2 = lag(F_CP_guar_adj, 2)
+    # FLOW: above-the-line (acute, no persistence mechanism)
+    F_CP_above_flow      = F_CP_above_3,
+    F_CP_above_flow_lag1 = lag(F_CP_above_3, 1),
+    F_CP_above_flow_lag2 = lag(F_CP_above_3, 2),
+    
+    # Auxiliary lags for robustness
+    F_H_lag2 = lag(F_H, 2),
+    y_lag2   = lag(y_t_pct, 2),
+    
+    # STOCK: below-the-line (persistent liquidity/solvency protection)
+    # Low-take-up baseline: loans 40%, guarantees 25%
+    F_CP_loans_stock = cumsum(replace_na(F_CP_loans_lo, 0)),
+    F_CP_guar_stock  = cumsum(replace_na(F_CP_guar_lo,  0)),
+    F_CP_belowstock  = F_CP_loans_stock + F_CP_guar_stock,
+    
+    # Auxiliary alternative aggregations (for robustness)
+    F_CP_above_3_stock = cumsum(replace_na(F_CP_above_3, 0)),
+    F_CP_total_stock   = cumsum(replace_na(F_CP, 0)),
+    F_DI_stock         = cumsum(replace_na(F_DI, 0))
   ) |> ungroup()
 
 
-# 1. Year-FE als zusaetzliche Kontrolle (Heterogenitaets-Identifikation)
-r1 <- feols(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
-            + F_DI_lag1*S_mean_tw | Country + year_only,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-
-# 2. Outlier-Ausschluss (IRL multinational accounting, TUR Wachstumsdynamik)
-r2 <- feols(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
-            + F_DI_lag1*S_mean_tw | Country,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14 
-            & !Country %in% c("IRL","TUR","LUX"))
-
-# 3. Alternative Lag-Struktur: F_CP_lag1 statt lag2
-r3 <- feols(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag1
-            + F_DI_lag1*S_mean_tw | Country,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-
-# 4. Mortalitaetskontrollen (sollte n.s. sein - V11 Hypothese)
-r4 <- feols(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
-            + F_DI_lag1*S_mean_tw + theta_pct + p_proj_all_ages | Country,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-
-# 5. CP disaggregiert (Above/Loans/Guarantees) - testet Channel-Heterogenitaet
-r5 <- feols(y_t_pct ~ y_lag1 + S_mean_tw 
-            + F_CP_above_3_lag2 + F_CP_loans_lag2 + F_CP_guar_adj_lag2
-            + F_DI_lag1*S_mean_tw | Country,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-
-# 6. COVID-only sample (Q1.20-Q1.22, ohne 2022-Schocks)
-r6 <- feols(y_t_pct ~ y_lag1 + S_mean_tw + F_CP_cum + F_CP_lag2
-            + F_DI_lag1*S_mean_tw | Country,
-            data = df_bin, subset = ~ t_idx >= 5 & t_idx <= 10)
-
-# 7. Alternative S-Measure (max statt time-weighted average)
-r7 <- feols(y_t_pct ~ y_lag1 + S_max_tw + F_CP_cum + F_CP_lag2
-            + F_DI_lag1*S_max_tw | Country,
-            data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-
-# Side-by-side Vergleich
-etable(main_test, r1, r2, r3, r4, r5, r6, r7,
-       cluster = ~ Country, 
-       ssc = ssc(K.adj = TRUE, G.adj = TRUE),
-       headers = c("Main","+YearFE","No-Outlier","CP-Lag1","Mortality","CP-Split","COVID-only","S-Max"))
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# ----------------------------------------------------------------------------
+# V14 MAIN SPECIFICATION
+# ----------------------------------------------------------------------------
+v14 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
 
+# ============================================================================
+# STEP 4 -- IDENTIFICATION DIAGNOSTICS FOR V14
+# ============================================================================
+df_v14 <- df_bin |> filter(t_idx >= 4 & t_idx <= 14)
+
+# Correlation between Above-Flow and Below-Stock
+cat("\nCor(Above_lag2, Belowstock) =",
+    round(cor(df_v14$F_CP_above_flow_lag2, df_v14$F_CP_belowstock,
+              use = "complete.obs"), 3), "\n")
+
+# VIF
+m_v14 <- lm(y_t_pct ~ y_lag1 + S_mean_tw
+            + F_CP_above_flow_lag2 + F_CP_belowstock
+            + F_DI_lag1 + F_DI_lag1:S_mean_tw,
+            data = df_v14)
+cat("\nVIF V14:\n"); print(vif(m_v14))
+
+# EXPECTED: Above_lag2 VIF ~1.2, Belowstock VIF ~1.1, Cor ~0.10
+# -> Channels are statistically orthogonal, separately identified.
+# F_DI / F_DI:S_mean_tw VIFs ~14 are cosmetic interaction artifacts.
+
+
+# ============================================================================
+# STEP 5 -- PERSISTENCE-REDUCTION TEST (REJECTED)
+# ============================================================================
+# Hypothesis: CP reduces output persistence by preventing bankruptcies that
+# generate hysteresis. Test via F_CP_above_flow_lag2 * y_lag1 interaction.
+# ----------------------------------------------------------------------------
+
+v14_persistence <- feols(
+  y_t_pct ~ y_lag1
+  + F_DI_lag1 * S_mean_tw
+  + F_CP_above_flow_lag2 * y_lag1
+  + F_CP_above_flow_lag2 + F_CP_belowstock | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(v14_persistence, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+# RESULT: Interaction = +0.023, p = 0.16 (not significant).
+# Persistence-rate reduction NOT identifiable in T=11 panel.
+# Persistence damage is addressed indirectly via the level channels:
+# CP preserves productive base; AR(1)-dynamics propagate the level effect
+# through the recovery path.
+
+
+# ============================================================================
+# STEP 6 -- EXTRACT FIXED EFFECTS AND Q2.2020 RESIDUALS FOR CALIBRATION
+# ============================================================================
+df_v14$resid <- residuals(v14)
+
+# Country fixed effects (for MATLAB calibration)
+cfe_y <- fixef(v14, effect = "Country")$Country
+print(cfe_y)
+
+# Per-country Q2.2020 residual (global pandemic shock, country-specific)
+eps_v14_q220 <- df_v14 |>
+  filter(Quarter == "Q2.2020") |>
+  select(Country, resid)
+print(eps_v14_q220, n = 38)
+
+cat("\nMedian Q2.2020 residual =",
+    round(median(df_v14$resid[df_v14$Quarter == "Q2.2020"]), 3), "\n")
+
+
+# ============================================================================
+# STEP 7 -- Main Modell also in plm, should be the same coefficients
+# ============================================================================
+library(plm)
+
+# Local `pdata_v14` avoids shadowing the top-level `pdata` defined in
+# Stage 2b (it covers the full 2019Q1-2022Q4 window and is needed by
+# the later debt-equation stage).
+pdata_v14 <- pdata.frame(
+  df_bin |> filter(t_idx >= 4 & t_idx <= 14),
+  index = c("Country", "Quarter")
+)
+
+v14_plm <- plm(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 + F_DI_lag1:S_mean_tw,
+  data   = pdata_v14,
+  model  = "within",
+  effect = "individual"
+)
+
+# Cluster-robust SE (CRV1, country-level)
+coeftest(v14_plm, vcov = vcovHC(v14_plm, cluster = "group", type = "HC1"))
+
+coefs_feols <- coef(v14)
+coefs_plm   <- coef(v14_plm)
+
+print(coefs_feols)
+print(coefs_plm)
+# feols and plm match — V14 point estimates are estimator-invariant.
+
+# ============================================================================
+# FAZIT - V14 IS THE FINAL MAIN SPECIFICATION
+# ============================================================================
+#
+# COEFFICIENTS (N = 418, 38 countries x 11 quarters Q4.2019-Q2.2022):
+#
+#   rho_y       =  0.231***   AR(1) output persistence
+#   alpha_S     = -0.095***   Direct lockdown drag per stringency point
+#   alpha_above = +0.544**    Above-the-line flow (Lag-2), acute cash flow
+#   alpha_below = +0.261.     Below-the-line stock, persistent solvency
+#                             protection (p = 0.08, marginal)
+#   alpha_DI    = +1.470*     DI multiplier at S = 0 (baseline)
+#   alpha_S_DI  = -0.041**    Push-on-string slope
+#                             -> DI break-even at S* = 36
+#
+#   Within R^2 = 0.436, RMSE = 2.83 pp
+#
+# WHY THIS SPECIFICATION:
+#
+#   (1) Theoretical clarity: CP operates through two mechanistically
+#       distinct channels rather than as one aggregated lever. Above is
+#       a FLOW (acute), Below is a STOCK (persistent). This matches the
+#       institutional structure of fiscal response and yields separately
+#       identified parameters.
+#
+#   (2) Orthogonal identification: Cor(Above_lag2, Belowstock) = 0.10,
+#       all VIFs below 1.5. No collinearity bias.
+#
+#   (3) DI push-on-string is empirically robust across all specifications
+#       and theoretically motivated: cash transfers require open
+#       consumption channels to function.
+#
+#   (4) Country-FE only identification preserves the global pandemic
+#       context required for counterfactual policy analysis. Quarter-FE
+#       absorbs the very shock against which we evaluate fiscal response.
+#
+# THEORETICAL CONTRIBUTION:
+#
+#   Channel disaggregation (Above-Flow + Below-Stock + DI*S) is novel
+#   relative to Auerbach-Gorodnichenko (2012), Ramey-Zubairy (2018),
+#   and Deb et al. (2021), which treat CP as a single aggregate lever.
+#
+# LIMITATIONS (TO BE REPORTED IN DISSERTATION):
+#
+#   (a) Persistence-rate reduction (CP modifying rho_y) cannot be
+#       identified separately in T=11 panel; rejected by Step 5 test.
+#       Persistence is addressed via the LEVEL channels: CP raises y,
+#       AR(1) propagates the effect. Reframe from "CP reduces rho" to
+#       "CP preserves the productive base whose recovery is governed
+#       by rho."
+#
+#   (b) Below-Stock is trend-sensitive: sign flips under Year-FE
+#       (cumulative stock is monotonically increasing). Above-Flow is
+#       trend-robust. Take-up adjustment (low scenario: loans 40%,
+#       guarantees 25%) disciplines but does not eliminate this issue.
+#
+#   (c) Below-Stock significance is marginal (p = 0.08). Conservative
+#       reading: Above-Flow is the empirically robust CP channel;
+#       Below-Stock is theoretically motivated but quantitatively weaker.
+#
+#   (d) Identification of CP's effect on rho would require exogenous
+#       variation in CP intensity orthogonal to crisis depth; the
+#       universal nature of OECD COVID-19 fiscal response precludes
+#       a clean control group.
+#
+# ROBUSTNESS BATTERY (TO BE RUN):
+
+#   - Decreasing Below-Stock — not economically meaningful, kept here
+#     only as a sensitivity (the channel is supposed to be persistent).
+#   - Year-FE specification (shows Above-Flow trend-robust,
+#     Below-Stock trend-confounded)
+#   - Sample restrictions (t_idx >= 5; t_idx >= 4 & <= 13)
+#   - Take-up sensitivity grid (loans 0.4/0.6/0.8, guar 0.25/0.35/0.50)
+#   - Outlier exclusion (TUR, IRL: tax-driven GDP volatility)
+#   - Alternative S measures (S_max instead of S_mean_tw)
+#   - DCDH negative-weights diagnostic (TWFE defense)
+#   - Wild cluster bootstrap (small-N defense, N_clusters = 38)
+#
+# ============================================================================
+
+
+# =====================================================
+# ROBUSTNESS BATTERY V14-BASE
+# =====================================================
+
+#..............................................................................
+## Decay-stock robustness for the Below-Stock channel.
+## Replaces the V14 cumulative-sum stock with a geometrically decaying
+## stock: K_t = (1 - delta) * K_{t-1} + flow_t. delta = 0 reproduces
+## the V14 baseline (pure cumulative sum). The flows use the V14 take-up
+## convention (loans 40%, guarantees 25%) for like-for-like comparison.
+build_decay_stock <- function(flow, delta) {
+  flow <- replace_na(flow, 0)
+  K <- numeric(length(flow))
+  if (length(flow) == 0L) return(K)
+  K[1] <- flow[1]
+  if (length(flow) > 1L) {
+    for (t in 2:length(flow)) {
+      K[t] <- (1 - delta) * K[t - 1] + flow[t]
+    }
+  }
+  K
+}
+
+deltas <- c(0, 0.05, 0.10, 0.15, 0.25)
+
+for (d in deltas) {
+  df_tmp <- df_bin |>
+    group_by(Country) |> arrange(t_idx) |>
+    mutate(
+      F_loans_decay    = build_decay_stock(F_CP_loans_lo, d),
+      F_guar_decay     = build_decay_stock(F_CP_guar_lo,  d),
+      F_CP_below_decay = F_loans_decay + F_guar_decay
+    ) |> ungroup()
+
+  m <- feols(
+    y_t_pct ~ y_lag1 + S_mean_tw
+    + F_CP_above_flow_lag2 + F_CP_below_decay
+    + F_DI_lag1 * S_mean_tw + as.numeric(year_only) | Country,
+    data = df_tmp, subset = ~ t_idx >= 4 & t_idx <= 14
+  )
+
+  cat("\n========== delta =", d, "==========\n")
+  print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+}
+
+#...............................................................................
+# ============================================================================
+# ROBUSTNESS CHECK: Non-Parametric and Parametric TT
+# ----------------------------------------------------------------------------
+# Replaces Year-FE with continuous linear trend.
+# Less restrictive than Year-FE: absorbs only smooth temporal component.
+# ============================================================================
+#year
+v14_yearFE <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw 
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw | Country + year_only,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(v14_yearFE, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+v14_lintrend <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw 
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw + as.numeric(year_only) | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(v14_lintrend, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+#quarter
+
+v14_quarterFE <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw 
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw | Country + t_idx,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(v14_quarterFE, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+v14_Qlintrend <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw 
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw + as.numeric(t_idx) | Country,
+  data = df_bin, subset = ~ t_idx >= 5 & t_idx <= 14
+)
+summary(v14_Qlintrend, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+#Quarter-fixed effects absorb virtually all identifying variation in our T=11 panel and are not informative for robustness. A linear time trend (less restrictive) confirms the pattern observed with Year-FE: Above-Flow channel is trend-robust, Below-Stock is trend-confounded."
+
+# ============================================================================
+# ROBUSTNESS: VIF (Variance Inflation Factors)
+# ----------------------------------------------------------------------------
+# Expectation: Main terms VIF < 5 (clean identification).
+# F_DI_lag1 and F_DI_lag1:S_mean_tw VIFs ~14 are cosmetic interaction
+# artifacts (Brambor-Clark-Golder 2006) and should be ignored.
+# ============================================================================
+
+library(car)
+
+df_v14 <- df_bin |> filter(t_idx >= 4 & t_idx <= 14)
+
+m_vif <- lm(y_t_pct ~ y_lag1 + S_mean_tw
+            + F_CP_above_flow_lag2 + F_CP_belowstock
+            + F_DI_lag1 + F_DI_lag1:S_mean_tw,
+            data = df_v14)
+
+cat("\n========== VIF: V14 MAIN SPEC ==========\n")
+print(vif(m_vif))
+
+# Pairwise correlations among main regressors
+cat("\n========== Pairwise correlations ==========\n")
+print(round(cor(df_v14[, c("y_lag1", "S_mean_tw",
+                           "F_CP_above_flow_lag2", "F_CP_belowstock",
+                           "F_DI_lag1")],
+                use = "complete.obs"), 3))
+
+# INTERPRETATION: All main terms VIF < 1.4 and pairwise correlations |r| < 0.42
+# confirm clean orthogonal identification of Above-Flow, Below-Stock, and DI
+# channels; F_DI/F_DI:S VIFs ~14 are cosmetic interaction artifacts
+# (Brambor-Clark-Golder 2006) without inferential impact.
+
+
+# ============================================================
+# DCDH Negative-Weights Diagnostic — V14 main spec
+# ------------------------------------------------------------
+# Main spec (V14):
+#   y_t_pct ~ y_lag1 + S_mean_tw 
+#            + F_CP_above_flow_lag2     # Above-Flow channel
+#            + F_CP_belowstock           # Below-Stock channel
+#            + F_DI_lag1 * S_mean_tw     # DI push-on-string
+#            | Country
+#
+# Three continuous treatments: Above, Belowstock, S, DI
+# DCDH (2020) assumes strict exogeneity of controls; y_lag1
+# in controls is an approximation (cf. de Chaisemartin et al. 2024).
+# ============================================================
+
+library(TwoWayFEWeights)
+library(dplyr)
+
+weights_sample <- df_bin %>%
+  filter(t_idx >= 4, t_idx <= 14) %>%
+  mutate(country_id = as.integer(as.factor(Country))) %>%
+  arrange(country_id, t_idx)
+
+non_policy_ctrls <- c("y_lag1")
+
+# (1) Above-Flow channel
+w_above <- twowayfeweights(
+  data             = weights_sample,
+  Y                = "y_t_pct", G = "country_id", T = "t_idx",
+  D                = "F_CP_above_flow_lag2",
+  type             = "feTR",
+  other_treatments = c("F_CP_belowstock", "S_mean_tw", "F_DI_lag1"),
+  controls         = non_policy_ctrls,
+  summary_measures = TRUE
+)
+
+# (2) Below-Stock channel
+w_below <- twowayfeweights(
+  data             = weights_sample,
+  Y                = "y_t_pct", G = "country_id", T = "t_idx",
+  D                = "F_CP_belowstock",
+  type             = "feTR",
+  other_treatments = c("F_CP_above_flow_lag2", "S_mean_tw", "F_DI_lag1"),
+  controls         = non_policy_ctrls,
+  summary_measures = TRUE
+)
+
+# (3) Stringency level effect
+w_s <- twowayfeweights(
+  data             = weights_sample,
+  Y                = "y_t_pct", G = "country_id", T = "t_idx",
+  D                = "S_mean_tw",
+  type             = "feTR",
+  other_treatments = c("F_CP_above_flow_lag2", "F_CP_belowstock", "F_DI_lag1"),
+  controls         = non_policy_ctrls,
+  summary_measures = TRUE
+)
+
+# (4) DI level effect
+w_di <- twowayfeweights(
+  data             = weights_sample,
+  Y                = "y_t_pct", G = "country_id", T = "t_idx",
+  D                = "F_DI_lag1",
+  type             = "feTR",
+  other_treatments = c("F_CP_above_flow_lag2", "F_CP_belowstock", "S_mean_tw"),
+  controls         = non_policy_ctrls,
+  summary_measures = TRUE
+)
+
+cat("\n========== DCDH: Above-Flow ==========\n");   print(w_above)
+cat("\n========== DCDH: Below-Stock ==========\n");  print(w_below)
+cat("\n========== DCDH: Stringency ==========\n");   print(w_s)
+cat("\n========== DCDH: DI ==========\n");           print(w_di)
+
+#S is not monotonic: DCDH (2020) diagnostics confirm the empirical robustness of the Above-Flow and DI channels (negative weight shares of 8.7% and 2.7%, respectively), within conventional thresholds. The Below-Stock channel exhibits higher negative weight contamination (26.8%), consistent with its trend-sensitivity documented in the Year-FE specification."
+
+
+# ============================================================================
+# ROBUSTNESS: SAMPLE RESTRICTIONS
+# ----------------------------------------------------------------------------
+# Tests sensitivity to start/end of validation window.
+# ============================================================================
+
+# (1) t_idx >= 5: drop Q4.2019 (pre-pandemic anchor)
+v14_s5 <- feols(y_t_pct ~ y_lag1 + S_mean_tw 
+                + F_CP_above_flow_lag2 + F_CP_belowstock
+                + F_DI_lag1 * S_mean_tw | Country,
+                data = df_bin, subset = ~ t_idx >= 5 & t_idx <= 14)
+
+# (2) t_idx >= 6: drop pre-pandemic + Q1.20 (limited stock variation)
+v14_s6 <- feols(y_t_pct ~ y_lag1 + S_mean_tw 
+                + F_CP_above_flow_lag2 + F_CP_belowstock
+                + F_DI_lag1 * S_mean_tw | Country,
+                data = df_bin, subset = ~ t_idx >= 6 & t_idx <= 14)
+
+# (3) t_idx <= 13: drop late recovery
+v14_e13 <- feols(y_t_pct ~ y_lag1 + S_mean_tw 
+                 + F_CP_above_flow_lag2 + F_CP_belowstock
+                 + F_DI_lag1 * S_mean_tw | Country,
+                 data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 13)
+
+cat("\n========== SAMPLE: t_idx >= 5 ==========\n")
+print(summary(v14_s5, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+cat("\n========== SAMPLE: t_idx >= 6 ==========\n")
+print(summary(v14_s6, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+cat("\n========== SAMPLE: t_idx <= 13 ==========\n")
+print(summary(v14_e13, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
 
 
 
+# INTERPRETATION: Above-Flow (0.36-0.54) and DI push-on-string (alpha_S,DI 
+# -0.031 to -0.041) remain stable and significant across all sample 
+# restrictions. The Below-Stock coefficient is identification-fragile: 
+# dropping pre-pandemic anchors (t_idx >= 6) inflates the estimate to 
+# 5.87, confirming that Q4.2019-Q1.2020 observations with zero/near-zero 
+# stock provide essential discipline. The main spec (t_idx >= 4) is the 
+# conservative and theoretically anchored baseline.
+
+summary(df_bin$S_max_tw)
+summary(df_bin$mob_transit)
+
+
+# ============================================================================
+# ROBUSTNESS: ALTERNATIVE CONTAINMENT MEASURES
+# ----------------------------------------------------------------------------
+# Main spec uses S_mean_tw (quarterly mean of OxCGRT stringency).
+# Tests: (1) S_max_tw (peak stringency), (2) mob_transit (revealed
+# voluntary + mandated mobility reduction).
+# ============================================================================
+
+# (1) S_max_tw: peak stringency per quarter
+v14_smax <- feols(y_t_pct ~ y_lag1 + S_max_tw 
+                  + F_CP_above_flow_lag2 + F_CP_belowstock
+                  + F_DI_lag1 * S_max_tw | Country,
+                  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
+
+cat("\n========== ALT: S_max_tw (peak stringency) ==========\n")
+print(summary(v14_smax, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+
+# (2) mob_transit: revealed mobility (includes voluntary response)
+v14_mob <- feols(y_t_pct ~ y_lag1
+                 + F_CP_above_flow_lag2 + F_CP_belowstock
+                 + F_DI_lag1 * mob_transit +as.numeric(t_idx)| Country,
+                 data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
+
+
+cat("\n========== ALT: mob_transit (revealed mobility) ==========\n")
+print(summary(v14_mob, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+
+# Note: mob_transit spec drops the country-FE-collinear component;
+# a linear time trend (`as.numeric(t_idx)`) is added because mobility
+# trends without an explicit time control are confounded with the
+# global pandemic cycle.
+
+
+# ============================================================================
+# ROBUSTNESS: WILD CLUSTER BOOTSTRAP
+# ----------------------------------------------------------------------------
+# Small-N defense: N_clusters = 38. CRV1 cluster-robust SE may
+# over-reject in small clusters (Cameron, Gelbach, Miller 2008).
+# Wild cluster bootstrap-t (Webb weights, 9999 reps) provides
+# better small-sample inference.
+# ============================================================================
+
+# -----------------------------------------------------------------------------
+#  WILD-CLUSTER BOOTSTRAP - V14 (Above-Flow + Below-Stock + DI*S)
+#  N_clusters = 38. CRV1 may over-reject in small clusters.
+#  Wild cluster bootstrap-t (Cameron-Gelbach-Miller 2008) via fwildclusterboot.
+# -----------------------------------------------------------------------------
+library(fwildclusterboot)
+library(dplyr)
+
+# Bootstrap sample: Q4.2019 - Q2.2022
+# Local name `boot_sample` avoids shadowing the descriptive-stage
+# `main_sample` defined above at line 872.
+boot_sample <- df_bin %>%
+  filter(t_idx >= 4 & t_idx <= 14) %>%
+  mutate(DI_S = F_DI_lag1 * S_mean_tw,
+         Country = as.factor(Country),
+         Quarter = as.factor(Quarter))
+
+# Re-fit V14 main spec on bootstrap sample (interaction as pre-built variable)
+v14_boot <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 + DI_S | Country,
+  data = boot_sample, vcov = ~ Country
+)
+summary(v14_boot, cluster = ~ Country, 
+        ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+# Wild-cluster bootstrap-t on each main parameter
+set.seed(16031995)
+dqrng::dqset.seed(16031995)
+
+params <- c("F_CP_above_flow_lag2", "F_CP_belowstock", 
+            "F_DI_lag1", "DI_S", "S_mean_tw", "y_lag1")
+
+for (p in params) {
+  cat("\n========== Wild-Cluster Bootstrap:", p, "==========\n")
+  wild_p <- boottest(
+    v14_boot, param = p, clustid = c("Country"),
+    B = 99999, type = "rademacher", impose_null = TRUE,
+    p_val_type = "two-tailed"
+  )
+  print(summary(wild_p))
+}
+
+# -----------------------------------------------------------------------------
+#  Cluster-jackknife outlier diagnostic (summclust) for Above-Flow channel
+# -----------------------------------------------------------------------------
+library(summclust)
+sc <- summclust(v14_boot, params = "F_CP_above_flow_lag2", cluster = ~ Country)
+summary(sc)
+plot(sc)
+
+
+# INTERPRETATION: Wild cluster bootstrap (Webb/Rademacher, B=99999) confirms 
+# small-cluster robustness. Above-Flow, S, y_lag1 remain strongly significant. 
+# DI main effect significant at 5%. Below-Stock and DI:S move to marginal 
+# significance (p=0.058, 0.059) — naive CRV1 slightly over-rejected but 
+# pattern stable. No qualitative changes; V14 inference holds under 
+# small-N defense.
+
+
+# ============================================================================
+# ROBUSTNESS: TAKE-UP SENSITIVITY GRID
+# ----------------------------------------------------------------------------
+# Tests sensitivity of below-stock channel to assumed take-up rates.
+# Loans: 40% / 60% / 80%  (ECB SAFE Survey range)
+# Guarantees: 25% / 35% / 50%  (IMF Fiscal Monitor range)
+# ============================================================================
+#.rs.restartR()
+library(dplyr); library(fixest)
+
+takeup_grid <- expand.grid(
+  loans = c(0.40, 0.60, 0.80),
+  guar  = c(0.25, 0.35, 0.50)
+)
+
+results_takeup <- vector("list", nrow(takeup_grid))
+for (i in seq_len(nrow(takeup_grid))) {
+  tl <- takeup_grid$loans[i]
+  tg <- takeup_grid$guar[i]
+  
+  df_tmp <- df_bin |>
+    group_by(Country) |> arrange(t_idx) |>
+    mutate(
+      loans_adj_tmp = F_CP_loans * tl,
+      guar_adj_tmp  = F_CP_guar  * tg,
+      stock_tmp     = cumsum(replace_na(loans_adj_tmp, 0)) + 
+        cumsum(replace_na(guar_adj_tmp,  0))
+    ) |> ungroup()
+  
+  m <- feols(y_t_pct ~ y_lag1 + S_mean_tw 
+             + F_CP_above_flow_lag2 + stock_tmp 
+             + F_DI_lag1 * S_mean_tw | Country,
+             data = df_tmp, subset = ~ t_idx >= 4 & t_idx <= 14)
+  
+  cat("\n--- Loans", tl*100, "% | Guar", tg*100, "% ---\n")
+  print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+}
+
+# INTERPRETATION: Above-Flow (0.541-0.547) and DI push-on-string 
+# (alpha_S,DI -0.040 to -0.041) are completely invariant to take-up 
+# assumptions. Below-Stock magnitude varies inversely with assumed take-up 
+# (0.13-0.26): higher take-up = larger constructed stock = smaller 
+# coefficient. Significance ranges p=0.05-0.16, consistently marginal. 
+# Conservative baseline (loans 40%, guar 25%) yields the largest 
+# alpha_below = 0.261 and is the theoretically motivated lower-bound spec.
+
+# ============================================================================
+# ROBUSTNESS: OUTLIER EXCLUSION
+# ----------------------------------------------------------------------------
+# TUR: extreme inflation (>70% annualized 2022) decouples nominal debt
+#      from real fiscal position.
+# IRL: multinational corporate restructuring (Apple, Pfizer relocations)
+#      generates GDP volatility unrelated to domestic conditions.
+# ============================================================================
+
+v14_no_outliers <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw 
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw | Country,
+  data = df_bin, 
+  subset = ~ t_idx >= 4 & t_idx <= 14 & !Country %in% c("TUR", "IRL")
+)
+
+cat("\n========== V14 EXCLUDING TUR + IRL ==========\n")
+print(summary(v14_no_outliers, cluster = ~ Country, 
+              ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+
+# INTERPRETATION: Excluding TUR (hyperinflation) and IRL (multinational 
+# GDP distortion) reduces all coefficients modestly but preserves signs, 
+# significance pattern, and economic interpretation. Above-Flow remains 
+# strongly significant (0.45*), DI push-on-string holds (-0.035*). 
+# Below-Stock moves from p=0.08 to p=0.13 — pattern stable, marginal 
+# significance preserved at slightly weaker level. Main spec robust to 
+# outlier exclusion.
+
+
+# ============================================================================
+# ROBUSTNESS: MUNDLAK / CHAMBERLAIN DECOMPOSITION (V14)
+# ----------------------------------------------------------------------------
+# Decomposes each regressor into within-country and between-country
+# components. FE estimates = within coefficients. Significant differences
+# between within and between imply omitted-variable bias in cross-section
+# (selection on crisis severity).
+# ============================================================================
+library(car)
+
+df_m <- df_bin %>%
+  filter(t_idx >= 4 & t_idx <= 14) %>%
+  mutate(DI_S = F_DI_lag1 * S_mean_tw) %>%
+  group_by(Country) %>%
+  mutate(
+    y_lag1_b      = mean(y_lag1,                na.rm = TRUE),
+    S_b           = mean(S_mean_tw,             na.rm = TRUE),
+    above_b       = mean(F_CP_above_flow_lag2,  na.rm = TRUE),
+    below_b       = mean(F_CP_belowstock,       na.rm = TRUE),
+    DI_b          = mean(F_DI_lag1,             na.rm = TRUE),
+    DI_S_b        = mean(DI_S,                  na.rm = TRUE)
+  ) %>%
+  mutate(
+    y_lag1_w  = y_lag1                - y_lag1_b,
+    S_w       = S_mean_tw             - S_b,
+    above_w   = F_CP_above_flow_lag2  - above_b,
+    below_w   = F_CP_belowstock       - below_b,
+    DI_w      = F_DI_lag1             - DI_b,
+    DI_S_w    = DI_S                  - DI_S_b
+  ) %>%
+  ungroup()
+
+mundlak_v14 <- feols(
+  y_t_pct ~ y_lag1_w + S_w + above_w + below_w + DI_w + DI_S_w
+  + y_lag1_b + S_b + above_b + below_b + DI_b + DI_S_b,
+  data = df_m, cluster = ~ Country, ssc = ssc(adj = TRUE, cluster.adj = TRUE)
+)
+summary(mundlak_v14)
+
+# Hausman-style joint test: within = between for all main F-channels
+linearHypothesis(mundlak_v14,
+                 c("above_w - above_b = 0",
+                   "below_w - below_b = 0",
+                   "DI_w    - DI_b    = 0",
+                   "DI_S_w  - DI_S_b  = 0"),
+                 vcov = vcov(mundlak_v14, cluster = ~ Country))
 
 
 
+# INTERPRETATION: Mundlak decomposition validates FE identification.
+# Between-country F-channel coefficients are all insignificant, indicating
+# cross-country F-variation is not confounded with outcome heterogeneity.
+# Hausman-style joint test rejects equality of within and between
+# coefficients (chi2 = 25.7, p < 0.0001), confirming pooled OLS would be
+# biased by selection on crisis severity and structural country
+# characteristics. Country-FE identification is the correct specification.
+
+# ============================================================================
+# ROBUSTNESS: LAG SELECTION FOR ABOVE-FLOW
+# ----------------------------------------------------------------------------
+# Tests lag 0, 1, 2, 3 for F_CP_above_3. Main spec uses lag 2 based on
+# authorization-to-spending lag (Chetty et al. 2020).
+# ============================================================================
+
+for (lag_k in 0:3) {
+  var_name <- if (lag_k == 0) "F_CP_above_3" else sprintf("F_CP_above_flow_lag%d", lag_k)
+  
+  fml <- as.formula(sprintf(
+    "y_t_pct ~ y_lag1 + S_mean_tw + %s + F_CP_belowstock + F_DI_lag1 * S_mean_tw | Country",
+    var_name
+  ))
+  m <- feols(fml, data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
+  cat("\n--- Above Lag", lag_k, "---\n")
+  print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+}
+
+# INTERPRETATION: Lag-0 and Lag-1 coefficients are strongly negative,
+# reflecting reverse causality: fiscal measures are deployed contemporaneously
+# with the output decline they aim to address. Lag-2 captures the causal
+# pass-through after authorization-to-disbursement delays (Chetty et al.
+# 2020), yielding the theoretically expected positive sign. Lag-2 is the
+# correct identification choice.
+
+for (lag_k in 0:2) {
+  var_name <- if (lag_k == 0) "F_DI" else sprintf("F_DI_lag%d", lag_k)
+  
+  fml <- as.formula(sprintf(
+    "y_t_pct ~ y_lag1 + S_mean_tw + F_CP_above_flow_lag2 + F_CP_belowstock + %s * S_mean_tw | Country",
+    var_name
+  ))
+  m <- feols(fml, data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
+  cat("\n--- DI Lag", lag_k, "---\n")
+  print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+}
+
+# INTERPRETATION: F_DI lag-1 is the correct identification. Contemporary
+# (lag-0) coefficients are insignificant due to disbursement delay
+# (authorization-to-payment ~30 days, Chetty et al. 2020). Lag-2 reverses
+# the interaction sign, indicating the consumption effect has dissipated
+# and the coefficient captures residual confounding rather than the
+# causal channel. Lag-1 matches the empirical disbursement timing.
+
+# ============================================================
+# V14 Robustness — Remaining Specifications
+# ============================================================
+
+main_fml_v14 <- y_t_pct ~ y_lag1 + S_mean_tw + 
+  F_CP_above_flow_lag2 + F_CP_belowstock + 
+  F_DI_lag1 * S_mean_tw | Country
+
+main_sub <- ~ t_idx >= 4 & t_idx <= 14
+
+# --- (1) ASYMMETRY: tightening vs loosening ---
+df_bin <- df_bin %>%
+  group_by(Country) %>%
+  arrange(t_idx) %>%
+  mutate(
+    S_tightening = pmax(S_mean_tw - lag(S_mean_tw), 0),
+    S_loosening  = pmin(S_mean_tw - lag(S_mean_tw), 0)
+  ) %>%
+  ungroup()
+
+m_asym <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + S_tightening + S_loosening
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_bin, subset = main_sub, cluster = ~ Country
+)
+cat("\n=== (1) ASYMMETRY: tightening vs loosening ===\n")
+print(summary(m_asym, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+# --- (2) SAMPLE SPLITS ---
+country_S   <- aggregate(S_mean_tw ~ Country, df_bin, mean)
+median_S    <- median(country_S$S_mean_tw, na.rm = TRUE)
+median_gdp  <- median(df_bin$rGDP_pc_2019, na.rm = TRUE)
+median_debt <- median(df_bin$debt_2019, na.rm = TRUE)
+
+hi_S    <- country_S$Country[country_S$S_mean_tw >= median_S]
+lo_S    <- country_S$Country[country_S$S_mean_tw <  median_S]
+hi_inc  <- unique(df_bin$Country[!is.na(df_bin$rGDP_pc_2019) & df_bin$rGDP_pc_2019 >= median_gdp])
+lo_inc  <- unique(df_bin$Country[!is.na(df_bin$rGDP_pc_2019) & df_bin$rGDP_pc_2019 <  median_gdp])
+hi_dbt  <- unique(df_bin$Country[!is.na(df_bin$debt_2019) & df_bin$debt_2019 >= median_debt])
+lo_dbt  <- unique(df_bin$Country[!is.na(df_bin$debt_2019) & df_bin$debt_2019 <  median_debt])
+
+high_socnet <- c("FRA","FIN","BEL","DNK","ITA","AUT","SWE","DEU","NOR",
+                 "ESP","GRC","PRT","LUX","NLD","JPN","GBR","CZE","SVN","POL")
+low_socnet  <- c("USA","KOR","MEX","CHL","TUR","IRL","AUS","NZL","CAN",
+                 "CHE","ISR","COL","CRI","EST","LVA","LTU","HUN","SVK","ISL")
+
+split_list <- list(
+  list(nm = "High-S",         cty = hi_S),
+  list(nm = "Low-S",          cty = lo_S),
+  list(nm = "High-income",    cty = hi_inc),
+  list(nm = "Low-income",     cty = lo_inc),
+  list(nm = "High pre-debt",  cty = hi_dbt),
+  list(nm = "Low pre-debt",   cty = lo_dbt),
+  list(nm = "High soc.net",   cty = high_socnet),
+  list(nm = "Low soc.net",    cty = low_socnet)
+)
+
+split_models <- list()
+for (sp in split_list) {
+  df_sp <- df_bin %>% filter(Country %in% sp$cty)
+  m_sp <- tryCatch(
+    feols(main_fml_v14, data = df_sp, subset = main_sub, cluster = ~ Country),
+    error = function(e) NULL
+  )
+  if (!is.null(m_sp)) split_models[[sp$nm]] <- m_sp
+}
+
+cat("\n=== (2) Sample splits: V14 ===\n")
+etable(split_models,
+       cluster = ~ Country,
+       ssc = ssc(adj = TRUE, cluster.adj = TRUE),
+       keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
+                "F_DI_lag1", "F_DI_lag1:S_mean_tw"))
+
+# --- (3) SAMPLE-WINDOW ROBUSTNESS ---
+m_baseline <- feols(main_fml_v14, data = df_bin, subset = main_sub, cluster = ~ Country)
+m_narrow   <- feols(main_fml_v14, data = df_bin, 
+                    subset = ~ t_idx >= 5 & t_idx <= 13, cluster = ~ Country)
+m_wide     <- feols(main_fml_v14, data = df_bin, 
+                    subset = ~ t_idx >= 4 & t_idx <= 16, cluster = ~ Country)
+m_2020     <- feols(main_fml_v14, data = df_bin, 
+                    subset = ~ t_idx >= 4 & t_idx <= 8, cluster = ~ Country)
+
+cat("\n=== (3) Sample-window robustness: V14 ===\n")
+etable(list(
+  "Baseline Q4.19-Q2.22" = m_baseline,
+  "Narrow Q1.20-Q1.22"   = m_narrow,
+  "Wide Q4.19-Q4.22"     = m_wide,
+  "Only 2020"            = m_2020
+),
+cluster = ~ Country,
+ssc = ssc(adj = TRUE, cluster.adj = TRUE),
+keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
+         "F_DI_lag1", "F_DI_lag1:S_mean_tw"))
 
 
+# ============================================================
+# V14 Robustness Interpretation
+# ============================================================
+#
+# (1) ASYMMETRY: tightening vs loosening
+#   Delta S+ = -0.125*** (p < 0.001)
+#   Delta S- = -0.005    (p = 0.79)
+#   Tightening contracts output ~25x more than loosening expands
+#   it. Direct evidence for hysteresis: productive capacity
+#   destroyed during tightening does not return mechanically
+#   during loosening. The asymmetric ratchet provides structural
+#   justification for the persistence channel and the AR(1)
+#   recovery dynamics in V14. Above-Flow and DI:S remain
+#   significant in this richer specification.
+#
+# (2) SAMPLE SPLITS: heterogeneity is economically interpretable
+#
+#   Above-Flow (alpha_above):
+#     High-S          0.95**    Low-S          0.15 n.s.
+#     High-income     0.50      Low-income     0.63***
+#     High pre-debt   1.07***   Low pre-debt   0.32
+#     High soc.net    0.78**    Low soc.net    0.40
+#   -> Above is identified where there is shock to absorb
+#      (High-S) and where fiscal space allows deployment
+#      (High pre-debt countries deployed CP more aggressively
+#      and credibly).
+#
+#   DI push-on-string (alpha_S,DI):
+#     High-S         -0.071**   Low-S         -0.063**
+#     High-income    -0.087*    Low-income    -0.029.
+#     High soc.net   -0.122*    Low soc.net   -0.029.
+#   -> Mechanism robust across all splits. Stronger in
+#      High-income / High soc.net groups where formal consumption
+#      channels are more developed and binding constraints
+#      under containment are sharper.
+#
+#   Below-Stock (alpha_below):
+#     Significant only in High-S (0.51.) and Low soc.net (1.09*)
+#     -> Loans/guarantees matter most where shock is severe
+#        (High-S) and automatic stabilizers are weak (Low soc.net):
+#        liquidity protection substitutes for missing welfare
+#        state buffers.
+#
+# (3) SAMPLE-WINDOW: Above-Flow and DI:S stable
+#
+#   Above-Flow:
+#     Baseline Q4.19-Q2.22   0.544**
+#     Narrow   Q1.20-Q1.22   0.368*
+#     Wide     Q4.19-Q4.22   0.723**
+#     Only 2020              0.729**
+#   -> Above-Flow channel is operative from 2020 onwards
+#      (Only-2020 N=190 delivers the largest coefficient),
+#      ruling out the late-recovery-phase as the source of
+#      identification.
+#
+#   DI push-on-string:
+#     Baseline               -0.041**
+#     Wide                   -0.052**
+#     Narrow / Only 2020     n.s. (power loss at small N)
+#   -> Mechanism stable in full samples; insignificance in
+#      narrow windows reflects loss of S-variation rather than
+#      mechanism failure.
+#
+#   Below-Stock:
+#     Significant only in Baseline (0.26.); insignificant in
+#     Narrow, Wide, Only-2020. Confirms identification
+#     fragility documented in Year-FE and decay analyses:
+#     Below-Stock is empirically weaker than Above-Flow.
+#
+# OVERALL ROBUSTNESS:
+#   Above-Flow + DI push-on-string + S level effect form the
+#   empirically robust core of V14. Below-Stock is theoretically
+#   motivated and survives the main spec but is sensitive to
+#   sample window and time-fixed-effects specifications.
+#   Tightening-loosening asymmetry provides independent
+#   structural support for the AR(1) persistence framing.
+# ============================================================================
+# ALTERNATIVE ESTIMATORS
+# ----------------------------------------------------------------------------
+# ============================================================================
 
 
-
-
-
-
-
-
-
-
-
-
-
-#Regime switching wie bei deb et al
+#==============================================================================
+# Regime switching (Deb et al. 2021): smooth-transition multiplier
+# with logistic regime weights driven by standardised stringency.
 
 df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
 df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
@@ -2416,351 +3351,41 @@ summary(main_v10_agg, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)
 
 
 
-# Standardisierung
+# Standardization (re-using F_z from the aggregated specification above)
 df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
 
-# Smooth transition function (gamma = 1.5 wie Deb et al.)
-# F_z hoch = LOW containment regime; F_z niedrig = HIGH containment regime
+# Smooth transition function (gamma = 1.5 as in Deb et al.)
+# F_z high = LOW containment regime; F_z low = HIGH containment regime
 df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
 
+# Lagged level variants of loans and guarantees, required for the
+# disaggregated Deb-style spec below. Above-the-line lags already exist
+# (constructed in the V14 Step 3 block above).
+df_bin <- df_bin |>
+  group_by(Country) |> arrange(t_idx) |>
+  mutate(
+    F_CP_loans_lag1    = lag(F_CP_loans,    1),
+    F_CP_guar_adj_lag1 = lag(F_CP_guar_adj, 1)
+  ) |> ungroup()
 
 # Regime-dependent multipliers
 main_v10 <- feols(
   y_t_pct ~ y_lag1 + S_mean_tw
-  # CP-above: regime-abhaengig (Cashflow-Channel)
-  + I((1 - F_z) * F_CP_above_3_lag1)    # HIGH containment regime
-  + I(F_z       * F_CP_above_3_lag1)    # LOW containment regime
-  # Loans und Guarantees als Kontrolle (nicht regime-abhaengig)
+  # CP above-the-line: regime-dependent (cash-flow channel)
+  + I((1 - F_z) * F_CP_above_flow_lag1)    # HIGH containment regime
+  + I(F_z       * F_CP_above_flow_lag1)    # LOW containment regime
+  # Loans and guarantees as level controls (not regime-dependent)
   + F_CP_loans_lag1 + F_CP_guar_adj_lag1
-  # DI: regime-abhaengig (Demand-Channel)
-  + I((1 - F_z) * F_DI_lag1)             # HIGH containment regime
-  + I(F_z       * F_DI_lag1)             # LOW containment regime
-  # Tail-Insurance behalten
-  + F_CP_above_3_lag2:y_lag1_recession
+  # DI: regime-dependent (demand channel)
+  + I((1 - F_z) * F_DI_lag1)               # HIGH containment regime
+  + I(F_z       * F_DI_lag1)               # LOW containment regime
+  # Tail insurance (CP * recession spline)
+  + F_CP_above_flow_lag2:y_lag1_recession
   | Country,
   data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
 )
 summary(main_v10, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-
-
-
-
-
-
-
-
-
-
-# === Spec V6: 3-Channel CP-Architektur ===
-# Lag 0: Announcement × S (Confidence-Channel)
-# Lag 1: Strukturerhaltung (Direkt-Wirkung Cashflow)
-# Lag 2: Tail-Insurance (Bilanz-Erhalt)
-
-main_v6 <- feols(
-  y_t_pct ~ y_lag1
-  + S_mean_tw
-  + S_mean_tw:F_CP                     # Lag 0: Announcement-Confidence
-  + F_CP_lag1                          # Lag 1: Direkter Strukturerhalt
-  + F_CP_lag2:y_lag1_recession         # Lag 2: Tail-Insurance
-  + F_DI_lag2
-  | Country + year_only,
-  data = df_bin, 
-  subset = ~ t_idx >= 4 & t_idx <= 14
-)
-summary(main_v6, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-# === Multikollinearitaets-Check ===
-# Korrelation zwischen F_CP und F_CP_lag1 in der Sample-Range
-df_check <- subset(df_bin, t_idx >= 4 & t_idx <= 14)
-cor(df_check$F_CP, df_check$F_CP_lag1, use = "complete.obs")
-cor(df_check$F_CP, df_check$F_CP_lag2, use = "complete.obs")
-cor(df_check$F_CP_lag1, df_check$F_CP_lag2, use = "complete.obs")
-
-# VIF (falls car package verfuegbar)
-# library(car); 
-vif(lm(y_t_pct ~ y_lag1 + S_mean_tw + I(S_mean_tw*F_CP) 
-                    + F_CP_lag1 + I(F_CP_lag2*y_lag1_recession) + F_DI_lag2, 
-                      data = df_check))
-
-# === Vergleich gegen V6-without-announcement ===
-main_v5 <- feols(
-  y_t_pct ~ y_lag1
-  + S_mean_tw*F_CP_lag1
-  + F_CP_lag2:y_lag1_recession
-  + F_DI_lag2
-  | Country + year_only,
-  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
-)
-
-etable(main_v5, main_v6, 
-       cluster = ~ Country, 
-       ssc = ssc(K.adj = TRUE, G.adj = TRUE),
-       fitstat = ~ n + r2 + ar2 + wr2 + rmse)
-
-
-##Define Main Spec, then check weights and think about robustness
-#Für ILQR-> Glatte Approximation am Punkt, iLQR S Hysterie Term entfernen
-#S läuft nur über y_lag1-> Macht Sinn-> S ist ein Shock, F ist ein Stabilisator der über Level und Persistence läuft
-
-
-##Maybe my new specification is not linear
-##Linear Specification
-library(fixest)
-
-ss <- ssc(K.adj = TRUE, G.adj = TRUE)
-sub <- ~ t_idx >= 5 & t_idx <= 14
-
-# 1) Linear baseline (your current main)
-m_lin <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages + Quarter
-  | Country,
-  data = df_bin, subset = sub
-)
-
-# 2) Polynomial augmentation
-m_poly <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + I(F_DI_lag2^2)
-  + F_CP_lag2 + I(F_CP_lag2^2)
-  + p_proj_all_ages + Quarter
-  | Country,
-  data = df_bin, subset = sub
-)
-summary(m_poly, cluster = ~ Country, ssc = ss)
-
-# 3) Joint F-test on the four added terms (Wald, cluster-robust)
-wald(m_poly,
-     c("F_DI_lag2$", "I\\(F_DI_lag2\\^2\\)",
-       "^F_CP_lag2$", "I\\(F_CP_lag2\\^2\\)"),
-     cluster = ~ Country, ssc = ss)
-
-# Functional form check: polynomial augmentation
-# Individual terms insignificant (p = 0.23, 0.96); joint Wald rejects
-# (p = 1.4e-9). Multicollinearity signature: VIF F_CP = 15.2, driven
-# by high-leverage observations at the top of the deployment distribution.
-# Trimming above the 95th percentile removes joint significance (p = 0.41).
-# eta_p stable across specifications (-0.019, p = 0.003).
-# Linear-in-fiscal specification justified within empirical support.
-
-##joint significance drops-> works
-
-
-# -----------------------------------------------------------------------------
-#  SPLIT-CP REGRESSION ON OUTPUT (16.04.2026)
-#  Same V3 spec as `main`, but the CP channel is split into
-#  above-the-line and below-the-line components, each interacted with
-#  y_lag1. NB: this block reuses pdataD (built later in the DEBT section)
-#  as the source - if running top to bottom, the DEBT section's pdataD
-#  must already exist before this point.
-# -----------------------------------------------------------------------------
-# Sort by country and chronological time before constructing lags.
-##add the aboce and below split
-
-
-
-# -----------------------------------------------------------------------------
-#  MUNDLAK / CHAMBERLAIN REGRESSION
-#  Decompose every regressor into a within-country component (deviations
-#  from the country mean) and a between-country component (the country
-#  mean itself), then run a pooled OLS that includes BOTH. The coefficients
-#  on the within terms are numerically identical to the FE estimates; the
-#  coefficients on the between terms test whether between-country
-#  variation moves the dependent variable in the same direction. A
-#  significantly different between coefficient implies omitted-variable
-#  bias on the cross-section.
-# -----------------------------------------------------------------------------
-df <- pdataY %>%
-  filter(t_idx >= 5 & t_idx <= 14) %>%
-  left_join(df_bin %>% select(Country, t_idx, y_lag1_recession), 
-            by = c("Country", "t_idx")) %>%
-  mutate(F_CP_x_recession = F_CP_lag2 * y_lag1_recession)
-# Country-means (between components)
-df <- df %>%
-  group_by(Country) %>%
-  mutate(
-    y_lag1_between           = mean(y_lag1,             na.rm = TRUE),
-    S_mean_tw_between        = mean(S_mean_tw,          na.rm = TRUE),
-    F_CP_x_recession_between = mean(F_CP_x_recession,   na.rm = TRUE),
-    F_DI_lag2_between        = mean(F_DI_lag2,          na.rm = TRUE),
-    p_proj_between           = mean(p_proj_all_ages,    na.rm = TRUE)
-  ) %>%
-  # Within components
-  mutate(
-    y_lag1_within           = y_lag1            - y_lag1_between,
-    S_mean_tw_within        = S_mean_tw         - S_mean_tw_between,
-    F_CP_x_recession_within = F_CP_x_recession  - F_CP_x_recession_between,
-    F_DI_lag2_within        = F_DI_lag2         - F_DI_lag2_between,
-    p_proj_within           = p_proj_all_ages   - p_proj_between
-  ) %>%
-  ungroup()
-
-# Mundlak regression matching V4: only Quarter FE, no S*y interaction,
-# CP enters through recession-asymmetric spline only
-mundlak_model <- feols(
-  y_t_pct ~ 
-    # Within components (identify the within-effect)
-    y_lag1_within + S_mean_tw_within +
-    F_CP_x_recession_within + F_DI_lag2_within + p_proj_within +
-    # Between components (identify the between-effect)
-    y_lag1_between + S_mean_tw_between +
-    F_CP_x_recession_between + F_DI_lag2_between + p_proj_between
-  | Quarter,
-  data = df,
-  cluster = ~ Country,
-  ssc = ssc(adj = TRUE, cluster.adj = TRUE)
-)
-summary(mundlak_model)
-
-# Formal test of equal within and between coefficients
-# (Hausman-style: reject => between component contaminated by selection)
-library(car)
-linearHypothesis(mundlak_model,
-                 c("y_lag1_within - y_lag1_between = 0",
-                   "S_mean_tw_within - S_mean_tw_between = 0",
-                   "F_CP_x_recession_within - F_CP_x_recession_between = 0",
-                   "F_DI_lag2_within - F_DI_lag2_between = 0"),
-                 vcov = vcov(mundlak_model, cluster = ~ Country))
-
-#Hausman-Rejection zeigt Selektion auf Crisis-Severity
-
-# -----------------------------------------------------------------------------
-#  WILD-CLUSTER BOOTSTRAP - V4 (asymmetric persistence-channel CP)
-#  With G = 38 country clusters the asymptotic clustered SEs may
-#  under-cover. We re-test the V4 persistence channel
-#  (F_CP_lag2 * y_lag1_recession) using the wild-cluster bootstrap-t
-#  (Cameron-Gelbach-Miller 2008) implemented in fwildclusterboot.
-# -----------------------------------------------------------------------------
-library(fwildclusterboot)
-
-# Use Q4.2019 - Q2.2022 for slightly larger bootstrap panel
-main_sample <- pdataY %>% filter(t_idx >= 4 & t_idx <= 14)
-
-# Ensure y_lag1_recession and the spline term exist
-if (!"y_lag1_recession" %in% names(main_sample)) {
-  main_sample <- main_sample %>%
-    left_join(df_bin %>% select(Country, t_idx, y_lag1_recession),
-              by = c("Country", "t_idx"))
-}
-main_sample <- main_sample %>%
-  mutate(F_CP_x_recession = F_CP_lag2 * y_lag1_recession)
-
-# fwildclusterboot requires factors for cluster lookups
-main_sample$Country <- as.factor(main_sample$Country)
-main_sample$Quarter <- as.factor(main_sample$Quarter)
-
-# Re-fit V4 model on bootstrap sample
-y_feols_p <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw + F_CP_x_recession + F_DI_lag2 +
-    p_proj_all_ages | Country + Quarter,
-  data = main_sample, vcov = ~ Country
-)
-summary(y_feols_p, cluster = ~ Country, 
-        ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-# Wild-cluster bootstrap-t on the V4 persistence channel
-set.seed(16031995)
-wild_fix <- boottest(
-  y_feols_p, param = "F_CP_x_recession", clustid = c("Country"),
-  B = 999999, type = "rademacher", impose_null = TRUE,
-  p_val_type = "two-tailed"
-)
-summary(wild_fix)
-wild_fix$t_stat
-summary(y_feols_p, cluster = ~ Country, 
-        ssc = ssc(K.adj = FALSE, G.adj = TRUE))$coeftable["F_CP_x_recession", 3]
-
-# -----------------------------------------------------------------------------
-#  Cluster-jackknife outlier diagnostic (summclust)
-# -----------------------------------------------------------------------------
-sc <- summclust(y_feols_p, params = "F_CP_x_recession", cluster = ~ Country)
-summary(sc)
-plot(sc)
-
-# Refit without leverage clusters identified by summclust
-# (update country list based on actual summclust output)
-leverage_countries <- c("DNK", "ITA")  # adjust after inspection
-
-y_wo_outliers <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw + F_CP_x_recession + F_DI_lag2 +
-    p_proj_all_ages | Country + Quarter,
-  data = main_sample %>%
-    filter(!Country %in% leverage_countries) %>%
-    mutate(Country = droplevels(factor(Country))),
-  cluster = ~ Country
-)
-
-retest <- boottest(
-  y_wo_outliers, param = "F_CP_x_recession", clustid = c("Country"),
-  B = 99999, type = "rademacher", impose_null = TRUE,
-  p_val_type = "two-tailed"
-)
-summary(retest)
-
-# Note on DI fragility: ~54% of country-quarter cells are zero, lag-2
-# structure further shrinks the effective sample, and magnitudes are
-# small (mean 0.33 vs. 1.64 pp GDP for CP). Treat DI as fragile.
-# Conclusion: feols with AER-style clustered SEs is the lead estimator;
-# wild-cluster bootstrap is reported as robustness.
-
-
-##Lag Structure
-df_bin <- df_bin %>%
-  arrange(Country, t_idx) %>%
-  group_by(Country) %>%
-  mutate(
-    F_CP_lag3 = dplyr::lag(F_CP, 3),
-    F_DI_lag3 = dplyr::lag(F_DI, 3)
-  ) %>%
-  ungroup()
-
-m_lags <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw 
-  + I(F_CP * y_lag1_recession)
-  + I(F_CP_lag1 * y_lag1_recession)
-  + I(F_CP_lag2 * y_lag1_recession)
-  + I(F_CP_lag3 * y_lag1_recession)
-  + F_DI + F_DI_lag1 + F_DI_lag2 + F_DI_lag3
-  + p_proj_all_ages | Country + Quarter,
-  data = df_bin, subset = ~ t_idx >= 6 & t_idx <= 14
-)
-summary(m_lags, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-# AIC/BIC comparison vs. main spec
-cat("AIC main:", AIC(main_full), " | AIC distributed:", AIC(m_lags), "\n")
-cat("BIC main:", BIC(main_full), " | BIC distributed:", BIC(m_lags), "\n")
-
-# Distributed-lag specification with F_CP and F_DI at lags 0-3 identifies
-# lag 2 as the only significant horizon for the CP persistence channel
-# (eta_p^(2) = -0.0096, p = 0.004); lags 0, 1, and 3 are individually
-# and jointly insignificant. The lag-2 specification is therefore
-# data-selected, not imposed. AIC and BIC favor the distributed-lag
-# model (AIC 1419 vs 1543; BIC 1637 vs 1748), but the improvement is
-# fully attributable to the lag-2 coefficient. DI lags all insignificant,
-# consistent with the supply-constrained interpretation of attenuated
-# fiscal multipliers.
-
-library(plm)
-# df_bin$Quarter was re-leveled to Q4.2019..Q2.2022 above, so rows outside
-# that range carry NA Quarter and break pgmm()'s panel index. Build a clean
-# panel for GMM and wrap in tryCatch (GMM is reported as not interpretable
-# below; failure here must not halt downstream debt / descriptive / export blocks).
-df_bin_gmm <- df_bin %>%
-  filter(!is.na(Quarter), !is.na(t_idx), t_idx >= 5 & t_idx <= 14)
-
-ab_sys <- tryCatch(
-  pgmm(y_t_pct ~ lag(y_t_pct, 1) + S_mean_tw
-       + I(F_CP_lag2 * y_lag1_recession) + F_DI_lag2 + p_proj_all_ages
-       | lag(y_t_pct, 2:4),
-       data = df_bin_gmm, index = c("Country", "t_idx"),
-       effect = "twoways", model = "twosteps",
-       transformation = "ld"),
-  error = function(e) { message("pgmm() failed: ", conditionMessage(e)); NULL }
-)
-if (!is.null(ab_sys)) summary(ab_sys, robust = TRUE)
 
 # GMM Diagnostics fail under short pandemic window (T=10):
 # - Difference-GMM: AR(2) rejected (p = 0.001)
@@ -2778,37 +3403,12 @@ if (!is.null(ab_sys)) summary(ab_sys, robust = TRUE)
 #Robust to 10 years Trend calculation->see other script
 
 # ============================================================
-# CRV3 (summclust) — heteroskedasticity- and cluster-robust
-# Bell-McCaffrey (2002) correction; less oversized than CRV1
-# at G = 38 clusters
-# ============================================================
-library(summclust)
-
-# ============================================================
-# CRV3 Robustness via clubSandwich (Bell-McCaffrey 2002)
-# Better-behaved than CRV1 at G = 38 clusters
-# ============================================================
-library(clubSandwich)
-library(fixest)
-
-
-#crv2 <- coef_test(m_lm, vcov = "CR2", cluster = df_sub$Country,
-                  #test = "Satterthwaite")
-
-#cat("\n=== CRV1 vs CRV2 (persistence channel) ===\n")
-#print(rbind(
-  #CRV1 = crv1[crv1$Coef == "F_CP_x_rec", ],
-  #CRV2 = crv2[crv2$Coef == "F_CP_x_rec", ]
-#))
-
-# CRV1 vs CRV2 (Bell-McCaffrey 2002): eta_p estimates are numerically
-# identical (-0.0104) with SE differing only at the 5th decimal
-# (0.00294 vs 0.00295). Satterthwaite-corrected dof shrinks from
-# 9.25 to 7.35, p-value 0.006 -> 0.009. Significance preserved at 1%.
-# eta_p is robust to small-sample cluster adjustment despite G = 38.
-
-# ============================================================
-# Subsample robustness
+# Subsample robustness — regional groupings on V14 spec
+# ------------------------------------------------------------
+# Re-estimates the V14 main specification on three regional
+# subsamples (G7, EU, advanced economies). Complements the
+# characteristic-based splits in the V14 robustness battery
+# (High-S vs Low-S, High-income vs Low-income, etc.).
 # ============================================================
 
 # G7
@@ -2816,12 +3416,12 @@ g7 <- c("USA", "CAN", "GBR", "DEU", "FRA", "ITA", "JPN")
 df_g7 <- df_bin %>% filter(Country %in% g7)
 
 m_g7 <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw 
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_g7, 
-  subset = ~ t_idx >= 5 & t_idx <= 14
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_g7,
+  subset = ~ t_idx >= 4 & t_idx <= 14
 )
 
 # EU only (OECD-EU members)
@@ -2830,159 +3430,39 @@ eu <- c("AUT","BEL","CZE","DEU","DNK","ESP","EST","FIN","FRA","GRC",
         "SVN","SWE")
 df_eu <- df_bin %>% filter(Country %in% eu)
 m_eu <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw 
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_eu, 
-  subset = ~ t_idx >= 5 & t_idx <= 14 
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_eu,
+  subset = ~ t_idx >= 4 & t_idx <= 14
 )
 
 # Advanced economies only (exclude emerging-market OECD)
 emerging <- c("MEX", "CHL", "COL", "TUR", "CRI")
-df_emerging<-df_bin %>% filter(Country %in% emerging)
+df_adv <- df_bin %>% filter(!Country %in% emerging)
 m_adv <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw 
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_emerging, 
-  subset = ~ t_idx >= 5 & t_idx <= 14)
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_adv,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
 
-etable(main_full, m_g7, m_eu, m_adv,
+etable(v14, m_g7, m_eu, m_adv,
        cluster = ~ Country,
        ssc = ssc(adj = TRUE, cluster.adj = TRUE),
-       keep = c("F_CP_lag2", "S_mean_tw", "F_DI_lag2"),
-       headers = c("Main", "G7", "EU", "Advanced"))
-# Subsample robustness: sign of eta_p stable across G7 (-0.005), EU (-0.008),
-# and advanced-only (-0.025) subsamples. Loss of significance in G7 (N=70)
-# and advanced-only (N=50) reflects reduced power, not absence of effect;
-# EU subsample (N=220) replicates the headline result at p < 0.05.
+       keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
+                "F_DI_lag1", "F_DI_lag1:S_mean_tw"),
+       headers = c("Main (V14)", "G7", "EU", "Advanced"))
 
-# -----------------------------------------------------------------------------
-#  LOCAL PROJECTIONS - V4 (asymmetric persistence-channel CP)
-#
-#  V4 changes vs. V3:
-#    - CP enters only through the recession-asymmetric spline:
-#        F_CP_lag2 * y_lag1_recession  (active only when y_lag1 < 0)
-#    - No S * y_lag1 interaction (psi removed in V4)
-#    - DI lag-2 level effect retained
-#
-#  Per-horizon specification:
-#    y_{i,k+h} = a_i^h + d_k^h + rho^h * y_{i,k-1}
-#              + eta_p^h * F^CP_{i,k-2} * 1{y_{i,k-1}<0}
-#              + b_S^h * S_{ik} + b_DI^h * F^DI_{i,k-2}
-#              + b_d^h * d_{ik} + eps_{ik}^h
-#
-#  Key prediction: eta_p^h < 0 and growing in magnitude for h = 0..3.
-# -----------------------------------------------------------------------------
-
-cat("\n========================================\n")
-cat("  LOCAL PROJECTIONS (V4 Robustness)\n")
-cat("========================================\n")
-
-# --- Create leads ---
-pdataY <- pdataY %>%
-  group_by(Country) %>%
-  arrange(t_idx) %>%
-  mutate(
-    y_lead0 = y_t_pct,
-    y_lead1 = lead(y_t_pct, 1),
-    y_lead2 = lead(y_t_pct, 2),
-    y_lead3 = lead(y_t_pct, 3)
-  ) %>%
-  ungroup()
-
-# Ensure y_lag1_recession exists in pdataY (merge from df_bin if needed)
-if (!"y_lag1_recession" %in% names(pdataY)) {
-  pdataY <- pdataY %>%
-    left_join(df_bin %>% select(Country, t_idx, y_lag1_recession),
-              by = c("Country", "t_idx"))
-}
-
-# Construct the V4 spline term explicitly
-pdataY <- pdataY %>%
-  mutate(F_CP_x_recession = F_CP_lag2 * y_lag1_recession)
-
-horizons <- 0:3
-
-# --- V4 parameter sets ---
-# (a) Persistence interaction: the single V4 channel
-persist_params <- c("F_CP_x_recession")
-persist_labels <- c("CP persistence (eta_p): F_CP(t-2) x 1{y(t-1)<0}")
-
-# (b) Direct effects: level channels (CP level no longer in V4)
-direct_params  <- c("S_mean_tw", "F_DI_lag2", "p_proj_all_ages")
-direct_labels  <- c("Containment (S)", 
-                    "Demand Injection (F_DI)", 
-                    "Fear term (d)")
-
-lp_persist <- data.frame()
-lp_direct  <- data.frame()
-
-for (h in horizons) {
-  lead_var <- paste0("y_lead", h)
-  
-  # V4 LP: spline only, no S*y, no F_CP level
-  fml_lp <- as.formula(paste0(
-    lead_var, " ~ y_lag1 + F_CP_x_recession",
-    " + S_mean_tw + F_DI_lag2 + p_proj_all_ages",
-    " | Country + Quarter"))
-  
-  m_lp <- feols(fml_lp, 
-                data = pdataY, 
-                subset = pdataY$t_idx >= 5 & pdataY$t_idx <= 14, 
-                cluster = ~Country,
-                ssc = ssc(adj = TRUE, cluster.adj = TRUE))
-  ct <- summary(m_lp)$coeftable
-  
-  # Extract persistence interaction
-  for (i in seq_along(persist_params)) {
-    pname <- persist_params[i]
-    if (!pname %in% rownames(ct)) next
-    lp_persist <- rbind(lp_persist, data.frame(
-      h = h, param = persist_labels[i],
-      coef = ct[pname, "Estimate"],
-      se   = ct[pname, "Std. Error"],
-      pval = ct[pname, "Pr(>|t|)"]
-    ))
-  }
-  
-  # Extract direct effects
-  for (i in seq_along(direct_params)) {
-    pname <- direct_params[i]
-    if (!pname %in% rownames(ct)) next
-    lp_direct <- rbind(lp_direct, data.frame(
-      h = h, param = direct_labels[i],
-      coef = ct[pname, "Estimate"],
-      se   = ct[pname, "Std. Error"],
-      pval = ct[pname, "Pr(>|t|)"]
-    ))
-  }
-}
-
-# --- Confidence intervals ---
-add_ci <- function(df) {
-  df %>% mutate(
-    ci90_lo = coef - 1.645 * se, ci90_hi = coef + 1.645 * se,
-    ci95_lo = coef - 1.96  * se, ci95_hi = coef + 1.96  * se,
-    sig = ifelse(pval < 0.01, "***", ifelse(pval < 0.05, "**", 
-                                            ifelse(pval < 0.1, "*", "")))
-  )
-}
-lp_persist <- add_ci(lp_persist)
-lp_direct  <- add_ci(lp_direct)
-
-# --- Print results ---
-cat("\n--- Persistence Channel (V4 core) ---\n")
-print(lp_persist %>% 
-        mutate(across(c(coef, se, pval), ~round(., 5))) %>%
-        select(h, param, coef, se, pval, sig))
-
-cat("\n--- Direct / Level Effects ---\n")
-print(lp_direct %>% 
-        mutate(across(c(coef, se, pval), ~round(., 5))) %>%
-        select(h, param, coef, se, pval, sig))
+# INTERPRETATION (to be re-checked after re-run on V14):
+#   Compare Above-Flow, Below-Stock, and DI:S coefficients across regional
+#   subsamples against the V14 baseline. Power loss in G7 (N small) and
+#   advanced-only is expected; EU subsample should approximate the
+#   headline pattern. Significance in regional cuts reflects sample size,
+#   not mechanism failure.
 
 
 ## ========================================================================
@@ -3052,182 +3532,6 @@ print(p_combined)
 
 ##Problem mit den lags und den daten-> wenn in paper dann mit periode vor covid auch und auch danach
 ##Plot wichtig??
-
-################################################################################
-
-# ============================================================
-# V4 Robustness — Remaining Specifications
-# ============================================================
-
-main_fml_v4 <- y_t_pct ~ y_lag1 + S_mean_tw + 
-  I(F_CP_lag2 * y_lag1_recession) + F_DI_lag2 + p_proj_all_ages | 
-  Country + Quarter
-
-main_sub <- ~ t_idx >= 5 & t_idx <= 14
-
-# --- (1) ASYMMETRY: tightening vs loosening ---
-df_bin <- df_bin %>%
-  group_by(Country) %>%
-  arrange(t_idx) %>%
-  mutate(
-    S_tightening = pmax(S_mean_tw - lag(S_mean_tw), 0),
-    S_loosening  = pmin(S_mean_tw - lag(S_mean_tw), 0)
-  ) %>%
-  ungroup()
-
-m_asym <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw + S_tightening + S_loosening
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_bin, subset = main_sub, cluster = ~ Country
-)
-summary(m_asym, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-# --- (2) SAMPLE SPLITS ---
-median_S    <- median(aggregate(S_mean_tw ~ Country, df_bin, mean)$S_mean_tw, na.rm = TRUE)
-median_gdp  <- median(df_bin$rGDP_pc_2019, na.rm = TRUE)
-median_debt <- median(df_bin$debt_2019, na.rm = TRUE)
-
-country_S <- aggregate(S_mean_tw ~ Country, df_bin, mean)
-hi_S <- country_S$Country[country_S$S_mean_tw >= median_S]
-lo_S <- country_S$Country[country_S$S_mean_tw <  median_S]
-
-hi_inc <- unique(df_bin$Country[!is.na(df_bin$rGDP_pc_2019) & df_bin$rGDP_pc_2019 >= median_gdp])
-lo_inc <- unique(df_bin$Country[!is.na(df_bin$rGDP_pc_2019) & df_bin$rGDP_pc_2019 <  median_gdp])
-
-hi_dbt <- unique(df_bin$Country[!is.na(df_bin$debt_2019) & df_bin$debt_2019 >= median_debt])
-lo_dbt <- unique(df_bin$Country[!is.na(df_bin$debt_2019) & df_bin$debt_2019 <  median_debt])
-
-high_socnet <- c("FRA","FIN","BEL","DNK","ITA","AUT","SWE","DEU","NOR",
-                 "ESP","GRC","PRT","LUX","NLD","JPN","GBR","CZE","SVN","POL")
-low_socnet  <- c("USA","KOR","MEX","CHL","TUR","IRL","AUS","NZL","CAN",
-                 "CHE","ISR","COL","CRI","EST","LVA","LTU","HUN","SVK","ISL")
-
-split_list <- list(
-  list(nm = "High-S",         cty = hi_S),
-  list(nm = "Low-S",          cty = lo_S),
-  list(nm = "High-income",    cty = hi_inc),
-  list(nm = "Low-income",     cty = lo_inc),
-  list(nm = "High pre-debt",  cty = hi_dbt),
-  list(nm = "Low pre-debt",   cty = lo_dbt),
-  list(nm = "High soc.net",   cty = high_socnet),
-  list(nm = "Low soc.net",    cty = low_socnet)
-)
-
-split_models <- list()
-for (sp in split_list) {
-  df_sp <- df_bin %>% filter(Country %in% sp$cty)
-  m_sp <- tryCatch(
-    feols(main_fml_v4, data = df_sp, subset = main_sub, cluster = ~ Country),
-    error = function(e) NULL
-  )
-  if (!is.null(m_sp)) split_models[[sp$nm]] <- m_sp
-}
-
-cat("\n=== Sample splits: V4 ===\n")
-etable(split_models,
-       cluster = ~ Country,
-       ssc = ssc(adj = TRUE, cluster.adj = TRUE),
-       keep = c("S_mean_tw", "F_CP_lag2", "F_DI_lag2"))
-
-# --- (3) SAMPLE-WINDOW ROBUSTNESS ---
-m_baseline <- feols(main_fml_v4, data = df_bin, subset = main_sub, cluster = ~ Country)
-m_narrow   <- feols(main_fml_v4, data = df_bin, 
-                    subset = ~ t_idx >= 5 & t_idx <= 13, cluster = ~ Country)
-m_wide     <- feols(main_fml_v4, data = df_bin, 
-                    subset = ~ t_idx >= 4 & t_idx <= 16, cluster = ~ Country)
-m_2020     <- feols(main_fml_v4, data = df_bin, 
-                    subset = ~ t_idx >= 4 & t_idx <= 8, cluster = ~ Country)
-
-cat("\n=== Sample-window robustness: V4 ===\n")
-etable(list(
-  "Baseline Q1.20-Q2.22" = m_baseline,
-  "Narrow Q1.20-Q1.22"   = m_narrow,
-  "Wide Q4.19-Q4.22"     = m_wide,
-  "Only 2020"            = m_2020
-),
-cluster = ~ Country,
-ssc = ssc(adj = TRUE, cluster.adj = TRUE),
-keep = c("S_mean_tw", "F_CP_lag2", "F_DI_lag2"))
-
-
-# ============================================================
-# Robustness Interpretation - V4
-# ============================================================
-#
-# (1) ASYMMETRY: tightening vs loosening
-#   Delta S+ = -0.072*** (p < 0.001)
-#   Delta S- = -0.022    (p = 0.15)
-#   Tightening contracts output ~3.3x more than loosening
-#   expands it. Direct evidence for hysteresis: capacity
-#   destroyed during tightening does not return during
-#   loosening. Provides structural justification for the
-#   persistence channel; without CP, the ratchet effect
-#   compounds across waves.
-#
-# (2) SAMPLE SPLITS: heterogeneity is economically interpretable
-#   High-S          eta_p = -0.014**   identification only where
-#   Low-S           eta_p = -0.001     shock binds (V4 prediction
-#                                       confirmed)
-#   High-income     eta_p = -0.007
-#   Low-income      eta_p = -0.017***  CP more effective at lower
-#                                       income levels
-#   High pre-debt   eta_p = -0.011**
-#   Low pre-debt    eta_p = -0.006
-#   High soc.net    eta_p = -0.009*
-#   Low soc.net     eta_p = -0.018.    CP substitutes for missing
-#                                       automatic stabilizers
-#
-#   The High-S/Low-S split is the cleanest validation of the
-#   asymmetric spline: eta_p is identified only where there is
-#   shock to absorb. The soc.net split shows CP and automatic
-#   stabilizers act as substitutes - countries with strong
-#   gamma_y need less discretionary CP.
-#
-# (3) SAMPLE-WINDOW: eta_p remarkably stable
-#   Baseline Q1.20-Q2.22  -0.0104***
-#   Narrow   Q1.20-Q1.22  -0.0097**
-#   Wide     Q4.19-Q4.22  -0.0128***
-#   Only 2020             -0.0094**
-#   Range across windows: 0.003. The persistence channel is
-#   already fully operative in 2020 (only-2020 sample with N=190
-#   delivers the same coefficient), ruling out the alternative
-#   that the result is an artifact of the late-pandemic phase.
-
-
-
-# Alternative S measures
-m_Smax <- feols(
-  y_t_pct ~ y_lag1 + S_max_tw 
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_bin, subset = main_sub, cluster = ~ Country
-)
-
-m_Slag <- feols(
-  y_t_pct ~ y_lag1 + S_lag1 
-  + I(F_CP_lag2 * y_lag1_recession)
-  + F_DI_lag2 + p_proj_all_ages
-  | Country + Quarter,
-  data = df_bin, subset = main_sub, cluster = ~ Country
-)
-
-etable(list("Baseline (S_mean)" = m_baseline, 
-            "S_max" = m_Smax, 
-            "S_lag1" = m_Slag),
-       cluster = ~ Country,
-       ssc = ssc(adj = TRUE, cluster.adj = TRUE),
-       keep = c("S_", "F_CP_lag2", "F_DI_lag2"))
-
-
-# Alternative S measures: eta_p stable across S_mean, S_max, S_lag1.
-# alpha_S sensitivity to S construction confirms the case for
-# external calibration of containment costs in the iLQR.
-
-
-
 # -----------------------------------------------------------------------------
 #  STEP 9 - UNEMPLOYMENT RATE AS ALTERNATIVE DEPENDENT VARIABLE (V4)
 #  Re-estimate V4 spec using OECD harmonised quarterly UR (UNE_LF_Q) in
@@ -3656,18 +3960,35 @@ waldtest(debt_mundlak,
 # spending data) and Deb et al. (2021, IMF WP) (country-FE with parametric
 # time controls).
 #===============================================================================
+pdataD <- pdataD |>
+  group_by(Country) |> arrange(t_idx) |>
+  mutate(F_H_lag1 = lag(F_H, 1)) |>
+  ungroup()
 
+pdataD <- pdataD |>
+  group_by(Country) |> arrange(t_idx) |>
+  mutate(F_CP_below_flow_lag1 = lag(F_CP_below_flow, 1)) |>
+  ungroup()
 
+pdataD <- df_bin |>
+  mutate(F_CP_below_flow = F_CP_loans_adj + F_CP_guar_adj)
+
+pdataD <- pdataD |> filter(!is.na(Quarter), !is.na(Country))
 # -----------------------------------------------------------------------------
 #  MAIN SPECIFICATION (V4 frozen 06.05.2026)
 # -----------------------------------------------------------------------------
 debtFE <- plm(
-  debt_dR ~ y_t_pct + F_CP + F_DI_lag1 + as.numeric(Quarter),
+  debt_dR ~ y_t_pct + F_CP_above_flow +F_CP_below_flow + F_DI_lag1,
   data = pdataD, index = c("Country","Quarter"),
   model = "within", effect = "individual"
 )
 coeftest(debtFE, vcov = vcovHC(debtFE, cluster = "group", type = "HC1"))
+#iLQR dieses verwendet 11.05.2026
 
+#debt_v14_disagg <- feols(debt_dR ~ y_t_pct 
+#                         + F_CP_above_3 + F_CP_loans_adj + F_CP_guar_adj
+#                         + F_DI_lag1 | Country,
+#                         data = pdataD)
 
 ##DEBT FE
 cfe_iso <- c('AUS','AUT','BEL','CAN','CHE','CHL','COL','CRI',
