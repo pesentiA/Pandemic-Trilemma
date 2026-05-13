@@ -1,0 +1,166 @@
+==============================================================================
+  DAILY-DATA PROBE — 2026-05-13 14:48:34
+==============================================================================
+
+Objects available:
+  che_vax                 class=data.frame  dim=10 x 3
+  fm                      class=tbl_df/tbl/data.frame  dim=1829 x 26
+  google_mobility_d       class=data.frame  dim=216228 x 5
+  hosp_d                  class=tbl_df/tbl/data.frame  dim=31963 x 10
+  hosp_w                  class=tbl_df/tbl/data.frame  dim=5647 x 5
+  i                       class=integer  dim=NA
+  idx                     class=integer  dim=NA
+  lux_vax                 class=data.frame  dim=10 x 3
+  oxd_d                   class=data.frame  dim=41648 x 51
+  oxd_spatial_d           class=data.frame  dim=202760 x 160
+  p_values_oecd_w         class=data.frame  dim=11171 x 43
+  panel_hosp              class=tbl_df/tbl/data.frame  dim=4916 x 41
+  panel_w                 class=tbl_df/tbl/data.frame  dim=5659 x 43
+  pop                     class=tbl_df/tbl/data.frame  dim=38 x 3
+  pop_che                 class=numeric  dim=NA
+  pop_lux                 class=numeric  dim=NA
+  qdata                   class=tbl_df/tbl/data.frame  dim=1520 x 91
+  theme_aer               class=theme/ggplot2::theme/gg/S7_object  dim=NA
+  theme_aer_bar           class=theme/ggplot2::theme/gg/S7_object  dim=NA
+  theta_quarterly_full    class=tbl_df/tbl/data.frame  dim=456 x 16
+
+------------------------------------------------------------------------------
+  oxd_d
+------------------------------------------------------------------------------
+  dim = 41648 x 51
+  columns (first 60): Country, Date, StringencyIndex_PopWeighted, StringencyH1_PopWeighted, ControlIndex_PopWeighted, ContainmentHealthIndex_PopWeighted, StringencyIndex_NV, StringencyIndex_V, StringencyH1_NV, StringencyH1_V, ControlIndex_NV, ControlIndex_V, StringencyIndex_NonVaccinated, StringencyIndex_Vaccinated, StringencyIndex_SimpleAverage, StringencyIndex_WeightedAverage, ContainmentHealthIndex_NonVaccinated, ContainmentHealthIndex_Vaccinated, ContainmentHealthIndex_SimpleAverage, ContainmentHealthIndex_WeightedAverage, GovernmentResponseIndex_NonVaccinated, GovernmentResponseIndex_Vaccinated, GovernmentResponseIndex_SimpleAverage, GovernmentResponseIndex_WeightedAverage, PopulationVaccinated, vax_rate, C1_NV_adj, C2_NV_adj, C3_NV_adj, C4_NV_adj, C5_NV_adj, C6_NV_adj, C7_NV_adj, C8_NV_adj, C1_V_adj, C2_V_adj, C3_V_adj, C4_V_adj, C5_V_adj, C6_V_adj, C7_V_adj, C8_V_adj, H1_adj, H2_adj, H3_adj, H6_PopWeighted, H7_adj, H8_PopWeighted, Year, Quarter_Num, Quarter
+
+  Inferred sampling frequency: median 1 d  (5/50/95: 1 / 1 / 1)
+  Date range: 2020-01-01 -> 2022-12-31
+  Unique countries: 38
+  Variable summaries (selected):
+    StringencyIndex_PopWeighted  N=41648  NA=0  min=0  med=33.3  max=95.8
+
+------------------------------------------------------------------------------
+  oxd_spatial_d
+------------------------------------------------------------------------------
+  dim = 202760 x 160
+  columns (first 60): CountryName, CountryCode, RegionName, RegionCode, Jurisdiction, Date, C1E_School.closing, C1E_Flag, C1NV_School.closing, C1NV_Flag, C1V_School.closing, C1V_Flag, C1M_School.closing, C1M_Flag, C1_Notes, C2E_Workplace.closing, C2E_Flag, C2NV_Workplace.closing, C2NV_Flag, C2V_Workplace.closing, C2V_Flag, C2M_Workplace.closing, C2M_Flag, C2_Notes, C3E_Cancel.public.events, C3E_Flag, C3NV_Cancel.public.events, C3NV_Flag, C3V_Cancel.public.events, C3V_Flag, C3M_Cancel.public.events, C3M_Flag, C3_Notes, C4E_Restrictions.on.gatherings, C4E_Flag, C4NV_Restrictions.on.gatherings, C4NV_Flag, C4V_Restrictions.on.gatherings, C4V_Flag, C4M_Restrictions.on.gatherings, C4M_Flag, C4_Notes, C5E_Close.public.transport, C5E_Flag, C5NV_Close.public.transport, C5NV_Flag, C5V_Close.public.transport, C5V_Flag, C5M_Close.public.transport, C5M_Flag, C5_Notes, C6E_Stay.at.home.requirements, C6E_Flag, C6NV_Stay.at.home.requirements, C6NV_Flag, C6V_Stay.at.home.requirements, C6V_Flag, C6M_Stay.at.home.requirements, C6M_Flag, C6_Notes
+
+  (no Country+date pair found — skipping freq inference)
+
+------------------------------------------------------------------------------
+  hosp_d
+------------------------------------------------------------------------------
+  dim = 31963 x 10
+  columns (first 60): Country, date, Daily.ICU.occupancy, Daily.ICU.occupancy.per.million, Daily.hospital.occupancy, Daily.hospital.occupancy.per.million, Weekly.new.hospital.admissions, Weekly.new.hospital.admissions.per.million, Weekly.new.ICU.admissions, Weekly.new.ICU.admissions.per.million
+
+  Inferred sampling frequency: median 1 d  (5/50/95: 1 / 1 / 1)
+  Date range: 2020-01-06 -> 2024-08-12
+  Unique countries: 33
+
+------------------------------------------------------------------------------
+  google_mobility_d
+------------------------------------------------------------------------------
+  dim = 216228 x 5
+  columns (first 60): country, date, place, trend, entity
+
+  Inferred sampling frequency: median 1 d  (5/50/95: 1 / 1 / 1)
+  Date range: 2020-02-15 -> 2022-10-15
+  Unique countries: 37
+
+------------------------------------------------------------------------------
+  panel_w
+------------------------------------------------------------------------------
+  dim = 5659 x 43
+  columns (first 60): Country, isoyr, isowk, S_mean, S_max, n_days, date, time, p_proj, excess, expected, observed, p_15_64, p_65_74, p_75_84, p_85p, cases_w, deaths_w, pop_th, pop, excess_pm, deaths_confirmed_pm, cases_pm, wave, wave_label, wave_coarse, ifr, ifr_lo, ifr_hi, rho_w, rho_w_lo, rho_w_hi, d_pc, d_lead2, d_lead3, d_lead4, theta_hat, theta_hat_l2, theta_hat_l4, theta_hat_next, theta_predicted, theta_hat_ifr_lo, theta_hat_ifr_hi
+
+  Inferred sampling frequency: median 7 d  (5/50/95: 7 / 7 / 7)
+  Date range: 2020-03-01 -> 2022-12-26
+  Unique countries: 38
+  Variable summaries (selected):
+    S_mean                     N=5659  NA=0  min=0  med=0.346  max=0.958
+    S_max                      N=5659  NA=0  min=0  med=0.354  max=0.958
+    p_proj                     N=5180  NA=479  min=-31.4  med=6.97  max=169
+    excess                     N=5180  NA=479  min=-4.06e+03  med=108  max=2.85e+04
+    cases_w                    N=5659  NA=0  min=0  med=1.05e+04  max=5.64e+06
+    deaths_w                   N=5659  NA=0  min=0  med=79  max=2.33e+04
+    excess_pm                  N=5180  NA=479  min=-55.8  med=11.6  max=269
+    deaths_confirmed_pm        N=5659  NA=0  min=0  med=6.59  max=614
+    cases_pm                   N=5659  NA=0  min=0  med=907  max=6.66e+04
+    theta_hat                  N=5075  NA=584  min=0  med=0.00447  max=0.329
+    theta_predicted            N=5075  NA=584  min=0  med=0.00545  max=0.992
+
+------------------------------------------------------------------------------
+  panel_hosp
+------------------------------------------------------------------------------
+  dim = 4916 x 41
+  columns (first 60): Country, isoyr, isowk, S_mean, S_max, n_days, date, time, p_proj, excess, expected, observed, p_15_64, p_65_74, p_75_84, p_85p, cases_w, deaths_w, pop_th, pop, excess_pm, deaths_confirmed_pm, cases_pm, wave, wave_label, wave_coarse, ifr, ifr_lo, ifr_hi, rho_w, rho_w_lo, rho_w_hi, d_pc, d_lead2, d_lead3, d_lead4, theta_hat, theta_hat_l2, theta_hat_l4, hosp_new_pm, icu_occ_pm
+
+  Inferred sampling frequency: median 7 d  (5/50/95: 7 / 7 / 7)
+  Date range: 2020-03-01 -> 2022-12-26
+  Unique countries: 33
+  Variable summaries (selected):
+    S_mean                     N=4916  NA=0  min=0  med=0.344  max=0.927
+    S_max                      N=4916  NA=0  min=0  med=0.354  max=0.938
+    p_proj                     N=4736  NA=180  min=-31.4  med=7.04  max=155
+    excess                     N=4736  NA=180  min=-4.06e+03  med=105  max=2.74e+04
+    cases_w                    N=4916  NA=0  min=0  med=1.03e+04  max=5.64e+06
+    deaths_w                   N=4916  NA=0  min=0  med=74  max=2.33e+04
+    excess_pm                  N=4736  NA=180  min=-55.8  med=12  max=269
+    deaths_confirmed_pm        N=4916  NA=0  min=0  med=6.67  max=614
+    cases_pm                   N=4916  NA=0  min=0  med=1.01e+03  max=6.66e+04
+    theta_hat                  N=4640  NA=276  min=0  med=0.00442  max=0.283
+
+------------------------------------------------------------------------------
+  p_values_oecd_w
+------------------------------------------------------------------------------
+  dim = 11171 x 43
+  columns (first 60): entity, date, time, time_unit, average_deaths_2015_2019_all_ages, p_avg_0_14, p_avg_15_64, p_avg_65_74, p_avg_75_84, p_avg_85p, p_avg_all_ages, projected_deaths_since_2020_all_ages, p_proj_0_14, p_proj_15_64, p_proj_65_74, p_proj_75_84, p_proj_85p, p_proj_all_ages, excess_proj_all_ages, deaths_since_2020_all_ages, deaths_2010_all_ages, deaths_2011_all_ages, deaths_2012_all_ages, deaths_2013_all_ages, deaths_2014_all_ages, deaths_2015_all_ages, deaths_2016_all_ages, deaths_2017_all_ages, deaths_2018_all_ages, deaths_2019_all_ages, deaths_2020_all_ages, deaths_2021_all_ages, deaths_2022_all_ages, deaths_2023_all_ages, deaths_2024_all_ages, deaths_2025_all_ages, cum_excess_proj_all_ages, cum_proj_deaths_all_ages, cum_p_proj_all_ages, excess_per_million_proj_all_ages, cum_excess_per_million_proj_all_ages, cum_excess_proj_all_ages_last12m, cum_excess_per_million_proj_all_ages_last12m
+
+  (no Country+date pair found — skipping freq inference)
+  Variable summaries (selected):
+    p_proj_all_ages            N=7405  NA=3766  min=-34.8  med=5.27  max=169
+
+------------------------------------------------------------------------------
+  hosp_w
+------------------------------------------------------------------------------
+  dim = 5647 x 5
+  columns (first 60): Country, isoyr, isowk, hosp_new_pm, icu_occ_pm
+
+  (no Country+date pair found — skipping freq inference)
+
+==============================================================================
+  panel_w — frequency cross-check (date column may be week-ending)
+==============================================================================
+  date column distinct values per Country (first country):
+    Country = AUS, N_dates = 149, head: 2020-03-01, 2020-03-08, 2020-03-15, 2020-03-22, 2020-03-29
+    Date diffs (head): 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+
+==============================================================================
+  Promising DAILY-frequency variables (per object)
+==============================================================================
+
+--- oxd_d candidate columns matching S / stringency / mortality ---
+ [1] "StringencyIndex_PopWeighted"     "StringencyH1_PopWeighted"       
+ [3] "StringencyIndex_NV"              "StringencyIndex_V"              
+ [5] "StringencyH1_NV"                 "StringencyH1_V"                 
+ [7] "StringencyIndex_NonVaccinated"   "StringencyIndex_Vaccinated"     
+ [9] "StringencyIndex_SimpleAverage"   "StringencyIndex_WeightedAverage"
+
+--- oxd_spatial_d candidate columns (S_spatial / SI) ---
+[1] "StringencyIndex_NonVaccinated"             
+[2] "StringencyIndex_NonVaccinated_ForDisplay"  
+[3] "StringencyIndex_Vaccinated"                
+[4] "StringencyIndex_Vaccinated_ForDisplay"     
+[5] "StringencyIndex_SimpleAverage"             
+[6] "StringencyIndex_SimpleAverage_ForDisplay"  
+[7] "StringencyIndex_WeightedAverage"           
+[8] "StringencyIndex_WeightedAverage_ForDisplay"
+
+==============================================================================
+  Raw daily files under Files/data/raw/outcomes and controls/Excess Mortality
+==============================================================================
+  N = 5 files
+[1] "description.pdf"                "excess mortality.xlsx"         
+[3] "excess_mortality.csv"           "excess_mortality_economist.csv"
+[5] "Quelle.txt"                    
+
+==============================================================================
+  END
+==============================================================================

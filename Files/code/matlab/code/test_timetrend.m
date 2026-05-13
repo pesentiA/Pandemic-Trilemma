@@ -1,8 +1,10 @@
 %% ========================================================================
-%  PANDEMIC TRILEMMA - CALIBRATION V14 (Above-Flow + Below-Stock spec)
+%  PANDEMIC TRILEMMA - CALIBRATION V14 + WAVE2 ADAPTIVE S
 %
-%  OUTPUT EQUATION (V14 frozen, ohne F_H):
-%    y_t = mu_country + rho_y * y_{t-1} + alpha_S * S_t
+%  OUTPUT EQUATION (V14 + Wave2 indicator):
+%    y_t = mu_country + rho_y * y_{t-1}
+%        + alpha_S * S_t
+%        + alpha_S_Wave2 * S_t * 1{Wave2_t}      (adaptive elasticity)
 %        + alpha_above * F_CP_above_{t-2}
 %        + alpha_below * K_below_t              (Stock!)
 %        + alpha_DI    * F_DI_{t-1}
@@ -10,53 +12,48 @@
 %        + eps_t
 %
 %    K_below_t = sum_{s<=t} (takeup_loans * F_loans_s + takeup_guar * F_guar_s)
+%    Wave2 = {Q4.20, Q1.21, Q2.21}   -> reduces S-drag in 2nd wave
+%                                       (behavioral adaptation, remote-
+%                                       work, sector-specific protocols)
 %
 %  DEBT EQUATION:
 %    b_t = mu_b_country + (1+r) * b_{t-1} - gamma_y * y_t
-%        + kappa_above   * F_CP_above_t
-%        + kappa_loans   * F_CP_loans_adj_t      (= takeup_loans * F_loans_t)
-%        + kappa_guar    * F_CP_guar_adj_t       (= takeup_guar  * F_guar_t)
-%        + kappa_DI      * F_DI_{t-1}
+%        + kappa_above * F_CP_above_t
+%        + kappa_loans * F_CP_loans_adj_t
+%        + kappa_guar  * F_CP_guar_adj_t
+%        + kappa_DI    * F_DI_{t-1}
 %        + phi_t * t_idx_t                       (linear quarter trend)
 %
 %  ASYMMETRY OUTPUT vs DEBT EQUATION:
-%    The output equation contains NO linear time trend; the debt equation
-%    DOES. This asymmetry reflects the underlying persistence structures:
-%      - Output is stationary (rho_y = 0.23 < 1): shocks dissipate, AR(1)
-%        dynamics adequately capture temporal evolution without an
-%        explicit trend. Empirically, adding a trend flips the sign of
-%        K_below, breaking the channel decomposition.
-%      - Debt is near-unit-root (rho_b ~ 1+r): the stock accumulates and
-%        exhibits mechanical drift from interest compounding, refinancing
-%        operations, and off-budget execution. A linear trend captures
-%        this drift while preserving the structural F-channel coefficients.
-%    The two specifications are jointly justified empirically (Below-Stock
-%    sign stability in output; debt RMSE / mean residual improvement) and
-%    theoretically (stationary level vs accumulating stock).
-% =========================================================================
+%    Output equation: NO time trend (stationary, AR(1) absorbs dynamics);
+%    Wave2 indicator captures structural break in S-elasticity.
+%    Debt equation:   linear quarter trend captures near-unit-root drift.
 % =========================================================================
 clear; clc; close all;
-fprintf('=== PANDEMIC TRILEMMA: Calibration V14 ===\n');
+fprintf('=== PANDEMIC TRILEMMA: Calibration V14 + Wave2 ===\n');
 fprintf('  %s\n\n', datestr(now));
 
 %% ========================================================================
-%  PARAMETERS - V14 FROZEN
+%  PARAMETERS - V14 + WAVE2 SPEC
 % =========================================================================
 
-% --- Output equation (V14, N=418, Country-FE, ohne F_H) ---
-rho_y          =  0.231;
-alpha_S        = -0.0952;
-alpha_above    =  0.544;
-alpha_below    =  0.261165; 
-alpha_DI_lag1  =  1.470;
-alpha_S_DI     = -0.0406;
+% --- Output equation (V14 + Wave2, N=418, Country-FE) ---
+% Source: feols(y_t_pct ~ y_lag1 + S_mean_tw + S_mean_tw:Wave2
+%               + F_CP_above_flow_lag2 + F_CP_belowstock
+%               + F_DI_lag1*S_mean_tw | Country)
+rho_y          =  0.229277;
+alpha_S        = -0.130404;
+alpha_S_Wave2  =  0.050243;   % S-drag reduction in 2nd wave (Q4.20-Q2.21)
+alpha_above    =  0.473037;
+alpha_below    =  0.275508;
+alpha_DI_lag1  =  1.077531;
+alpha_S_DI     = -0.030930;
 
 % --- Take-up adjustments ---
 takeup_loans   =  0.40;
 takeup_guar    =  0.25;
 
-
-% --- Debt equation (disaggregated below) ---
+% --- Debt equation (unchanged from V14) ---
 r_int        =  0.001;
 gamma_y      =  0.176;
 kappa_above  =  0.392;
@@ -72,22 +69,30 @@ cfe_iso = {'AUS','AUT','BEL','CAN','CHE','CHL','COL','CRI', ...
            'LTU','LUX','LVA','MEX','NLD','NOR','NZL','POL', ...
            'PRT','SVK','SVN','SWE','TUR','USA'};
 
-% --- Country FE: Output (V14 ohne F_H) ---
-cfe_y_val = [+1.1057, -1.0400, +0.3009, -0.0979, +1.2987, +1.3246, +1.9894, +0.1466, ...
-             -3.5623, -1.7381, -0.0832, -4.8958, -1.8327, -1.4833, -1.8693, -3.3268, ...
-             +0.2908, -2.0146, +8.3187, -4.8488, +2.3672, -0.5014, -1.9561, +0.6141, ...
-             +0.7002, +2.3568, -0.6830, -3.2057, +1.0604, +1.2218, -1.0616, -0.5966, ...
-             -2.7751, -0.2578, -1.8284, +1.0349, +4.0658, +1.0987];
+% --- Country FE: Output ---
+% NOTE: These are still the V14 (no-Wave2) FE values as approximation.
+% For exact consistency with V14+Wave2 spec, re-extract via:
+%   fixef(v14_wave)$Country in R.
+cfe_y_val = [+1.8162, -0.3865, +0.8165, +0.5258, +1.8633, +1.7296, +2.7655, +0.8320, ...
+             -3.1576, -1.2928, +0.2844, -4.4559, -1.3739, -1.0416, -1.2649, -2.8963, ...
+             +1.1049, -1.6721, +8.7060, -4.4724, +2.9042, +0.3026, -1.3732, +1.1785, ...
+             +1.0974, +2.9604, -0.1678, -2.6372, +1.5945, +1.6229, -0.2112, -0.1387, ...
+             -2.2489, +0.2104, -1.2749, +1.3868, +4.5646, +1.6683];
 
-% --- Country FE: Debt ---
+% --- Country FE: Debt (unchanged from V14) ---
 cfe_b_val = [+0.2296, +0.3707, +0.3387, +0.7393, +0.5104, -0.0655, +1.4904, +0.9267, ...
              -0.0006, -0.0780, -0.5517, -0.2551, +0.3079, +0.2583, +0.0484, -0.0142, ...
              +0.1481, -0.0351, +1.3739, -0.1310, +0.7809, +0.1886, +0.0381, +0.3889, ...
              +0.3229, +1.0169, +0.8753, -0.5943, +0.4736, +0.7201, +1.2750, +0.0755, ...
              -0.9275, +0.6452, +0.0694, +0.3347, +0.9441, +1.3417];
 
-t_idx_raw = 4:16;            % matches Q4.19 = t_idx 2 ... Q4.22 = t_idx 14
-year_idx_vec = t_idx_raw;   % zentriert
+t_idx_raw = 4:16;
+year_idx_vec = t_idx_raw;
+
+% --- Wave2 indicator (k = 5, 6, 7 = Q4.20, Q1.21, Q2.21) ---
+% Q4.19 -> k=1, Q1.20 -> k=2, ..., Q2.21 -> k=7
+wave2_vec = zeros(1, 13);
+wave2_vec(5:7) = 1;          % Q4.2020, Q1.2021, Q2.2021
 
 N = 13;  K_act = 13;  nx = 2;  nu = 2;
 K_y = 10;  K_b = 13;
@@ -97,12 +102,14 @@ eps_y_vec = zeros(1, N+1);
 eps_y_vec(4) = -5.40;  % fallback median
 
 % Per-country Q2.20 V14 residuals
+% NOTE: from old V14 (no-Wave2) regression; re-extract from
+% v14_wave residuals if exact match required.
 eps_v14_iso = cfe_iso;
-eps_v14_val = [-3.62, -8.55, -6.46, -7.79, -4.73, -10.10, -11.20, -3.75, ...
-               -5.10, -5.98, -1.95, -9.57, -2.43, -1.97, -8.49, -12.50, ...
-               -9.94, -8.99, -1.10, -4.70, -0.66, -10.90, -6.82, -1.83, ...
-               -0.03, -5.31, -7.43, -7.97, -5.17, -2.45, -5.49, -1.80, ...
-               -9.75, -4.87, -6.78, -4.70, -10.40, -4.79];
+eps_v14_val = [+2.5082, -1.6947, +3.0183, -1.9950, +0.2742, -3.1304, -0.3829, -0.0322, ...
+               +3.9271, +2.3078, +1.3133, -3.6054, +2.7086, +4.0962, -3.9676, +0.3301, ...
+               -0.0307, +0.8499, -0.5288, +0.3090, +0.5154, -0.3122, -3.9698, +0.2148, ...
+               +0.5013, -4.6440, +1.7618, +0.0044, +0.5709, +2.2634, +1.9210, -0.2300, ...
+               +0.5131, -2.8767, -0.7936, +2.5167, -0.5797, +1.2297];
 eps_v14_map = containers.Map(eps_v14_iso, eps_v14_val);
 
 beta_disc = 0.99;
@@ -112,7 +119,7 @@ cfe_y_map = containers.Map(cfe_iso, cfe_y_val);
 cfe_b_map = containers.Map(cfe_iso, cfe_b_val);
 
 P = struct( ...
-    'rho_y',rho_y, 'alpha_S',alpha_S, ...
+    'rho_y',rho_y, 'alpha_S',alpha_S, 'alpha_S_Wave2',alpha_S_Wave2, ...
     'alpha_above',alpha_above, 'alpha_below',alpha_below, ...
     'alpha_DI_lag1',alpha_DI_lag1, 'alpha_S_DI',alpha_S_DI, ...
     'takeup_loans',takeup_loans, 'takeup_guar',takeup_guar, ...
@@ -121,6 +128,7 @@ P = struct( ...
     'kappa_guar',kappa_guar, ...
     'kappa_DI',kappa_DI, 'phi_t',phi_t, ...
     'eps_y_vec',eps_y_vec, 'year_idx_vec',year_idx_vec, ...
+    'wave2_vec',wave2_vec, ...
     'beta_disc',beta_disc, ...
     'w_y',w_y, 'w_b',w_b, 'W_b',W_b, 'r_cp',r_cp, 'r_di',r_di, ...
     'N',N, 'K_act',K_act, 'K_y',K_y, 'K_b',K_b, 'nx',nx, 'nu',nu, 'u_lo',u_lo, 'u_hi',u_hi);
@@ -161,7 +169,7 @@ for i = 1:n_c
         cdata(i).S(k)         = row.S_mean_tw;
         cdata(i).FCP_above(k) = row.F_CP_above_3;
         cdata(i).FCP_loans(k) = row.F_CP_loans;
-        cdata(i).FCP_guar(k)  = row.F_CP_guar_adj;   % CSV value at 35% baseline
+        cdata(i).FCP_guar(k)  = row.F_CP_guar_adj;
         cdata(i).FDI(k)       = row.F_DI;
         cdata(i).y(k)         = row.y_t_pct;
         if ismember('debt_dR', T.Properties.VariableNames) && ~ismissing(row.debt_dR)
@@ -169,25 +177,42 @@ for i = 1:n_c
         end
     end
     cdata(i).FCP_loans_adj    = takeup_loans * cdata(i).FCP_loans;
-    % FCP_guar from CSV is at 35%; rescale to actual takeup_guar
     cdata(i).FCP_guar_adj     = (takeup_guar / 0.35) * cdata(i).FCP_guar;
     cdata(i).FCP_below_flow   = cdata(i).FCP_loans_adj + cdata(i).FCP_guar_adj;
     cdata(i).FCP_below_stock  = cumsum(cdata(i).FCP_below_flow);
-    % Per-country eps Q2.20 (V14 residuals)
     cdata(i).eps_vec    = zeros(1, N+1);
-    eps_q220 = -5.40;  % fallback
-    if isKey(eps_v14_map, iso), eps_q220 = eps_v14_map(iso); end
-    cdata(i).eps_vec(4) = eps_q220;
+    % Q2.20 exact-fit: compute eps such that simulated Q2.20 = observed Q2.20.
+    % Rationale: Q2.20 is the exogenous global pandemic shock (unobserved
+    % drivers: novelty of virus, panic, supply-chain disruption). The model
+    % is asked to explain RECOVERY (Q3.20+), not the initial impact.
+    y_Q120_obs   = cdata(i).y(2);         % observed Q1.20 -> y_lag1 for Q2.20
+    S_Q220       = cdata(i).S(3);
+    FCPab_l2_Q220 = cdata(i).FCP_above(1); % lag-2 from Q4.19
+    Kbelow_Q220  = cdata(i).FCP_below_stock(3);
+    FDI_l1_Q220  = cdata(i).FDI(2);
+    w2_Q220      = wave2_vec(3);          % Q2.20 not in wave2 -> 0
+    aS_eff_Q220  = alpha_S + alpha_S_Wave2 * w2_Q220;
+
+    y_pred_Q220 = cdata(i).mu_y + rho_y * y_Q120_obs ...
+                + aS_eff_Q220   * S_Q220 ...
+                + alpha_above   * FCPab_l2_Q220 ...
+                + alpha_below   * Kbelow_Q220 ...
+                + alpha_DI_lag1 * FDI_l1_Q220 ...
+                + alpha_S_DI    * S_Q220 * FDI_l1_Q220;
+
+    cdata(i).eps_vec(4) = cdata(i).y(3) - y_pred_Q220;  % exact Q2.20 fit
 end
 fprintf('  %d countries x %d quarters\n', n_c, N);
-fprintf('  Loans take-up: %.0f%%, Guarantees take-up: %.0f%%\n\n', ...
+fprintf('  Loans take-up: %.0f%%, Guarantees take-up: %.0f%%\n', ...
     takeup_loans*100, takeup_guar*100);
+fprintf('  Wave2 indicator active in: Q4.20, Q1.21, Q2.21\n\n');
 
-%%% ========================================================================
+
+%% ========================================================================
 %  STEP 1: VALIDATION
 % =========================================================================
 fprintf('========================================\n');
-fprintf('  STEP 1: Validation V14\n');
+fprintf('  STEP 1: Validation V14 + Wave2\n');
 fprintf('========================================\n');
 
 for i = 1:n_c
@@ -328,42 +353,6 @@ fprintf('    Mean: %+.2f, Median: %+.2f, SD: %.2f, Range: [%+.2f, %+.2f]\n', ...
 
 
 %% ========================================================================
-%  POLICY LEVER INTENSITY: OECD Median
-% =========================================================================
-fprintf('\n========================================\n');
-fprintf('  POLICY LEVER INTENSITY (OECD Median)\n');
-fprintf('========================================\n');
-
-S_med    = zeros(1, N);
-FCPab_med = zeros(1, N);
-FCPbe_med = zeros(1, N);
-FCPbe_stock_med = zeros(1, N);
-FDI_med  = zeros(1, N);
-
-for k = 1:N
-    S_med(k)        = median(arrayfun(@(c) c.S(k),              cdata));
-    FCPab_med(k)    = median(arrayfun(@(c) c.FCP_above(k),      cdata));
-    FCPbe_med(k)    = median(arrayfun(@(c) c.FCP_below_flow(k), cdata));
-    FCPbe_stock_med(k) = median(arrayfun(@(c) c.FCP_below_stock(k), cdata));
-    FDI_med(k)      = median(arrayfun(@(c) c.FDI(k),            cdata));
-end
-
-fprintf('\n  %8s %7s %8s %8s %9s %7s\n', ...
-    'Quarter', 'S', 'F^above', 'F^below', 'K^below', 'F^DI');
-for k = 1:N
-    fprintf('  %8s %7.2f %8.3f %8.3f %9.3f %7.3f\n', ...
-        qlbl{k}, S_med(k), FCPab_med(k), FCPbe_med(k), FCPbe_stock_med(k), FDI_med(k));
-end
-
-fprintf('\n  Cumulative (pp of 2019 GDP):\n');
-fprintf('    F^above:  %.2f\n', sum(FCPab_med));
-fprintf('    F^below:  %.2f\n', sum(FCPbe_med));
-fprintf('    K^below (final):  %.2f\n', FCPbe_stock_med(end));
-fprintf('    F^DI:  %.2f\n', sum(FDI_med));
-fprintf('    Mean S: %.2f,  Peak S: %.2f\n', mean(S_med), max(S_med));
-
-
-%% ========================================================================
 %  VISUALIZATION
 % =========================================================================
 sim_y_all = reshape([cdata.sim_y], N, n_c)';
@@ -372,7 +361,7 @@ sim_b_all = reshape([cdata.sim_b], N, n_c)';
 obs_b_all = zeros(n_c, N);
 for i = 1:n_c, obs_b_all(i,:) = cdata(i).obs_b_cum; end
 
-figure('Name','Calibration V14','Color','w','Position',[50 50 1100 400]);
+figure('Name','Calibration V14 + Wave2','Color','w','Position',[50 50 1100 400]);
 
 subplot(1,2,1); hold on;
 fill_iqr(1:K_y, sim_y_all(:,1:K_y), [0 .4 .8], .15);
@@ -380,9 +369,13 @@ fill_iqr(1:K_y, obs_y_all(:,1:K_y), [.5 .5 .5], .12);
 plot(1:K_y, median(sim_y_all(:,1:K_y)), 'b-o', 'LineWidth', 2, 'MarkerSize', 4);
 plot(1:K_y, median(obs_y_all(:,1:K_y)), 'k--s', 'LineWidth', 2, 'MarkerSize', 4);
 yline(0, ':', 'Color', [.5 .5 .5]); grid on;
+% Shade Wave2 period
+yl = ylim;
+fill([5 7 7 5], [yl(1) yl(1) yl(2) yl(2)], [1 .8 .4], ...
+    'FaceAlpha', 0.10, 'EdgeColor', 'none');
 set(gca, 'XTick', 1:K_y, 'XTickLabel', qlbl(1:K_y), 'FontSize', 7, 'XTickLabelRotation', 45);
 ylabel('pp of potential GDP'); title(sprintf('Output Gap (K_y=%d)', K_y));
-legend('','','Simulated','Observed', 'Location', 'SE', 'FontSize', 7);
+legend('','','Simulated','Observed','Wave2', 'Location', 'SE', 'FontSize', 7);
 text(0.02, 0.05, sprintf('RMSE = %.2f pp', median([cdata.rmse_y])), ...
     'Units','normalized','FontSize',8,'BackgroundColor','w');
 
@@ -398,42 +391,14 @@ legend('','','Simulated','Observed', 'Location', 'SE', 'FontSize', 7);
 text(0.02, 0.95, sprintf('RMSE = %.2f pp', median([cdata.rmse_b])), ...
     'Units','normalized','FontSize',8,'VerticalAlignment','top','BackgroundColor','w');
 
-sgtitle('Calibration V14 - Above-Flow + Below-Stock','FontWeight','bold');
-
-figure('Name','Policy Lever Intensity V14','Color','w','Position',[100 100 1100 600]);
-
-subplot(2,2,1);
-plot(1:N, S_med, 'r-o', 'LineWidth', 1.8); grid on;
-set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'XTickLabelRotation', 45);
-ylabel('Stringency Index'); title('Containment (S)');
-
-subplot(2,2,2); hold on;
-plot(1:N, FCPab_med, 'b-o', 'LineWidth', 1.8);
-plot(1:N, FCPbe_med, 'g-s', 'LineWidth', 1.8);
-plot(1:N, FDI_med,  'm-^', 'LineWidth', 1.8); grid on;
-set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'XTickLabelRotation', 45);
-ylabel('pp of 2019 GDP'); title('Fiscal Flows');
-legend('F^{above}','F^{below}','F^{DI}', 'Location','NE');
-
-subplot(2,2,3);
-plot(1:N, FCPbe_stock_med, 'g-o', 'LineWidth', 2); grid on;
-set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'XTickLabelRotation', 45);
-ylabel('pp of 2019 GDP'); title('Below Stock K^{below}');
-
-subplot(2,2,4);
-bar(1:N, [FCPab_med', FCPbe_med', FDI_med'], 'stacked');
-set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'XTickLabelRotation', 45);
-ylabel('pp of 2019 GDP'); title('Total Fiscal Stack');
-legend('Above','Below','DI', 'Location','NE');
-
-sgtitle('OECD Median Policy Levers V14','FontWeight','bold');
+sgtitle('Calibration V14 + Wave2 Adaptive S','FontWeight','bold');
 
 
 %% ========================================================================
 %  CALIBRATION REPORT
 % =========================================================================
 fprintf('\n################################################################\n');
-fprintf('#  CALIBRATION REPORT - V14                                     #\n');
+fprintf('#  CALIBRATION REPORT - V14 + WAVE2                             #\n');
 fprintf('################################################################\n\n');
 
 y_obs_sd = std(reshape([cdata.y], 1, []));
@@ -459,15 +424,6 @@ fprintf('   Median y-gain:    %+.2f pp\n', median(diffs));
 fprintf('   Total fiscal > 0: %d / %d\n', sum(diffs>0), n_c);
 cp_contrib = above_contrib + below_contrib;
 fprintf('   CP-only      > 0: %d / %d\n', sum(cp_contrib>0), n_c);
-neg_idx = find(diffs < 0);
-if ~isempty(neg_idx)
-    fprintf('   Countries with negative total (push-on-string):\n');
-    for j = 1:length(neg_idx)
-        i = neg_idx(j);
-        fprintf('     %s: total=%+.2f, CP=%+.2f, DI=%+.2f\n', ...
-            cdata(i).iso, diffs(i), cp_contrib(i), di_contrib(i));
-    end
-end
 
 fprintf('\n4. CHANNEL DECOMPOSITION (median pp-Q)\n');
 fprintf('   Above-Flow:  %+.2f\n', median(above_contrib));
@@ -519,7 +475,11 @@ function xs = forward_roll(fcp_above, fcp_loans_adj, fcp_guar_adj, ...
         ey = 0;     if k+1 <= length(eps_vec),        ey = eps_vec(k+1);         end
         yr_idx = 0; if k <= length(P.year_idx_vec),   yr_idx = P.year_idx_vec(k); end
 
-        xs(1,k+1) = mu_y + P.rho_y * y + P.alpha_S * Sk ...
+        % Wave2 adaptive S
+        w2_k = 0; if k <= length(P.wave2_vec), w2_k = P.wave2_vec(k); end
+        alpha_S_eff = P.alpha_S + P.alpha_S_Wave2 * w2_k;
+
+        xs(1,k+1) = mu_y + P.rho_y * y + alpha_S_eff * Sk ...
                   + P.alpha_above * fab_l2 ...
                   + P.alpha_below * kbe_k ...
                   + P.alpha_DI_lag1 * fdi_l1 ...

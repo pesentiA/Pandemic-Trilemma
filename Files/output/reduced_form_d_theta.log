@@ -1,0 +1,112 @@
+==============================================================================
+  REDUCED-FORM d_{k+1} = delta_theta * theta_k
+  2026-05-13 14:51:29
+==============================================================================
+
+  oxd_d   -> 5966 weekly aggregated rows (38 countries x ~149 weeks)
+
+  Panel built: 5075 rows kept (of 5659 after lead/NA filter)
+  Countries:   35   Weeks:       145   per country (mean): 145.0
+
+--- Variable summaries (after filter) ---
+# A tibble: 16 × 6
+   var                    N     mean        sd     min       max
+   <chr>              <int>    <dbl>     <dbl>   <dbl>     <dbl>
+ 1 d_lead1_pproj       5075  11.1      18.2      -31.4   169.   
+ 2 d_lead1_pproj_NA_     NA  NA        NA         NA      NA    
+ 3 d_lead1_excess      5075 747.     2368.     -4059.  28498.   
+ 4 d_lead1_excess_NA_    NA  NA        NA         NA      NA    
+ 5 d_lead1_excpm       5075  19.3      32.8      -55.8   269.   
+ 6 d_lead1_excpm_NA_     NA  NA        NA         NA      NA    
+ 7 theta_hat           5075   0.0180    0.0311     0       0.329
+ 8 theta_hat_NA_         NA  NA        NA         NA      NA    
+ 9 theta_lag1          5040   0.0174    0.0297     0       0.329
+10 theta_lag1_NA_        NA  NA        NA         NA      NA    
+11 S_daily_mean        5075   0.347     0.241      0       0.958
+12 S_daily_mean_NA_      NA  NA        NA         NA      NA    
+13 S_daily_max         5075   0.355     0.245      0       0.958
+14 S_daily_max_NA_       NA  NA        NA         NA      NA    
+15 S_panelw_mean       5075   0.347     0.241      0       0.958
+16 S_panelw_mean_NA_     NA  NA        NA         NA      NA    
+
+  Saved: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/data/processed/weekly_reduced_form_panel.csv   (5075 rows x 32 cols)
+
+==============================================================================
+  REDUCED-FORM REGRESSIONS (dependent variable: p_proj_{k+1})
+==============================================================================
+
+--- (1) Pooled OLS, no FE ---
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 5,075
+Standard-errors: Clustered (Country) 
+             Estimate Std. Error t value   Pr(>|t|)    
+(Intercept)   8.71101    1.16527 7.47553 1.1265e-08 ***
+theta_hat   130.07201   15.20456 8.55480 5.4114e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 17.7   Adj. R2: 0.049249
+
+--- (2) Country FE ---
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 5,075
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  116.724    18.9254 6.16757 5.2235e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 16.5     Adj. R2: 0.166771
+             Within R2: 0.043435
+
+--- (3) Country + wave_coarse FE ---
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 5,075
+Fixed-effects: Country: 35,  wave_coarse: 4
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  218.108    32.1761 6.77856 8.5521e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 15.8     Adj. R2: 0.240388
+             Within R2: 0.101146
+
+--- (4) Country FE + S_daily_mean control ---
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 5,075
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+             Estimate Std. Error t value   Pr(>|t|)    
+theta_hat    190.4867   26.11342 7.29459 1.8981e-08 ***
+S_daily_mean  22.2111    4.56281 4.86785 2.5468e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 15.9     Adj. R2: 0.233848
+             Within R2: 0.120615
+
+--- (5) Country FE + S control + theta^2 (nonlinearity check) ---
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 5,075
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+                    Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat           498.9970   53.39616  9.34519 6.4173e-11 ***
+S_daily_mean         29.1306    5.00339  5.82217 1.4658e-06 ***
+I(I(theta_hat^2)) -2151.6290  280.08068 -7.68218 6.2341e-09 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 15.2     Adj. R2: 0.296016
+             Within R2: 0.192131
+
+--- (6) Same as (2) but DV = excess deaths per million ---
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 5,075
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat   190.64    28.6464 6.65492 1.2308e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 29.9     Adj. R2: 0.161422
+             Within R2: 0.035707
+
+--- Compact comparison (delta_theta across specifications) ---
