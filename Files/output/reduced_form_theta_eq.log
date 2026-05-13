@@ -1,0 +1,104 @@
+==============================================================================
+  THETA-equation reduced form — 2026-05-13 15:25:22
+==============================================================================
+Panel: 3648 rows, 38 countries, 192 weeks (<= 2021-12-31)
+
+--- (1A) Pooled OLS: theta_{k+1} = beta_1 theta_k + beta_2 S_k theta_k ---
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Standard-errors: Clustered (Country) 
+             Estimate Std. Error  t value   Pr(>|t|)    
+(Intercept)  0.000495   0.000068  7.28912 1.9284e-08 ***
+theta_hat    1.044065   0.024584 42.46917  < 2.2e-16 ***
+St_x_th     -0.289903   0.053812 -5.38732 5.3930e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003152   Adj. R2: 0.855901
+
+--- (1B) Country FE: theta_{k+1} = beta_1 theta_k + beta_2 S_k theta_k + alpha_i ---
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+           Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat  1.035069   0.026878 38.50924  < 2.2e-16 ***
+St_x_th   -0.325260   0.059591 -5.45821 4.3609e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003125     Adj. R2: 0.856971
+                 Within R2: 0.822644
+
+--- (1C) Country + wave_coarse FE ---
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Fixed-effects: Country: 35,  wave_coarse: 3
+Standard-errors: Clustered (Country) 
+           Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat  1.029198   0.032917 31.26657  < 2.2e-16 ***
+St_x_th   -0.335623   0.064582 -5.19682 9.5401e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003114     Adj. R2: 0.857867
+                 Within R2: 0.795642
+
+--- Derived structural parameters (rho_theta, phi_S) ---
+# A tibble: 3 × 5
+  spec                rho se_rho phi_S se_phi
+  <chr>             <dbl>  <dbl> <dbl>  <dbl>
+1 Pooled OLS         1.04 0.0246 0.278 0.0457
+2 Country FE         1.04 0.0269 0.314 0.0507
+3 Country + wave FE  1.03 0.0329 0.326 0.0539
+
+------------------------------------------------------------------------------
+  (2) d-equation recap on same sample
+------------------------------------------------------------------------------
+OLS estimation, Dep. Var.: d_lead1
+Observations: 3,325
+Standard-errors: Clustered (Country) 
+              Estimate Std. Error t value   Pr(>|t|)    
+(Intercept)    3.04076   0.771222 3.94279 3.8141e-04 ***
+theta_hat   1716.46991 189.253508 9.06969 1.3370e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 15.4   Adj. R2: 0.462187
+OLS estimation, Dep. Var.: d_lead1
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  1625.41    152.847 10.6343 2.3599e-12 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 13.9     Adj. R2: 0.55414 
+             Within R2: 0.429502
+OLS estimation, Dep. Var.: d_lead1
+Observations: 3,325
+Fixed-effects: Country: 35,  wave_coarse: 3
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  1730.75    172.713  10.021 1.1056e-11 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 13.7     Adj. R2: 0.569591
+             Within R2: 0.433407
+
+------------------------------------------------------------------------------
+  (3) Theta-equation LP at h = 1..4
+------------------------------------------------------------------------------
+
+LP for theta:
+# A tibble: 4 × 11
+      h     n beta_1  se_b1 beta_2  se_b2   rho se_rho   phi se_phi  r2_w
+  <int> <int>  <dbl>  <dbl>  <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>
+1     1  3325  1.04  0.0269 -0.325 0.0596 1.04  0.0269 0.314 0.0507 0.823
+2     2  3290  1.04  0.0386 -0.584 0.0889 1.04  0.0386 0.563 0.0671 0.663
+3     3  3255  1.00  0.0502 -0.775 0.111  1.00  0.0502 0.773 0.0768 0.506
+4     4  3220  0.914 0.0640 -0.876 0.134  0.914 0.0640 0.959 0.0907 0.349
+
+  Saved calibration summary: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/calibration_state_eq.csv
+
+  Saved LaTeX table: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/tables/tab_state_eq_reduced.tex
+
+==============================================================================
+  END
+==============================================================================

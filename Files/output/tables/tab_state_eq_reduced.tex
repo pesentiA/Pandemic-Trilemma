@@ -1,0 +1,26 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Reduced-form state-evolution: \$\textbackslash{}theta\_\{k+1\} = \textbackslash{}rho\_\textbackslash{}theta(1-\textbackslash{}phi\_S S\_k)\textbackslash{}theta\_k\$ and \$d\_\{k+1\} = \textbackslash{}delta\_\textbackslash{}theta\textbackslash{}theta\_k\$},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-7}{solid, black, 0.05em},
+hline{8}={1-7}{solid, black, 0.05em},
+hline{1}={1-7}{solid, black, 0.1em},
+hline{10}={1-7}{solid, black, 0.1em},
+column{2-7}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1A) theta — Pooled & (1B) theta — CFE & (1C) theta — CFE+wave & (2A) d — Pooled & (2B) d — CFE & (2C) d — CFE+wave \\
+\$\textbackslash{}theta\_k\$  (= \$\textbackslash{}rho\_\textbackslash{}theta\$ in eq.1) & \num{1.044}*** & \num{1.035}*** & \num{1.029}*** & \num{1716.470}*** & \num{1625.412}*** & \num{1730.750}*** \\
+& (\num{0.025}) & (\num{0.027}) & (\num{0.033}) & (\num{189.254}) & (\num{152.847}) & (\num{172.713}) \\
+\$S\_k\textbackslash{},\textbackslash{}theta\_k\$  (= \$-\textbackslash{}rho\_\textbackslash{}theta\textbackslash{}phi\_S\$) & \num{-0.290}*** & \num{-0.325}*** & \num{-0.336}*** &  &  &  \\
+& (\num{0.054}) & (\num{0.060}) & (\num{0.065}) &  &  &  \\
+Constant & \num{0.000}*** &  &  & \num{3.041}*** &  &  \\
+& (\num{0.000}) &  &  & (\num{0.771}) &  &  \\
+Num.Obs. & \num{3325} & \num{3325} & \num{3325} & \num{3325} & \num{3325} & \num{3325} \\
+R2 & \num{0.856} & \num{0.859} & \num{0.859} & \num{0.462} & \num{0.559} & \num{0.574} \\
+\end{talltblr}
+\end{table}

@@ -1,0 +1,7 @@
+"equation","spec","rho","se_rho","phi_S","se_phi","delta_theta","se_delta","d_unit"
+"theta","Pooled OLS",1.04406501769849,0.024584069373793,0.277667096374203,0.0457072061160785,NA,NA,NA
+"theta","Country FE",1.03506911802788,0.026878463149254,0.314239874526424,0.0507325330988829,NA,NA,NA
+"theta","Country+wave",1.02919754094902,0.0329168674877835,0.326101191691219,0.0539493474307389,NA,NA,NA
+"d","Pooled OLS",NA,NA,NA,NA,3447.95818982231,135.744594409129,"excess_deaths_per_million_per_week"
+"d","Country FE",NA,NA,NA,NA,3211.41676056024,137.178831031684,"excess_deaths_per_million_per_week"
+"d","Country+wave",NA,NA,NA,NA,3396.9435063959,153.799573918128,"excess_deaths_per_million_per_week"

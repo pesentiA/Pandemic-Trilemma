@@ -1,0 +1,54 @@
+==============================================================================
+  REDUCED-FORM: Jordà LP + Economist DV — 2026-05-13 14:56:29
+==============================================================================
+
+Loaded weekly panel:  5075 rows, 35 countries, date 2020-03-01 -> 2022-12-04
+Restricted sample: <=2021-12-31, kept 3360 rows, 35 countries, 96 weeks
+
+--- Local-projection estimates ---
+# A tibble: 15 × 8
+   spec         h  coef    se ci_lo ci_hi     n r2_within
+   <chr>    <int> <dbl> <dbl> <dbl> <dbl> <int>     <dbl>
+ 1 CFE          0 1358.  129. 1105. 1611.  3360     0.297
+ 2 CFE          1 1625.  153. 1326. 1925.  3325     0.430
+ 3 CFE          2 1841.  178. 1492. 2191.  3290     0.556
+ 4 CFE          3 2056.  196. 1671. 2441.  3255     0.689
+ 5 CFE          4 1851.  180. 1497. 2204.  3220     0.553
+ 6 CFE+S        0 1419.  130. 1165. 1672.  3360     0.371
+ 7 CFE+S        1 1678.  155. 1375. 1982.  3325     0.485
+ 8 CFE+S        2 1880.  181. 1525. 2235.  3290     0.585
+ 9 CFE+S        3 2075.  199. 1684. 2465.  3255     0.696
+10 CFE+S        4 1848.  183. 1489. 2207.  3220     0.553
+11 CFE+wave     0 1410.  147. 1122. 1698.  3360     0.287
+12 CFE+wave     1 1731.  173. 1392. 2069.  3325     0.433
+13 CFE+wave     2 1987.  200. 1595. 2380.  3290     0.574
+14 CFE+wave     3 2230.  219. 1802. 2659.  3255     0.720
+15 CFE+wave     4 1975.  204. 1576. 2375.  3220     0.563
+
+  Saved: Files/output/figures/fig_lp_d_theta.pdf
+
+==============================================================================
+  ECONOMIST DV ROBUSTNESS
+==============================================================================
+Economist file: 55458 rows, 237 countries, date 2020-01-01 -> 2024-06-17
+Economist OECD-38: 3990 rows, 38 countries, <= 2021-12-31
+
+Merged panel after Economist join: 3360 rows  (NA on excess_econ_pm: 0)
+
+--- LP estimates with Economist DV (excess deaths per million) ---
+# A tibble: 5 × 7
+      h  coef    se ci_lo ci_hi     n r2_within
+  <int> <dbl> <dbl> <dbl> <dbl> <int>     <dbl>
+1     0  377.  14.8  348.  406.  3360     0.332
+2     1  454.  18.1  418.  489.  3325     0.485
+3     2  515.  24.2  467.  562.  3290     0.631
+4     3  573.  26.7  521.  626.  3255     0.778
+5     4  521.  24.6  473.  569.  3220     0.637
+
+  Saved: Files/output/figures/fig_lp_d_theta_econ.pdf
+
+  Saved LaTeX table: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/tables/tab_lp_d_theta.tex
+
+==============================================================================
+  END
+==============================================================================

@@ -1,0 +1,158 @@
+==============================================================================
+  STATE-EVOLUTION REDUCED FORM (DV = excess_pm) — 2026-05-13 15:43:17
+==============================================================================
+
+Panel: 3648 rows, 38 countries, 192 weeks (<= 2021-12-31)
+
+DV summary stats (DV in regression sample, after NA filter on theta_hat):
+# A tibble: 5 × 7
+  var                N     mean       sd   min     med      max
+  <chr>          <int>    <dbl>    <dbl> <dbl>   <dbl>    <dbl>
+1 d_lead1_excpm   3325 21.4     38.2     -55.8 9.75    269.    
+2 d_lead1_pproj   3325 12.1     21.0     -31.4 6.09    169.    
+3 d_lead1_confpm  3325 17.8     26.7       0   5.94    194.    
+4 theta_hat       3325  0.00528  0.00830   0   0.00213   0.0715
+5 S_daily_mean    3325  0.467    0.188     0   0.459     0.958 
+
+------------------------------------------------------------------------------
+  (1) Theta-equation
+------------------------------------------------------------------------------
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Standard-errors: Clustered (Country) 
+             Estimate Std. Error  t value   Pr(>|t|)    
+(Intercept)  0.000495   0.000068  7.28912 1.9284e-08 ***
+theta_hat    1.044065   0.024584 42.46917  < 2.2e-16 ***
+St_x_th     -0.289903   0.053812 -5.38732 5.3930e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003152   Adj. R2: 0.855901
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+           Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat  1.035069   0.026878 38.50924  < 2.2e-16 ***
+St_x_th   -0.325260   0.059591 -5.45821 4.3609e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003125     Adj. R2: 0.856971
+                 Within R2: 0.822644
+OLS estimation, Dep. Var.: theta_lead1
+Observations: 3,325
+Fixed-effects: Country: 35,  wave_coarse: 3
+Standard-errors: Clustered (Country) 
+           Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat  1.029198   0.032917 31.26657  < 2.2e-16 ***
+St_x_th   -0.335623   0.064582 -5.19682 9.5401e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.003114     Adj. R2: 0.857867
+                 Within R2: 0.795642
+
+Structural parameters (theta equation):
+# A tibble: 3 × 5
+  spec                rho se_rho phi_S se_phi
+  <chr>             <dbl>  <dbl> <dbl>  <dbl>
+1 Pooled OLS         1.04 0.0246 0.278 0.0457
+2 Country FE         1.04 0.0269 0.314 0.0507
+3 Country + wave FE  1.03 0.0329 0.326 0.0539
+
+------------------------------------------------------------------------------
+  (2) d-equation  (DV = excess_pm = excess deaths per million per week)
+------------------------------------------------------------------------------
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 3,325
+Standard-errors: Clustered (Country) 
+              Estimate Std. Error  t value  Pr(>|t|)    
+(Intercept)    3.17321    1.03588  3.06330 0.0042631 ** 
+theta_hat   3447.95819  135.74459 25.40034 < 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 25.2   Adj. R2: 0.562384
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value  Pr(>|t|)    
+theta_hat  3211.42    137.179 23.4104 < 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 24.6     Adj. R2: 0.580446
+             Within R2: 0.484981
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 3,325
+Fixed-effects: Country: 35,  wave_coarse: 3
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value  Pr(>|t|)    
+theta_hat  3396.94      153.8 22.0868 < 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 24.0     Adj. R2: 0.599039
+             Within R2: 0.488159
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+              Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat    3316.4960  135.22873 24.52508  < 2.2e-16 ***
+S_daily_mean   49.6901    6.94633  7.15343 2.8581e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 23.0     Adj. R2: 0.631473
+             Within R2: 0.547757
+OLS estimation, Dep. Var.: d_lead1_excpm
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+                   Estimate Std. Error  t value   Pr(>|t|)    
+theta_hat           4641.28    320.692 14.47267 4.2624e-16 ***
+I(I(theta_hat^2)) -39423.92   6928.567 -5.69005 2.1771e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 23.9     Adj. R2: 0.603703
+             Within R2: 0.513677
+
+[Robustness] DV = confirmed COVID deaths per million:
+OLS estimation, Dep. Var.: d_lead1_confpm
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  1696.24    152.451 11.1265 7.0772e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 21.1     Adj. R2: 0.369684
+             Within R2: 0.262742
+
+[For comparison] DV = p_proj (the prior run):
+OLS estimation, Dep. Var.: d_lead1_pproj
+Observations: 3,325
+Fixed-effects: Country: 35
+Standard-errors: Clustered (Country) 
+          Estimate Std. Error t value   Pr(>|t|)    
+theta_hat  1625.41    152.847 10.6343 2.3599e-12 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 13.9     Adj. R2: 0.55414 
+             Within R2: 0.429502
+
+------------------------------------------------------------------------------
+  (3) LP for d-equation (DV = excess_pm)
+------------------------------------------------------------------------------
+
+LP for d (excess_pm):
+# A tibble: 4 × 7
+      h     n delta    se  r2_w ci_lo ci_hi
+  <int> <int> <dbl> <dbl> <dbl> <dbl> <dbl>
+1     1  3325 3211.  137. 0.485 2943. 3480.
+2     2  3290 3645.  181. 0.631 3291. 3999.
+3     3  3255 4056.  197. 0.776 3670. 4442.
+4     4  3220 3684.  186. 0.634 3318. 4049.
+
+  Saved calibration: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/calibration_state_eq_excpm.csv
+  Saved LaTeX:  C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/tables/tab_state_eq_excpm.tex
+
+==============================================================================
+  END
+==============================================================================

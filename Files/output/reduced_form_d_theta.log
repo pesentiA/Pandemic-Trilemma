@@ -110,3 +110,37 @@ RMSE: 29.9     Adj. R2: 0.161422
              Within R2: 0.035707
 
 --- Compact comparison (delta_theta across specifications) ---
+       part                  term statistic    (1) OLS    (2) CFE (3) CFE+wave
+1 estimates               theta_k  estimate 130.072*** 116.724***   218.108***
+2 estimates               theta_k std.error   (15.205)   (18.925)     (32.176)
+3 estimates S_k (daily-mean, 0-1)  estimate                                   
+4 estimates S_k (daily-mean, 0-1) std.error                                   
+5 estimates             Intercept  estimate   8.711***                        
+6 estimates             Intercept std.error    (1.165)                        
+7       gof              Num.Obs.                 5075       5075         5075
+8       gof                    R2                0.049      0.173        0.246
+   (4) CFE+S (5) CFE+S+theta^2 (6) DV=excpm
+1 190.487***        498.997***   190.640***
+2   (26.113)          (53.396)     (28.646)
+3  22.211***         29.131***             
+4    (4.563)           (5.003)             
+5                                          
+6                                          
+7       5075              5075         5075
+8      0.239             0.301        0.167
+
+  Saved LaTeX table: C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/output/tables/tab_reduced_form_d_theta.tex
+
+--- Coverage check ---
+  Countries in panel_w: 38  | in regression sample: 35  | dropped: 3
+  Dropped: CRI, JPN, TUR 
+# A tibble: 3 × 4
+  Country n_rows n_pproj n_theta
+  <chr>    <int>   <int>   <int>
+1 CRI        148       0       0
+2 JPN        148       0       0
+3 TUR        148       0       0
+
+==============================================================================
+  END
+==============================================================================
