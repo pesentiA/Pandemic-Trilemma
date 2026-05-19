@@ -1,10 +1,19 @@
 %% ========================================================================
-%  PANDEMIC TRILEMMA - CALIBRATION V15 (single-wave, empirical health block)
+%  PANDEMIC TRILEMMA - CALIBRATION V15 (main COVID period, Option B)
+%
+%  Health block is descriptive (sim_theta, sim_d reported) but does NOT
+%  feed into the output equation: the death drag uses observed d_obs
+%  directly (one-quarter lag, preserved from prior spec). This decouples
+%  the output fit from the pooled delta_theta / rho_theta constants,
+%  since theta_obs is built upstream in R with wave-specific IFRs
+%  (see descriptives.R, section 04_stage1_theta_imputation).
 %
 %  Units:
-%    theta : share of population currently infected
+%    theta : share of population currently infected (built in R with
+%            wave-specific IFR: W1=0.9% ... W4_omicron=0.04%)
 %    d     : excess deaths per million per week (quarterly mean of weekly)
-%    delta_theta = 3211 deaths/10^6/week per unit theta (CFE calibration)
+%    delta_theta = 3211 deaths/10^6/week per unit theta (pooled; used
+%                  only to produce sim_d as a diagnostic)
 % =========================================================================
 clear; clc; close all;
 fprintf('=== PANDEMIC TRILEMMA: Calibration V15 ===\n');
@@ -85,9 +94,9 @@ eps_v14_map = containers.Map(cfe_iso, eps_v14_val);
 % =========================================================================
 
 N = 13;
-K_y = 10;
-K_b = 13;
-K_theta = 5;        % Wave 1 only: Q4.19-Q4.20
+K_y = 11;           % Q4.19-Q2.22 (main COVID period; covers 2Q above-line lag)
+K_b = 13;           % Q4.19-Q4.22 (full horizon, deterministic terminal costs)
+K_theta = 11;       % Q4.19-Q2.22; theta_obs is wave-IFR consistent (R)
 nx = 4;
 nu = 5;
 
@@ -220,7 +229,7 @@ for i = 1:n_c
     cdata(i).eps_theta_vec = zeros(1, N+1);
     for k = 2:N
         prev_theta = cdata(i).theta_obs(k-1);
-        Sk_norm    = cdata(i).S(k-1) / 100;
+        Sk_norm    = cdata(i).S(k) / 100; %to fit infections perfect: Sk_norm = cdata(i).S(k) / 100;
         expected   = P.rho_theta * (1 - P.phi_S * Sk_norm) * prev_theta;
         cdata(i).eps_theta_vec(k+1) = cdata(i).theta_obs(k) - expected;
     end
@@ -342,7 +351,7 @@ for i = 1:n_c
     c_nodi = c; c_nodi.FDI = zeros(1,N);
     c_nofi = c_noab; c_nofi.FCP_loans_adj = zeros(1,N); c_nofi.FCP_guar_adj = zeros(1,N);
                      c_nofi.FCP_below_stock = zeros(1,N); c_nofi.FDI = zeros(1,N);
-    c_nohe = c; c_nohe.eps_theta_vec = zeros(1,N+1);
+    c_nohe = c; c_nohe.d_obs = zeros(1,N);   % Option B: zero observed death drag
 
     xs_noab = forward_roll_v15(c_noab, P);
     xs_nobe = forward_roll_v15(c_nobe, P);
@@ -384,6 +393,14 @@ for j = 0:4
 end
 fprintf('    Mean: %+.2f, Median: %+.2f, SD: %.2f\n', ...
         mean(resid_b), median(resid_b), std(resid_b));
+
+ resid_y_end = zeros(n_c, 1);
+  for i = 1:n_c
+      resid_y_end(i) = cdata(i).y(K_y) - cdata(i).sim_y(K_y);
+  end
+  fprintf('\n  Output endpoint residual (k=K_y=%d, Q2.22):\n', K_y);
+  fprintf('    Mean: %+.2f, Median: %+.2f, SD: %.2f\n', ...
+          mean(resid_y_end), median(resid_y_end), std(resid_y_end));
 
 %% ========================================================================
 %  STEP 9: VISUALIZATION
@@ -487,6 +504,8 @@ checks = {
     'Theta RMSE/SD < 1.0',        rmse_t_md/th_obs_sd < 1.0;
     'd RMSE/SD < 1.0',            rmse_d_md/d_obs_sd  < 1.0;
     '|Mean debt resid| < 2pp',    abs(mean(resid_b)) < 2;
+    '|Median final debt resid| < 3 pp', abs(median(resid_b)) < 3;
+    '|Median endpoint y resid| < 1pp',  abs(median(resid_y_end)) < 1;
     'SD ratio in [0.7, 1.3]',     mean(sd_ratios)>0.7 && mean(sd_ratios)<1.3;
     'AC(1) gap < 0.1',            abs(mean(ac1_obs)-mean(ac1_sim))<0.1;
     'Total fiscal > 0 (median)',  median(total_fiscal)>0;
@@ -510,7 +529,6 @@ function xs = forward_roll_v15(c, P)
         y     = xs(1,k);
         b     = xs(2,k);
         theta = xs(3,k);
-        d     = xs(4,k);
 
         Sk     = idxget(c.S, k);
         fab_k  = idxget(c.FCP_above, k);
@@ -529,13 +547,14 @@ Sk_norm = Sk / 100;
 xs(3,k+1) = P.rho_theta * (1 - P.phi_S * Sk_norm) * theta + eth;
 xs(4,k+1) = P.delta_theta * xs(3,k+1);   % contemporaneous, not theta_k
 
-        % --- Output ---
+        % --- Output (Option B: death drag from observed d, lag-1) ---
+        d_obs_lag1 = idxget(c.d_obs, k-1);
         xs(1,k+1) = c.mu_y + P.rho_y * y + P.alpha_S * Sk ...
                   + P.alpha_above   * fab_l2 ...
                   + P.alpha_below   * kbe_k ...
                   + P.alpha_DI_lag1 * fdi_l1 ...
                   + P.alpha_S_DI    * Sk * fdi_l1 ...
-                  - P.beta_d        * d ...
+                  - P.beta_d        * d_obs_lag1 ...
                   + ey;
 
         % --- Debt ---

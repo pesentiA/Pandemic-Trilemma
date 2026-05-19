@@ -2516,7 +2516,7 @@ pdata_v14 <- pdata.frame(
   df_bin |> filter(t_idx >= 4 & t_idx <= 14),
   index = c("Country", "Quarter")
 )
-
+#MAIN MODEL 12.05.2026
 v14_plm <- plm(
   y_t_pct ~ y_lag1 + S_mean_tw
   + F_CP_above_flow_lag2 +F_CP_belowstock
@@ -2526,6 +2526,7 @@ v14_plm <- plm(
   effect = "individual"
 )
 
+#adding  p_proj_all_ages
 # Cluster-robust SE (CRV1, country-level)
 coeftest(v14_plm, vcov = vcovHC(v14_plm, cluster = "group", type = "HC1"))
 
@@ -3772,15 +3773,6 @@ debt_FE <- feols(
 
 summary(debt_FE, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-pdataD <- pdataD %>%
-  group_by(Country) %>%
-  mutate(
-    debt_dR = DebtR_share2019 - lag(DebtR_share2019)
-  ) %>%
-  ungroup()
-
-head(pdataD$DebtR_share2019)
-head(pdataD$debt_dR)
 
 #with disaggregation of below
 #iLQR dieses verwendet 
@@ -3794,6 +3786,7 @@ debt_v14 <- feols(
 )
 
 summary(debt_v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
 
 #with linear timetrend
 debt_v14 <- feols(
@@ -3833,6 +3826,11 @@ coeftest(debt_v14_plm, vcov = vcovHC(debt_v14_plm, cluster = "group", type = "HC
 
 fixef(debt_v14_plm)
 
+
+q4_2019_values <- pdataD %>%
+  filter(Quarter == "Q4.2019") %>%
+  select(Country, DebtR_share2019)
+print(q4_2019_values, n=Inf)
 # ============================================================================
 # DEBT EQUATION V14 - ROBUSTNESS BATTERY
 # ----------------------------------------------------------------------------
