@@ -752,45 +752,48 @@ The epidemiological variables display comparably wide cross-country dispersion. 
 
 \begin{table}[H]
 \centering
-\caption{Main Results: Output Gap Equation}
+\caption{Main Results: Output Gap Equation (V14, 12.05.2026)}
 \label{tab:main_results}
 \scriptsize
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{} l c c c @{}}
 \toprule
  & (1) & (2) & (3) \\
- & Pooled OLS & Country FE & Country + Quarter FE \\
+ & Pooled OLS & Country FE & Country + Year FE \\
+ &            & (Main)     & (Robustness) \\
 \midrule
-\multicolumn{4}{@{}l}{\textit{Persistence channels:}} \\[2pt]
-$y_{i,k-1}$ (baseline $\rho_y$)
-  & $0.767$***  & $0.174$**   & $0.311$*** \\
-  & (0.080)     & (0.067)     & (0.085) \\[4pt]
-$S_{ik} \times y_{i,k-1}$ (lockdown $\psi$)
-  & $-0.004$    & $0.000$     & $0.002$* \\
-  & (0.002)     & (0.002)     & (0.001) \\[4pt]
-$F^{CP}_{i,k-2} \times y_{i,k-1}$ (CP $-\eta_p$)
-  & $-0.024$*** & $-0.005$    & $-0.011$*** \\
-  & (0.007)     & (0.003)     & (0.003) \\[4pt]
-\multicolumn{4}{@{}l}{\textit{Level channels:}} \\[2pt]
-$S_{ik}$ (containment $\alpha_S$)
-  & $-0.092$*** & $-0.116$*** & $-0.034$*** \\
-  & (0.019)     & (0.013)     & (0.012) \\[4pt]
-$F^{DI}_{i,k-2}$ (DI $\alpha_{DI}$)
-  & $0.999$***  & $0.663$***  & $0.185$ \\
-  & (0.198)     & (0.109)     & (0.122) \\[4pt]
-$d_{ik}$ (fear $\beta_d$)
-  & $0.003$     & $0.014$     & $-0.021$** \\
-  & (0.016)     & (0.015)     & (0.008) \\[4pt]
+\multicolumn{4}{@{}l}{\textit{Persistence channel:}} \\[2pt]
+$y_{i,k-1}$ \,($\rho_y$)
+  & $0.566$***  & $0.231$***  & $0.172$*** \\
+  & (0.085)     & (0.050)     & (0.035) \\[4pt]
+\multicolumn{4}{@{}l}{\textit{Containment channel:}} \\[2pt]
+$S_{ik}$ \,($\alpha_S$)
+  & $-0.065$*** & $-0.095$*** & $-0.104$*** \\
+  & (0.012)     & (0.013)     & (0.013) \\[4pt]
+\multicolumn{4}{@{}l}{\textit{Capacity-preservation channels:}} \\[2pt]
+$F^{CP,\,\text{above}}_{i,k-2}$ \,(flow) \,[$\alpha_{\text{above}}$]
+  & $1.024$***  & $0.544$***  & $0.728$*** \\
+  & (0.264)     & (0.189)     & (0.182) \\[4pt]
+$K^{CP,\,\text{below}}_{ik}$ \,(stock) \,[$\alpha_{\text{below}}$]
+  & $-0.037$    & $0.261$*    & $-0.361$** \\
+  & (0.100)     & (0.145)     & (0.143) \\[4pt]
+\multicolumn{4}{@{}l}{\textit{Demand-injection channels (state-dependent):}} \\[2pt]
+$F^{DI}_{i,k-1}$ \,($\alpha_{DI}$)
+  & $1.552$*    & $1.470$**   & $1.443$*** \\
+  & (0.878)     & (0.569)     & (0.521) \\[4pt]
+$F^{DI}_{i,k-1} \times S_{ik}$ \,($\alpha_{S\cdot DI}$)
+  & $-0.036$*   & $-0.041$*** & $-0.035$*** \\
+  & (0.019)     & (0.014)     & (0.011) \\[4pt]
 \midrule
 Country FE       &            & \checkmark & \checkmark \\
-Quarter FE       &            &            & \checkmark \\
-Observations     & 380        & 380        & 380 \\
-$R^2$            & 0.454      & 0.628      &            \\
-Within $R^2$     &            &            & 0.281 \\
+Year FE          &            &            & \checkmark \\
+Observations     & 418        & 418        & 418 \\
+$R^2$ (adj.)     & 0.461      & 0.590      & 0.690 \\
+Within $R^2$     &            & 0.436      & 0.358 \\
 \bottomrule
 \end{tabular}
 \vspace{4pt}
-\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: output gap $y_{ik}$ (percentage points of potential GDP). Sample: 38 OECD countries over Q1\,2020--Q2\,2022 ($t \geq 5$, ten quarters per country). All columns use identical regressors; columns differ only in the fixed-effects structure. Standard errors clustered at the country level in parentheses, with small-sample adjustment. The progression across columns illustrates the identification strategy. The pooled OLS estimate of $\eta_p$ ($-0.024$) is inflated by cross-country confounding between fiscal composition and country-specific recession depth. Country fixed effects absorb this confounding, and the coefficient collapses to $-0.005$ (insignificant), reflecting the loss of identification without temporal variation. Quarter fixed effects restore identification from within-country variation across quarters, yielding $\eta_p = -0.011$ ($p < 0.001$). The lockdown amplification parameter $\psi$ follows a parallel pattern: negative in pooled OLS (sign reversal from omitted-variable bias), zero under country FE alone, and correctly signed and significant under the two-way specification. The level of $F^{CP}$ is omitted because the theoretical framework predicts no contemporaneous level effect; a specification including $F^{CP}$ as a level control is reported in Section~\ref{subsec:robustness}. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: output gap $y_{ik}$ (percentage points of potential GDP). Sample: 38 OECD countries over Q4\,2019--Q2\,2022 (11 quarters per country, $t \in [4,14]$, $N = 418$). All columns share the V14 regressor set: persistence ($y_{i,k-1}$), containment ($S_{ik}$), capacity-preservation Flow (above-the-line wage subsidies and direct grants, entering with a two-quarter authorisation-to-spending lag), capacity-preservation Stock (cumulative below-the-line loans and guarantees at the low-take-up baseline, 40\% loans / 25\% guarantees), and a state-dependent demand-injection block ($F^{DI}_{i,k-1}$ entered both as a level and interacted with $S_{ik}$). Standard errors clustered at the country level (CRV1, small-sample adjusted) in parentheses. Column~(2) is the preferred specification: Country fixed effects absorb time-invariant structural heterogeneity (fiscal space, institutions, voluntary response patterns) while leaving the global pandemic shock as part of the policy environment to be evaluated, which Quarter or Year fixed effects would absorb mechanically. Column~(3) adds Year fixed effects as a robustness check; the sign reversal of $\alpha_{\text{below}}$ reflects the mechanical absorption of the cumulating below-the-line stock by Year FE rather than identification failure. The state-dependent DI multiplier breaks even at $S^{*} \approx |\alpha_{DI} / \alpha_{S\cdot DI}| \approx 36$, consistent with a push-on-string interpretation: positive baseline multiplier, contractionary at high containment. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
 \begin{table}[H]
@@ -1173,67 +1176,50 @@ residuals after two-way fixed effects demeaning. Estimation sample
 
 \begin{table}[H]
 \centering
-\caption{Main Results: Debt Equation}
+\caption{Main Results: Debt Equation (V15, 22.05.2026)}
 \label{tab:debt_main}
 \scriptsize
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{} l c c c c c @{}}
 \toprule
  & (1) & (2) & (3) & (4) & (5) \\
- & OLS & Country FE & \multicolumn{3}{c}{Country FE --- CP decomposition} \\
- \cmidrule(lr){4-6}
- &     & Pooled & Raw & Adj.\ 35\% & Three-way \\
+ & Pooled OLS & \multicolumn{2}{c}{Country FE --- raw $\Delta b_{ik}$}
+              & \multicolumn{2}{c}{Country FE --- adjusted $\Delta b^{\text{adj}}_{ik}$} \\
+ \cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & (adj.\ LHS) & Three-way & Pooled below & Main (V15) & + Linear trend \\
 \midrule
-$y_{ik}$ [$-\gamma_y$]
-  & $-0.147$*** & $-0.219$*** & $-0.215$*** & $-0.215$*** & $-0.210$*** \\
-  & (0.029)     & (0.036)     & (0.036)     & (0.036)     & (0.037) \\[4pt]
-$F^{CP}_{ik}$ (pooled) [$\kappa^{CP}$]
-  & $0.186$***  & $0.167$**   &             &             &  \\
-  & (0.049)     & (0.048)     &             &             &  \\[4pt]
-$F^{CP}$ above-the-line [$\kappa^{\text{above}}$]
-  &             &             & $0.401$*    & $0.401$*    & $0.423$* \\
-  &             &             & (0.176)     & (0.176)     & (0.174) \\[4pt]
-$F^{CP}$ below-the-line [$\kappa^{\text{below}}$]
-  &             &             & $0.112$*    &             &  \\
-  &             &             & (0.045)     &             &  \\[4pt]
-$F^{CP}$ below-the-line (adj.) [$\kappa^{\text{below}}$]
-  &             &             &             & $0.321$*    &  \\
-  &             &             &             & (0.127)     &  \\[4pt]
-$F^{CP}$ loans [$\kappa^{\text{loans}}$]
-  &             &             &             &             & $0.352$*** \\
-  &             &             &             &             & (0.083) \\[4pt]
-$F^{CP}$ guarantees (adj.) [$\kappa^{\text{guar}}$]
-  &             &             &             &             & $0.095$ \\
-  &             &             &             &             & (0.164) \\[4pt]
-$F^{DI}_{i,k}$ [$\kappa^{DI}$]
-  & $0.375$    & $0.161$     & $0.215$     & $0.215$     & $0.181$ \\
-  & (0.293)     & (0.281)     & (0.283)     & (0.283)     & (0.282) \\[4pt]
+$y_{ik}$ \,[$-\gamma_y$]
+  & $-0.137$*** & $-0.189$*** & $-0.191$*** & $-0.200$*** & $-0.181$*** \\
+  & (0.025)     & (0.032)     & (0.031)     & (0.031)     & (0.033) \\[4pt]
+$F^{CP,\,\text{above}}_{ik}$ \,[$\kappa^{\text{above}}$]
+  & $0.574$***  & $0.488$***  & $0.461$**   & $0.534$***  & $0.394$** \\
+  & (0.186)     & (0.178)     & (0.178)     & (0.173)     & (0.194) \\[4pt]
+$F^{CP,\,\text{loans}}_{ik}$ \,(40\% take-up) \,[$\kappa^{\text{loans}}$]
+  & $0.930$***  & $0.935$***  &             & $0.957$***  & $0.893$*** \\
+  & (0.210)     & (0.185)     &             & (0.201)     & (0.170) \\[4pt]
+$F^{CP,\,\text{guar}}_{ik}$ \,(25\% take-up) \,[$\kappa^{\text{guar}}$]
+  & $0.196$     & $0.189$     &             & $0.197$     & $0.083$ \\
+  & (0.246)     & (0.230)     &             & (0.246)     & (0.227) \\[4pt]
+$F^{CP,\,\text{below}}_{ik}$ \,(pooled) \,[$\kappa^{\text{below}}$]
+  &             &             & $0.497$***  &             &  \\
+  &             &             & (0.142)     &             &  \\[4pt]
+$F^{DI}_{i,k-1}$ \,[$\kappa^{DI}$]
+  & $0.580$*    & $0.449$     & $0.467$*    & $0.492$*    & $0.414$ \\
+  & (0.306)     & (0.269)     & (0.267)     & (0.270)     & (0.258) \\[4pt]
+Linear trend ($t$)
+  &             &             &             &             & $-0.110$*** \\
+  &             &             &             &             & (0.025) \\[4pt]
 \midrule
-Country FE           &       & \checkmark & \checkmark & \checkmark & \checkmark \\
-Guarantee adjustment & ---   & ---        & No         & 35\%       & 35\% \\
-Observations         & 380   & 380        & 380        & 380        & 380 \\
-Within $R^2$         &       & 0.220      & 0.228      & 0.228      & 0.238 \\
+Country FE              &            & \checkmark & \checkmark & \checkmark & \checkmark \\
+Interest-rate adj.\ LHS & \checkmark & ---        & ---        & \checkmark & \checkmark \\
+Observations            & 494        & 494        & 494        & 494        & 494 \\
+$R^2$ (adj.)            & 0.220      & 0.199      & 0.195      & 0.214      & 0.237 \\
+Within $R^2$            &            & 0.243      & 0.238      & 0.259      & 0.282 \\
 \bottomrule
 \end{tabular}
 \vspace{4pt}
 
-\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable:
-$\Delta b_{ik}$ (quarterly first difference of real public debt, pp of
-2019 GDP). 38 OECD countries, Q1\,2020--Q2\,2022 (380 observations).
-Standard errors clustered by country in parentheses. All fiscal
-variables in \% of 2019 GDP. Column~(1): pooled OLS. Column~(2):
-country fixed effects, pooled capacity preservation. Column~(3): CP
-disaggregated into above-the-line (wage subsidies, grants) and
-below-the-line (loans, guarantees) at face value. Column~(4):
-below-the-line adjusted for 35\% guarantee take-up rate
-\citep{imf2022fiscalmonitor}. Column~(5): three-way decomposition into
-above-the-line, government loans (actual disbursements), and credit
-guarantees (contingent liabilities, adjusted at 35\%). Loans are highly
-significant ($\hat{\kappa}^{\text{loans}} = 0.35$***, $p < 0.001$)
-while guarantees are insignificant ($p = 0.57$), consistent with the
-``whatever it takes'' logic: guarantees preserve capacity through
-announcement effects but most are never drawn, generating no realized
-debt. $F^{DI}$ enters at lag~1. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: quarterly change in real public debt $\Delta b_{ik}$ (pp of 2019 GDP). Columns~(2)--(3) use the raw change $\Delta b_{ik}$; columns~(1), (4) and~(5) use the interest-rate-adjusted change $\Delta b^{\text{adj}}_{ik} = \Delta b_{ik} - r^{\text{LT}}_k \cdot b_{i,k-1}/4$, where $r^{\text{LT}}_k$ is the OECD cross-country median long-term nominal interest rate at quarter $k$. The adjusted LHS nets out mechanical interest accrual so that the residual $\Delta b^{\text{adj}}$ captures the primary balance and discretionary financing operations. Sample: 38 OECD countries over Q4\,2019--Q4\,2022 (13 quarters per country, $t \in [4,16]$, $N = 494$). Capacity preservation is decomposed three-way: above-the-line outlays (wage subsidies, direct grants), below-the-line loans (40\% drawdown, ECB SAFE low scenario), and below-the-line guarantees (25\% conversion). Column~(3) reports the pooled-below variant ($F^{CP,\,\text{loans}} + F^{CP,\,\text{guar}}$) for comparison; columns~(2), (4) and~(5) use the three-way decomposition. Column~(4) is the V15 main specification (22.05.2026); column~(5) adds a linear time trend as robustness. Standard errors clustered by country (CRV1, small-sample adjusted) in parentheses. Loans deliver the largest realised debt impact ($\hat{\kappa}^{\text{loans}} \approx 0.94$), above-the-line is the second-largest channel, while guarantees translate into negligible realised debt over the sample period---consistent with the ``whatever-it-takes'' interpretation that contingent liabilities preserve productive capacity through announcement effects without being drawn. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
 \subsection{Identifying Variation in the Debt Equation}
@@ -1423,7 +1409,7 @@ $\kappa^{DI}$ & Demand injection fiscal cost
 \bottomrule
 \end{tabular}
 \vspace{4pt}
-\parbox{\textwidth}{\scriptsize\textit{Notes:} Output parameters from the two-way fixed effects specification (Table~\ref{tab:main_results}, column 3). Debt parameters from the three-way CP decomposition (Table~\ref{tab:debt_main}, column 5). Standard errors clustered at the country level in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Output parameters from the V14 Country-FE specification (Table~\ref{tab:main_results}, column 2). Debt parameters from the V15 main specification with interest-rate-adjusted LHS and three-way CP decomposition (Table~\ref{tab:debt_main}, column 4). Standard errors clustered at the country level in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
 \end{table}
 
 The estimated parameters identify the two transmission channels that the theoretical framework distinguishes. On the output side, the persistence coefficient $\eta_p = -0.011$ is highly significant, confirming that capacity preservation reduces the effective persistence of the output gap in proportion to the depth of the recession. The demand injection multiplier $\alpha_{DI} = 0.185$ is positive but not statistically distinguishable from zero, consistent with the prediction that demand stimulus is ineffective when supply is physically constrained. On the debt side, the automatic stabilizer $\gamma_y = 0.210$ lies within the OECD range of 0.35--0.65 reported by \citet{repec:oecd} once scale differences are accounted for, and the CP cost decomposition reveals the expected ordering: above-the-line outlays ($0.42$) exceed loan disbursements ($0.35$), which in turn exceed contingent guarantees ($0.10$, insignificant).

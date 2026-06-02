@@ -2516,7 +2516,8 @@ pdata_v14 <- pdata.frame(
   df_bin |> filter(t_idx >= 4 & t_idx <= 14),
   index = c("Country", "Quarter")
 )
-#MAIN MODEL 12.05.2026
+#MAIN MODEL 
+#22.05.2026
 v14_plm <- plm(
   y_t_pct ~ y_lag1 + S_mean_tw
   + F_CP_above_flow_lag2 +F_CP_belowstock
@@ -3776,7 +3777,9 @@ summary(debt_FE, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
 #with disaggregation of below
 #iLQR dieses verwendet 
-#Main Model 12.05.2026
+
+
+#Main Model 12.05.2026-> ba
 debt_v14 <- feols(
   debt_dR ~ y_t_pct 
   + F_CP_above_3 + F_CP_loans_lo + F_CP_guar_lo
@@ -3787,7 +3790,7 @@ debt_v14 <- feols(
 
 summary(debt_v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-
+colnames(pdata)
 #with linear timetrend
 debt_v14 <- feols(
   debt_dR ~ y_t_pct 
@@ -3808,6 +3811,7 @@ summary(debt_v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 # differences in fiscal accounting conventions; estimated kappa therefore
 # reflects the within-country empirical regularity rather than the
 # theoretical one-to-one mechanical translation.
+
 
 ##same but in PLM für FE
 pdataD_sub <- pdata.frame(
@@ -3831,6 +3835,57 @@ q4_2019_values <- pdataD %>%
   filter(Quarter == "Q4.2019") %>%
   select(Country, DebtR_share2019)
 print(q4_2019_values, n=Inf)
+
+library(readr); library(dplyr)
+
+base <- "https://sdmx.oecd.org/public/rest/data"
+flow <- "OECD.SDD.STES,DSD_STES@DF_FINMARK,4.0"
+# Dimensionen: REF_AREA . FREQ . MEASURE . UNIT_MEASURE . (rest leer)
+key  <- ".Q.IRLT.PA....."
+url  <- paste0(base, "/", flow, "/", key,
+               "?startPeriod=2019-Q4&endPeriod=2022-Q4",
+               "&format=csvfilewithlabels&dimensionAtObservation=AllDimensions")
+
+ltir_oecd <- read_csv(url) %>%
+  transmute(iso3 = REF_AREA, Quarter = TIME_PERIOD, ltir = OBS_VALUE)
+
+ltir_oecd <- ltir_oecd %>%
+  mutate(Quarter = str_replace(Quarter, "(\\d{4})-Q(\\d)", "Q\\2.\\1"))
+
+library(tidyr)
+coverage <- ltir_oecd %>%
+  count(iso3) %>%
+  arrange(n)
+print(coverage, n=Inf)   # alles < 13 hat Lücken
+
+
+library(dplyr)
+
+r_common <- ltir_oecd %>%
+  group_by(Quarter) %>%
+  summarise(r_q = median(ltir, na.rm = TRUE) / 100 / 4, .groups = "drop")
+# Quarter-Format angleichen, falls ltir noch "2019-Q4" statt "Q4.2019" hat
+r_common <- r_common %>%
+  mutate(Quarter = stringr::str_replace(Quarter, "(\\d{4})-Q(\\d)", "Q\\2.\\1"))
+
+# Merge + Lag + bereinigte LHS
+pdataD <- pdataD %>%
+  left_join(r_common, by = "Quarter") %>%
+  arrange(Country, t_idx) %>%
+  group_by(Country) %>%
+  mutate(
+    DebtR_lag1  = dplyr::lag(DebtR_share2019, 1),
+    debt_dR_adj = debt_dR - r_q * DebtR_lag1
+  ) %>%
+  ungroup()
+
+##Main 22.05.2026-> with adjusted values
+debt_v15 <- feols(
+  debt_dR_adj ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo +
+    F_CP_guar_lo + F_DI_lag1 | Country,
+  data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
+summary(debt_v15, cluster = ~Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
 # ============================================================================
 # DEBT EQUATION V14 - ROBUSTNESS BATTERY
 # ----------------------------------------------------------------------------
