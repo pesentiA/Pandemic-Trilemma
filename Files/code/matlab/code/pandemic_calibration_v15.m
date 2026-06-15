@@ -30,8 +30,8 @@ fprintf('  %s\n\n', datestr(now));
 % --- Output equation ---
 rho_y         =  0.231;
 alpha_S       = -0.0952;
-alpha_above   =  0.544;
-alpha_below   =  0.261165;
+alpha_above   =  0.544; %0.544
+alpha_below   =  0.261165; %0.261165
 alpha_DI_lag1 =  1.470;
 alpha_S_DI    = -0.0406;
 beta_d        =  0.0115;       % deaths/10^6/week -> pp output drag
