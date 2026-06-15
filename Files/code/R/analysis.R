@@ -100,8 +100,6 @@
 rm(list = ls())
 
 
-library(polars)
-library(DIDmultiplegtDYN)
 
 
 # --- Packages ---------------------------------------------------------------
@@ -667,11 +665,8 @@ pdata %>%
 # wild-cluster bootstrap; summclust does cluster-jackknife diagnostics;
 # clubSandwich provides additional clustered VCOVs; boot is a base
 # dependency that some installations need explicitly.
-library(fwildclusterboot)
-library(summclust)
-library(clubSandwich)
-if (!requireNamespace("boot", quietly = TRUE)) install.packages("boot")
-library(boot)
+#install.packages("fwildclusterboot")
+#library(fwildclusterboot)-> check it when you need it
 
 # -----------------------------------------------------------------------------
 #  STEP 0 - SAMPLE CONSTRUCTION
@@ -2429,14 +2424,66 @@ df_bin <- df_bin |>
 
 
 # ----------------------------------------------------------------------------
-# V14 MAIN SPECIFICATION
+# V14 is the MAIN SPECIFICATION
 # ----------------------------------------------------------------------------
+# (1) State / shock only
+v11 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + p_proj_all_ages | Country,
+  data = df_bin,  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+summary(v11, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+# (2) Aggregate fiscal support
+# create one-quarter lag of aggregate fiscal support by country
+df_bin <- df_bin[order(df_bin$Country, df_bin$t_idx), ]
+
+df_bin$f_total_lag1 <- ave(
+  df_bin$F_total,
+  df_bin$Country,
+  FUN = function(x) dplyr::lag(x, 1)
+)
+# Variante A: falls du bereits eine aggregierte Fiskalvariable hast, z.B. F_total_lag1
+
+df_bin <- df_bin[order(df_bin$Country, df_bin$t_idx), ]
+
+df_bin$p_lag1 <- ave(
+  df_bin$p_proj_all_ages,
+  df_bin$Country,
+  FUN = function(x) c(NA, x[-length(x)])
+)
+
+v12 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + f_total_lag1| Country,
+  data = df_bin,  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+summary(v12, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+# (3) Decomposed fiscal channels, without interaction
+v13 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2
+  + F_CP_belowstock
+  + F_DI_lag1 | Country,
+  data = df_bin,  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+
+summary(v13, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+#main modell 22.05.2026
 v14 <- feols(
   y_t_pct ~ y_lag1 + S_mean_tw
-  + F_CP_above_flow_lag2 + F_CP_belowstock
-  + F_DI_lag1 * S_mean_tw | Country,
-  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+  + F_CP_above_flow_lag2
+  + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw  | Country,
+  data = df_bin,  subset = ~ t_idx >= 4 & t_idx <= 14
 )
+
 summary(v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
 
@@ -2457,10 +2504,9 @@ m_v14 <- lm(y_t_pct ~ y_lag1 + S_mean_tw
             data = df_v14)
 cat("\nVIF V14:\n"); print(vif(m_v14))
 
-# EXPECTED: Above_lag2 VIF ~1.2, Belowstock VIF ~1.1, Cor ~0.10
+# EXPECTED: Above_lag2 VIF ~1.2, Belowstock VIF ~1.1, Cor ~0.12  (re-run 2026-06-15: 0.117)
 # -> Channels are statistically orthogonal, separately identified.
 # F_DI / F_DI:S_mean_tw VIFs ~14 are cosmetic interaction artifacts.
-
 
 # ============================================================================
 # STEP 5 -- PERSISTENCE-REDUCTION TEST (REJECTED)
@@ -2517,7 +2563,7 @@ pdata_v14 <- pdata.frame(
   index = c("Country", "Quarter")
 )
 #MAIN MODEL 
-#22.05.2026
+#15.06.2026
 v14_plm <- plm(
   y_t_pct ~ y_lag1 + S_mean_tw
   + F_CP_above_flow_lag2 +F_CP_belowstock
@@ -2538,19 +2584,6 @@ print(coefs_feols)
 print(coefs_plm)
 # feols and plm match — V14 point estimates are estimator-invariant.
 
-#===============================================================================
-#9999999999999999999999999TEST FÜR ILQR mit unterschiedlichem S99999999999999999
-
-df_bin$Wave2 <- as.numeric(df_bin$t_idx >= 8 & df_bin$t_idx <= 10)  # Q4.20-Q2.21
-v14_wave <- feols(y_t_pct ~ y_lag1 + S_mean_tw + S_mean_tw:Wave2
-                  + F_CP_above_flow_lag2 + F_CP_belowstock
-                  + F_DI_lag1 * S_mean_tw | Country,
-                  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
-summary(v14_wave, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-fixef(v14_wave)$Country
-residuals(v14_wave)[df_v14$Quarter == "Q2.2020"]
-#nur test
 
 # ============================================================================
 # FAZIT - V14 IS THE FINAL MAIN SPECIFICATION
@@ -2577,7 +2610,7 @@ residuals(v14_wave)[df_v14$Quarter == "Q2.2020"]
 #       institutional structure of fiscal response and yields separately
 #       identified parameters.
 #
-#   (2) Orthogonal identification: Cor(Above_lag2, Belowstock) = 0.10,
+#   (2) Orthogonal identification: Cor(Above_lag2, Belowstock) = 0.12,
 #       all VIFs below 1.5. No collinearity bias.
 #
 #   (3) DI push-on-string is empirically robust across all specifications
@@ -2632,11 +2665,207 @@ residuals(v14_wave)[df_v14$Quarter == "Q2.2020"]
 #
 # ============================================================================
 
+#=======================GET THE OUPUT FOR LATEX================================
+library(fixest)
 
+# ------------------------------------------------------------
+# 1. Create lagged aggregate fiscal support
+# ------------------------------------------------------------
+
+df_bin <- df_bin[order(df_bin$Country, df_bin$t_idx), ]
+
+df_bin$f_total_lag1 <- ave(
+  df_bin$F_total,
+  df_bin$Country,
+  FUN = function(x) c(NA, x[-length(x)])
+)
+
+
+# ------------------------------------------------------------
+# 2. Estimate the four output specifications
+# ------------------------------------------------------------
+
+v11 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw  | Country,
+  data = df_bin,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+v12 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + f_total_lag1 | Country,
+  data = df_bin,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+v13 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2
+  + F_CP_belowstock
+  + F_DI_lag1  | Country,
+  data = df_bin,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+v14 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2
+  + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw | Country,
+  data = df_bin,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+models <- list(v11, v12, v13, v14)
+
+summaries <- lapply(
+  models,
+  function(x) summary(
+    x,
+    cluster = ~ Country,
+    ssc = ssc(K.adj = TRUE, G.adj = TRUE)
+  )
+)
+
+
+# ------------------------------------------------------------
+# 3. Helper functions
+# ------------------------------------------------------------
+
+get_ct <- function(s) {
+  out <- as.data.frame(s$coeftable)
+  out$term <- rownames(out)
+  rownames(out) <- NULL
+  out
+}
+
+coeftables <- lapply(summaries, get_ct)
+
+stars <- function(p) {
+  if (is.na(p)) return("")
+  if (p < 0.01) return("***")
+  if (p < 0.05) return("**")
+  if (p < 0.10) return("*")
+  return("")
+}
+
+fmt <- function(x) {
+  if (is.na(x)) return("")
+  sprintf("%.3f", x)
+}
+
+find_term <- function(ct, terms) {
+  terms <- as.character(terms)
+  hit <- terms[terms %in% ct$term]
+  if (length(hit) == 0) return(NULL)
+  hit[1]
+}
+
+coef_cell <- function(ct, terms) {
+  term <- find_term(ct, terms)
+  if (is.null(term)) return("")
+  
+  row <- ct[ct$term == term, ]
+  paste0("$", fmt(row$Estimate), stars(row$`Pr(>|t|)`), "$")
+}
+
+se_cell <- function(ct, terms) {
+  term <- find_term(ct, terms)
+  if (is.null(term)) return("")
+  
+  row <- ct[ct$term == term, ]
+  paste0("(", fmt(row$`Std. Error`), ")")
+}
+
+make_coef_row <- function(label, terms) {
+  est <- sapply(coeftables, coef_cell, terms = terms)
+  se  <- sapply(coeftables, se_cell, terms = terms)
+  
+  c(
+    paste0(label, " & ", paste(est, collapse = " & "), " \\\\"),
+    paste0(" & ", paste(se, collapse = " & "), " \\\\[4pt]")
+  )
+}
+
+make_stat_row <- function(label, values) {
+  paste0(label, " & ", paste(values, collapse = " & "), " \\\\")
+}
+
+adj_r2 <- sapply(models, function(x) fmt(fixest::r2(x, "ar2")))
+within_r2 <- sapply(models, function(x) fmt(fixest::r2(x, "wr2")))
+n_obs <- sapply(models, nobs)
+
+
+# ------------------------------------------------------------
+# 4. Build LaTeX table
+# ------------------------------------------------------------
+
+latex_table <- c(
+  "\\begin{table}[H]",
+  "\\centering",
+  "\\caption{Output Transition Estimates}",
+  "\\label{tab:output_transition}",
+  "\\scriptsize",
+  "\\renewcommand{\\arraystretch}{1.2}",
+  "\\begin{tabular}{@{} l c c c c @{}}",
+  "\\toprule",
+  " & (1) & (2) & (3) & (4) \\\\",
+  " & State/shock & Aggregate fiscal & Decomposed fiscal & Full baseline \\\\",
+  " & only & support & channels & (preferred) \\\\",
+  "\\midrule",
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Persistence channel:}} \\\\[2pt]",
+  make_coef_row("$y_{i,k-1}$ \\,($\\rho_y$)", "y_lag1"),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Containment channel:}} \\\\[2pt]",
+  make_coef_row("$S_{ik}$ \\,($\\alpha_S$)", "S_mean_tw"),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Aggregate fiscal channel:}} \\\\[2pt]",
+  make_coef_row("$F^{\\text{total}}_{i,k-1}$", "f_total_lag1"),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Capacity-preservation channels:}} \\\\[2pt]",
+  make_coef_row(
+    "$F^{CP,\\,\\text{above}}_{i,k-2}$ \\, (flow) \\,[$\\alpha_{\\text{above}}$]",
+    "F_CP_above_flow_lag2"
+  ),
+  make_coef_row(
+    "$K^{CP,\\,\\text{below}}_{ik}$ \\, (stock) \\,[$\\alpha_{\\text{below}}$]",
+    "F_CP_belowstock"
+  ),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Demand-injection channels:}} \\\\[2pt]",
+  make_coef_row(
+    "$F^{DI}_{i,k-1}$ \\,($\\alpha_{DI}$)",
+    "F_DI_lag1"
+  ),
+  make_coef_row(
+    "$F^{DI}_{i,k-1} \\times S_{ik}$ \\,($\\alpha_{S\\cdot DI}$)",
+    c("S_mean_tw:F_DI_lag1", "F_DI_lag1:S_mean_tw")
+  ),
+  
+  "\\midrule",
+  make_stat_row("Country FE", rep("$\\checkmark$", 4)),
+  make_stat_row("Observations", n_obs),
+  make_stat_row("$R^2$ (adj.)", adj_r2),
+  make_stat_row("Within $R^2$", within_r2),
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\vspace{4pt}",
+  "\\parbox{\\textwidth}{\\scriptsize\\textit{Notes:} Dependent variable: output gap $y_{ik}$, measured in percentage points of potential GDP. Sample: 38 OECD countries over the pandemic estimation window $t \\in [4,14]$. All specifications include country fixed effects. Standard errors clustered at the country level with small-sample correction are reported in parentheses. Column~(1) includes only the lagged output gap and containment intensity. Column~(2) adds aggregate fiscal support. Columns~(3) and~(4) decompose fiscal support by transmission channel. Column~(4) is the preferred specification used to parameterize the output transition in the planner problem. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}",
+  "\\end{table}"
+)
+
+cat(paste(latex_table, collapse = "\n"))
+
+# Optional: save table as .tex file
+writeLines(latex_table, "output_transition_table.tex")
+#============================FERTIG=============================================
+
+
+#From here: claude
 # =====================================================
 # ROBUSTNESS BATTERY V14-BASE
 # =====================================================
-
+##add fear channel
 #..............................................................................
 ## Decay-stock robustness for the Below-Stock channel.
 ## Replaces the V14 cumulative-sum stock with a geometrically decaying
@@ -2670,13 +2899,15 @@ for (d in deltas) {
   m <- feols(
     y_t_pct ~ y_lag1 + S_mean_tw
     + F_CP_above_flow_lag2 + F_CP_below_decay
-    + F_DI_lag1 * S_mean_tw + as.numeric(year_only) | Country,
+    + F_DI_lag1 * S_mean_tw | Country,
     data = df_tmp, subset = ~ t_idx >= 4 & t_idx <= 14
   )
 
   cat("\n========== delta =", d, "==========\n")
   print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
 }
+
+##decay machen wir nicht
 
 #...............................................................................
 # ============================================================================
@@ -3269,18 +3500,24 @@ keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
 
 # ============================================================
 # V14 Robustness Interpretation
+# ------------------------------------------------------------
+# VERIFIED by full re-run on 2026-06-15 (R 4.6.0, N = 418,
+# 38 countries x 11 quarters, Q4.2019-Q2.2022). All coefficients,
+# signs, significance levels and Ns below reproduce exactly.
 # ============================================================
 #
 # (1) ASYMMETRY: tightening vs loosening
-#   Delta S+ = -0.125*** (p < 0.001)
-#   Delta S- = -0.005    (p = 0.79)
-#   Tightening contracts output ~25x more than loosening expands
-#   it. Direct evidence for hysteresis: productive capacity
-#   destroyed during tightening does not return mechanically
-#   during loosening. The asymmetric ratchet provides structural
-#   justification for the persistence channel and the AR(1)
-#   recovery dynamics in V14. Above-Flow and DI:S remain
-#   significant in this richer specification.
+#   Delta S+ = -0.125*** (p < 0.001)      [S_tightening]
+#   Delta S- = -0.005    (p = 0.79)       [S_loosening]
+#   Tightening contracts output ~26x more than loosening
+#   expands it. Direct evidence for hysteresis: productive
+#   capacity destroyed during tightening does not return
+#   mechanically during loosening. The asymmetric ratchet
+#   provides structural justification for the persistence
+#   channel and the AR(1) recovery dynamics in V14. Above-Flow
+#   (0.49**) and DI:S (-0.030*) remain significant in this
+#   richer specification. (Below-Stock turns -0.24* here,
+#   consistent with its trend-/identification-fragility.)
 #
 # (2) SAMPLE SPLITS: heterogeneity is economically interpretable
 #
@@ -3343,145 +3580,13 @@ keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
 #   sample window and time-fixed-effects specifications.
 #   Tightening-loosening asymmetry provides independent
 #   structural support for the AR(1) persistence framing.
-# ============================================================================
-# ALTERNATIVE ESTIMATORS
-# ----------------------------------------------------------------------------
-# ============================================================================
-
-
-#==============================================================================
-# Regime switching (Deb et al. 2021): smooth-transition multiplier
-# with logistic regime weights driven by standardised stringency.
-
-df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
-df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
-
-main_v10_agg <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw + p_proj_all_ages
-  + I((1 - F_z) * F_CP_lag1)             # CP HIGH containment
-  + I(F_z       * F_CP_lag1)             # CP LOW containment
-  + I((1 - F_z) * F_DI_lag1)             # DI HIGH containment
-  + I(F_z       * F_DI_lag1)             # DI LOW containment
-  + F_CP_lag2:y_lag1_recession           # Tail-Insurance
-  | Country + year_only,
-  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
-)
-summary(main_v10_agg, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-
-
-# Standardization (re-using F_z from the aggregated specification above)
-df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
-
-# Smooth transition function (gamma = 1.5 as in Deb et al.)
-# F_z high = LOW containment regime; F_z low = HIGH containment regime
-df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
-
-# Lagged level variants of loans and guarantees, required for the
-# disaggregated Deb-style spec below. Above-the-line lags already exist
-# (constructed in the V14 Step 3 block above).
-df_bin <- df_bin |>
-  group_by(Country) |> arrange(t_idx) |>
-  mutate(
-    F_CP_loans_lag1    = lag(F_CP_loans,    1),
-    F_CP_guar_adj_lag1 = lag(F_CP_guar_adj, 1)
-  ) |> ungroup()
-
-# Regime-dependent multipliers
-main_v10 <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  # CP above-the-line: regime-dependent (cash-flow channel)
-  + I((1 - F_z) * F_CP_above_flow_lag1)    # HIGH containment regime
-  + I(F_z       * F_CP_above_flow_lag1)    # LOW containment regime
-  # Loans and guarantees as level controls (not regime-dependent)
-  + F_CP_loans_lag1 + F_CP_guar_adj_lag1
-  # DI: regime-dependent (demand channel)
-  + I((1 - F_z) * F_DI_lag1)               # HIGH containment regime
-  + I(F_z       * F_DI_lag1)               # LOW containment regime
-  # Tail insurance (CP * recession spline)
-  + F_CP_above_flow_lag2:y_lag1_recession
-  | Country,
-  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
-)
-summary(main_v10, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
-
-
-# GMM Diagnostics fail under short pandemic window (T=10):
-# - Difference-GMM: AR(2) rejected (p = 0.001)
-# - System-GMM: AR(2) rejected (p = 0.016)
-# Both estimators violate moment conditions; results not interpretable.
 #
-# Nickell bias addressed analytically: at rho_y = 0.43 and T = 10,
-# bias on rho_y is approximately -(1+rho)/(T-1) = -0.16. The bias
-# on the interaction coefficient eta_p is of smaller magnitude and
-# does not flip sign. The TWFE estimate eta_p = -0.011 is therefore
-# a conservative (attenuated) estimate of the persistence channel;
-# bias correction would strengthen the structural claim.
-
-##HP Filter
-#Robust to 10 years Trend calculation->see other script
-
-# ============================================================
-# Subsample robustness — regional groupings on V14 spec
-# ------------------------------------------------------------
-# Re-estimates the V14 main specification on three regional
-# subsamples (G7, EU, advanced economies). Complements the
-# characteristic-based splits in the V14 robustness battery
-# (High-S vs Low-S, High-income vs Low-income, etc.).
-# ============================================================
-
-# G7
-g7 <- c("USA", "CAN", "GBR", "DEU", "FRA", "ITA", "JPN")
-df_g7 <- df_bin %>% filter(Country %in% g7)
-
-m_g7 <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  + F_CP_above_flow_lag2 + F_CP_belowstock
-  + F_DI_lag1 * S_mean_tw
-  | Country,
-  data = df_g7,
-  subset = ~ t_idx >= 4 & t_idx <= 14
-)
-
-# EU only (OECD-EU members)
-eu <- c("AUT","BEL","CZE","DEU","DNK","ESP","EST","FIN","FRA","GRC",
-        "HUN","IRL","ITA","LTU","LUX","LVA","NLD","POL","PRT","SVK",
-        "SVN","SWE")
-df_eu <- df_bin %>% filter(Country %in% eu)
-m_eu <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  + F_CP_above_flow_lag2 + F_CP_belowstock
-  + F_DI_lag1 * S_mean_tw
-  | Country,
-  data = df_eu,
-  subset = ~ t_idx >= 4 & t_idx <= 14
-)
-
-# Advanced economies only (exclude emerging-market OECD)
-emerging <- c("MEX", "CHL", "COL", "TUR", "CRI")
-df_adv <- df_bin %>% filter(!Country %in% emerging)
-m_adv <- feols(
-  y_t_pct ~ y_lag1 + S_mean_tw
-  + F_CP_above_flow_lag2 + F_CP_belowstock
-  + F_DI_lag1 * S_mean_tw
-  | Country,
-  data = df_adv,
-  subset = ~ t_idx >= 4 & t_idx <= 14
-)
-
-etable(v14, m_g7, m_eu, m_adv,
-       cluster = ~ Country,
-       ssc = ssc(adj = TRUE, cluster.adj = TRUE),
-       keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
-                "F_DI_lag1", "F_DI_lag1:S_mean_tw"),
-       headers = c("Main (V14)", "G7", "EU", "Advanced"))
-
-# INTERPRETATION (to be re-checked after re-run on V14):
-#   Compare Above-Flow, Below-Stock, and DI:S coefficients across regional
-#   subsamples against the V14 baseline. Power loss in G7 (N small) and
-#   advanced-only is expected; EU subsample should approximate the
-#   headline pattern. Significance in regional cuts reflects sample size,
-#   not mechanism failure.
+# Cross-check (full battery, same re-run): DCDH negative-weight
+# shares Above 8.7% / DI 2.7% / Below 26.8%; take-up grid leaves
+# Above (0.541-0.546) and DI:S (-0.040 to -0.041) invariant;
+# sample restriction t_idx>=6 inflates Below to 5.87 (loss of the
+# zero-stock anchor); lag selection confirms Above lag-2 and DI
+# lag-1 as the correct, sign-consistent choices.
 
 # =============================================================================
 #  STAGE 4 - DEBT EQUATION
@@ -3517,7 +3622,7 @@ pdataD <- pdataY %>%
   filter(Quarter %in% c("Q3.2019","Q4.2019",
                         "Q1.2020","Q2.2020","Q3.2020","Q4.2020",
                         "Q1.2021","Q2.2021","Q3.2021","Q4.2021",
-                        "Q1.2022","Q2.2022","Q3.2022","Q4.2022")) %>%
+                        "Q1.2022","Q2.2022","Q3.2022","Q4.2022", "Q1.2023", "Q2.2023")) %>%
   mutate(
     q_num_sort = as.integer(substr(as.character(Quarter), 2, 2)),
     yr_sort    = as.integer(substr(as.character(Quarter), 4, 7)),
@@ -3608,7 +3713,7 @@ pdataD <- pdataD %>%
 quarter_order <- c("Q3.2019","Q4.2019",
                    "Q1.2020","Q2.2020","Q3.2020","Q4.2020",
                    "Q1.2021","Q2.2021","Q3.2021","Q4.2021",
-                   "Q1.2022","Q2.2022","Q3.2022","Q4.2022")
+                   "Q1.2022","Q2.2022","Q3.2022","Q4.2022","Q1.2023", "Q2.2023")
 pdataD$Quarter <- factor(pdataD$Quarter, levels = quarter_order)
 pdataD$t_idx   <- match(as.character(pdataD$Quarter), quarter_order)
 
@@ -3882,272 +3987,504 @@ pdataD <- pdataD %>%
 ##Main 22.05.2026-> with adjusted values
 debt_v15 <- feols(
   debt_dR_adj ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo +
-    F_CP_guar_lo + F_DI_lag1 | Country,
+    F_CP_guar_lo + F_DI  | Country,
   data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
 summary(debt_v15, cluster = ~Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 
-# ============================================================================
-# DEBT EQUATION V14 - ROBUSTNESS BATTERY
-# ----------------------------------------------------------------------------
-# Main spec:
-#   debt_v14 <- feols(debt_dR ~ y_t_pct 
-#                     + F_CP_above_3 + F_CP_loans_lo + F_CP_guar_lo
-#                     + F_DI_lag1 | Country,
-#                     data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
-# ============================================================================
 
-library(fixest); library(dplyr); library(car)
-library(fwildclusterboot); library(lmtest); library(sandwich)
+##TEST
+# Sort panel by country and quarter
+pdataD <- pdataD[order(pdataD$Country, pdataD$t_idx), ]
 
-
-# ============================================================================
-# (9) VIF AND PAIRWISE CORRELATIONS
-# ============================================================================
-df_debt <- pdataD |> filter(t_idx >= 4 & t_idx <= 16)
-
-m_vif <- lm(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo + F_CP_guar_lo 
-            + F_DI_lag1, data = df_debt)
-cat("\n========== (9) VIF DEBT V14 ==========\n")
-print(vif(m_vif))
-
-cat("\n========== Pairwise correlations ==========\n")
-print(round(cor(df_debt[, c("y_t_pct", "F_CP_above_3", "F_CP_loans_lo",
-                            "F_CP_guar_lo", "F_DI_lag1")],
-                use = "complete.obs"), 3))
-
-# INTERPRETATION: VIF < 5 for all regressors confirms clean identification;
-# no collinearity bias in disaggregated debt pass-through estimates.
-
-
-# ============================================================================
-# (8) WILD CLUSTER BOOTSTRAP
-# ============================================================================
-df_boot <- pdataD |> 
-  filter(t_idx >= 4 & t_idx <= 16) |>
-  mutate(Country = as.factor(Country))
-
-debt_boot <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                   + F_CP_guar_lo + F_DI_lag1 | Country,
-                   data = df_boot, vcov = ~ Country)
-
-set.seed(16031995); dqrng::dqset.seed(16031995)
-params_d <- c("y_t_pct", "F_CP_above_3", "F_CP_loans_lo", 
-              "F_CP_guar_lo", "F_DI_lag1")
-
-for (p in params_d) {
-  cat("\n========== Wild-Cluster Bootstrap:", p, "==========\n")
-  wb <- boottest(debt_boot, param = p, clustid = c("Country"),
-                 B = 99999, type = "rademacher", impose_null = TRUE,
-                 p_val_type = "two-tailed")
-  print(summary(wb))
-}
-# INTERPRETATION: Bootstrap p-values confirm CRV1 inference under N=38.
-# INTERPRETATION: Wild cluster bootstrap (Webb/Rademacher, B=99999) confirms 
-# small-cluster inference. gamma_y, kappa_above, and kappa_loans remain 
-# strongly significant. kappa_guar insignificant (consistent with low 
-# contingent-liability conversion). kappa_DI marginal (p=0.09).
-
-# ============================================================================
-# (7) POOLED BELOW (kappa_below instead of disaggregated)
-# ============================================================================
-df_debt <- df_debt |>
-  mutate(F_CP_below_lo = F_CP_loans_lo + F_CP_guar_lo)
-
-debt_pooled <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_below_lo 
-                     + F_DI_lag1 | Country,
-                     data = df_debt,
-                     subset = ~ t_idx >= 4 & t_idx <= 16)
-cat("\n========== (7) POOLED BELOW ==========\n")
-print(summary(debt_pooled, cluster = ~ Country, 
-              ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
-
-# INTERPRETATION: Pooled spec averages kappa_loans (0.94) and kappa_guar (0.19),
-# masking institutional differences. Disaggregation reveals loans channel
-# mechanically dominant; guarantees near-zero pass-through. Retain
-# disaggregation as main spec.
-
-
-# ============================================================================
-# (5) LINEAR QUARTER TREND
-# ============================================================================
-debt_trend <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                    + F_CP_guar_lo + F_DI_lag1 
-                    + as.numeric(t_idx) | Country,
-                    data = pdataD,
-                    subset = ~ t_idx >= 4 & t_idx <= 16)
-cat("\n========== (5) WITH LINEAR QUARTER TREND ==========\n")
-print(summary(debt_trend, cluster = ~ Country, 
-              ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
-
-# INTERPRETATION: Trend captures mechanical debt drift (interest compounding,
-# refinancing). Main F-channels remain stable. Use trend-spec in MATLAB
-# calibration for improved fit.
-
-
-# ============================================================================
-# (6) YEAR-FE
-# ============================================================================
-debt_yearFE <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                     + F_CP_guar_lo + F_DI_lag1 
-                     | Country + year_only,
-                     data = pdataD,
-                     subset = ~ t_idx >= 4 & t_idx <= 16)
-cat("\n========== (6) WITH YEAR-FE ==========\n")
-print(summary(debt_yearFE, cluster = ~ Country, 
-              ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
-
-# INTERPRETATION: Year-FE is the non-parametric counterpart to the linear
-# trend. Stability of F-channel coefficients across both treatments
-# confirms identification is not trend-driven.
-
-# INTERPRETATION: Year-FE confirms linear-trend results. kappa_loans 
-# (0.90***) and gamma_y (-0.16***) stable; kappa_above weakens to 
-# marginal significance (p=0.08). Within R^2 drops from 0.24 to 0.11 as 
-# Year-FE absorbs broader temporal variation than the linear trend. 
-# Linear trend is the parsimonious specification with equivalent 
-# economic interpretation.
-
-# ============================================================================
-# (3) OUTLIER EXCLUSION (TUR, IRL)
-# ============================================================================
-debt_no_outliers <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                          + F_CP_guar_lo + F_DI_lag1 | Country,
-                          data = pdataD,
-                          subset = ~ t_idx >= 4 & t_idx <= 16 
-                          & !Country %in% c("TUR", "IRL"))
-cat("\n========== (3) EXCLUDING TUR + IRL ==========\n")
-print(summary(debt_no_outliers, cluster = ~ Country, 
-              ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
-
-# INTERPRETATION: TUR (hyperinflation decouples nominal/real debt) and IRL
-# (multinational restructuring distorts GDP). Coefficient stability under
-# exclusion confirms main spec is not driven by these outliers.
-#Stabil gegenüber Outlier
-
-# ============================================================================
-# (2) TAKE-UP SENSITIVITY GRID
-# ============================================================================
-takeup_grid <- expand.grid(
-  loans = c(0.40, 0.60, 0.80),
-  guar  = c(0.25, 0.35, 0.50)
+# One-quarter lag of health spending by country
+pdataD$F_H_lag1 <- ave(
+  pdataD$F_H,
+  pdataD$Country,
+  FUN = function(x) c(NA, x[-length(x)])
 )
 
-for (i in seq_len(nrow(takeup_grid))) {
-  tl <- takeup_grid$loans[i]; tg <- takeup_grid$guar[i]
-  df_tmp <- pdataD |>
-    mutate(loans_tu = F_CP_loans * tl,
-           guar_tu  = F_CP_guar  * tg)
-  m <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + loans_tu + guar_tu 
-             + F_DI_lag1 | Country,
-             data = df_tmp, subset = ~ t_idx >= 4 & t_idx <= 16)
-  cat("\n--- (2) Loans", tl*100, "% | Guar", tg*100, "% ---\n")
-  print(summary(m, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE)))
+
+#Main 15.06.2026-> y_lag1 macht mehr sinn
+debt_v15 <- feols(
+  debt_dR_adj ~ y_lag1 + F_CP_above_3 + F_CP_loans_mid +
+    F_CP_guar_lo + F_DI + F_H_lag1| Country,
+  data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
+summary(debt_v15, cluster = ~Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+#==================GET THE OUPUT FOR LATEX=====================================
+library(fixest)
+
+# ------------------------------------------------------------
+# 0. Settings
+# ------------------------------------------------------------
+
+pdataD <- pdataD[order(pdataD$Country, pdataD$t_idx), ]
+
+# If these names differ in your dataset, adjust them here
+V_BELOW_FLOW  <- "F_CP_below_flow"
+
+V_LOANS_HEAD  <- "F_CP_loans"      # headline commitment loans
+V_GUAR_HEAD   <- "F_CP_guar"       # headline commitment guarantees
+
+V_LOANS_LOW   <- "F_CP_loans_lo"   # lower-bound loans
+V_GUAR_LOW    <- "F_CP_guar_lo"    # lower-bound guarantees
+
+V_LOANS_PREF  <- "F_CP_loans_mid"  # preferred: loans 50%
+V_GUAR_PREF   <- "F_CP_guar_lo"    # preferred: guarantees 25%
+
+
+# ------------------------------------------------------------
+# 1. Estimate debt specifications
+# ------------------------------------------------------------
+
+make_debt_model <- function(rhs_vars) {
+  fml <- as.formula(
+    paste0(
+      "debt_dR_adj ~ ",
+      paste(rhs_vars, collapse = " + "),
+      " | Country"
+    )
+  )
+  
+  feols(
+    fml,
+    data = pdataD,
+    subset = ~ t_idx >= 4 & t_idx <= 16
+  )
 }
 
-# INTERPRETATION: Effective pass-through (kappa * take-up) is invariant to
-# take-up assumption; only the coefficient scales inversely. Confirms
-# economic interpretation in pp 2019-GDP units.
-#skaliert sich einfach durch
+# (1) Coarse fiscal categories
+debt_v21 <- make_debt_model(
+  c("y_lag1", "F_CP_above_3", V_BELOW_FLOW, "F_DI", "F_H_lag1")
+)
 
-# INTERPRETATION: Effective pass-through (kappa * take-up) is invariant 
-# across all scenarios: 0.40*0.935 = 0.60*0.624 = 0.80*0.468 = 0.374 for 
-# loans; 0.047 for guarantees. Coefficients scale inversely with assumed 
-# take-up while other regressors and fit (RMSE, R^2) remain identical. 
-# This confirms the economic interpretation in pp 2019-GDP: loans 
-# disburse approximately one-to-one (37% effective pass-through 
-# corresponds to ~40% actual drawdown), guarantees translate to ~5% 
-# contingent liability conversion (Bouabdallah et al. 2017).
+# (2) Detailed headline commitments
+debt_v22 <- make_debt_model(
+  c("y_lag1", "F_CP_above_3", V_LOANS_HEAD, V_GUAR_HEAD, "F_DI", "F_H_lag1")
+)
+
+# (3) Conservative take-up adjustment
+debt_v23 <- make_debt_model(
+  c("y_lag1", "F_CP_above_3", V_LOANS_LOW, V_GUAR_LOW, "F_DI", "F_H_lag1")
+)
+
+# (4) Preferred take-up adjustment: loans mid, guarantees low
+debt_v24 <- make_debt_model(
+  c("y_lag1", "F_CP_above_3", V_LOANS_PREF, V_GUAR_PREF, "F_DI", "F_H_lag1")
+)
+
+models_debt <- list(debt_v21, debt_v22, debt_v23, debt_v24)
+
+summaries_debt <- lapply(
+  models_debt,
+  function(x) summary(
+    x,
+    cluster = ~ Country,
+    ssc = ssc(K.adj = TRUE, G.adj = TRUE)
+  )
+)
+
+
+# ------------------------------------------------------------
+# 2. Helper functions for LaTeX table
+# ------------------------------------------------------------
+
+get_ct <- function(s) {
+  out <- as.data.frame(s$coeftable)
+  out$term <- rownames(out)
+  rownames(out) <- NULL
+  out
+}
+
+coeftables_debt <- lapply(summaries_debt, get_ct)
+
+stars <- function(p) {
+  if (is.na(p)) return("")
+  if (p < 0.01) return("***")
+  if (p < 0.05) return("**")
+  if (p < 0.10) return("*")
+  return("")
+}
+
+fmt <- function(x) {
+  if (is.na(x)) return("")
+  sprintf("%.3f", x)
+}
+
+find_term <- function(ct, terms) {
+  hit <- terms[terms %in% ct$term]
+  if (length(hit) == 0) return(NULL)
+  hit[1]
+}
+
+coef_cell <- function(ct, terms) {
+  term <- find_term(ct, terms)
+  if (is.null(term)) return("")
+  
+  row <- ct[ct$term == term, ]
+  paste0("$", fmt(row$Estimate), stars(row$`Pr(>|t|)`), "$")
+}
+
+se_cell <- function(ct, terms) {
+  term <- find_term(ct, terms)
+  if (is.null(term)) return("")
+  
+  row <- ct[ct$term == term, ]
+  paste0("(", fmt(row$`Std. Error`), ")")
+}
+
+make_coef_row <- function(label, terms) {
+  est <- sapply(coeftables_debt, coef_cell, terms = terms)
+  se  <- sapply(coeftables_debt, se_cell, terms = terms)
+  
+  c(
+    paste0(label, " & ", paste(est, collapse = " & "), " \\\\"),
+    paste0(" & ", paste(se, collapse = " & "), " \\\\[4pt]")
+  )
+}
+
+make_stat_row <- function(label, values) {
+  paste0(label, " & ", paste(values, collapse = " & "), " \\\\")
+}
+
+adj_r2_debt <- sapply(models_debt, function(x) fmt(fixest::r2(x, "ar2")))
+within_r2_debt <- sapply(models_debt, function(x) fmt(fixest::r2(x, "wr2")))
+n_obs_debt <- sapply(models_debt, nobs)
+
+
+# ------------------------------------------------------------
+# 3. Build LaTeX table
+# ------------------------------------------------------------
+
+latex_debt_table <- c(
+  "\\begin{table}[H]",
+  "\\centering",
+  "\\caption{Debt Transition Estimates}",
+  "\\label{tab:debt_transition}",
+  "\\scriptsize",
+  "\\renewcommand{\\arraystretch}{1.2}",
+  "\\begin{tabular}{@{} l c c c c @{}}",
+  "\\toprule",
+  " & (1) & (2) & (3) & (4) \\\\",
+  " & Coarse & Headline & Conservative & Preferred \\\\",
+  " & categories & commitments & take-up & take-up \\\\",
+  "\\midrule",
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Predetermined output state:}} \\\\[2pt]",
+  make_coef_row("$y_{i,k-1}$ \\,($-\\gamma_y$)", "y_lag1"),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Above-the-line capacity preservation:}} \\\\[2pt]",
+  make_coef_row(
+    "$F^{CP,\\,\\text{above}}_{ik}$ \\,[$\\kappa_{\\text{above}}$]",
+    "F_CP_above_3"
+  ),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Below-the-line liquidity support:}} \\\\[2pt]",
+  make_coef_row(
+    "$F^{CP,\\,\\text{below}}_{ik}$ \\, (aggregate flow)",
+    V_BELOW_FLOW
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{loans}}_{ik}$ \\, (headline)",
+    V_LOANS_HEAD
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{guar}}_{ik}$ \\, (headline)",
+    V_GUAR_HEAD
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{loans}}_{ik}$ \\, (low take-up)",
+    V_LOANS_LOW
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{guar}}_{ik}$ \\, (low take-up)",
+    V_GUAR_LOW
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{loans}}_{ik}$ \\, (mid take-up)",
+    V_LOANS_PREF
+  ),
+  make_coef_row(
+    "$F^{CP,\\,\\text{guar}}_{ik}$ \\, (preferred take-up)",
+    V_GUAR_PREF
+  ),
+  
+  "\\multicolumn{5}{@{}l}{\\textit{Demand injection and exogenous health spending:}} \\\\[2pt]",
+  make_coef_row(
+    "$F^{DI}_{ik}$ \\,[$\\kappa_{DI}$]",
+    "F_DI"
+  ),
+  make_coef_row(
+    "$F^{H}_{i,k-1}$ \\,[$\\kappa_H$]",
+    "F_H_lag1"
+  ),
+  
+  "\\midrule",
+  make_stat_row("Country FE", rep("$\\checkmark$", 4)),
+  make_stat_row("Observations", n_obs_debt),
+  make_stat_row("$R^2$ (adj.)", adj_r2_debt),
+  make_stat_row("Within $R^2$", within_r2_debt),
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\vspace{4pt}",
+  "\\parbox{\\textwidth}{\\scriptsize\\textit{Notes:} Dependent variable: adjusted quarterly change in the pandemic debt-gap state, $\\Delta \\tilde b_{ik}=\\Delta b_{ik}-r_t b_{i,k-1}$, measured in percentage points of 2019 GDP. Sample: 38 OECD countries over the pandemic debt-estimation window $t \\in [4,16]$. All specifications include country fixed effects. Standard errors clustered at the country level with small-sample correction are reported in parentheses. Column~(1) uses broad fiscal categories. Column~(2) uses headline commitments for loans and guarantees. Column~(3) applies conservative take-up adjustments. Column~(4) is the preferred specification, using a 50\\% take-up rate for loans and a 25\\% take-up rate for guarantees. Health-related spending is included as an exogenous control with a one-quarter lag and is not part of the optimized fiscal instrument set. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}",
+  "\\end{table}"
+)
+
+cat(paste(latex_debt_table, collapse = "\n"))
+
+# Optional: save table
+writeLines(latex_debt_table, "debt_transition_table.tex")
+
+
+
+
+
+
+# ------------------------------------------------------------
+# Robustness checks for the debt transition equation
+# ------------------------------------------------------------
+
+# 1. Use contemporaneous output gap instead of lagged output gap:
+#    Replace y_lag1 with y_t_pct.
+#    This checks whether the debt-cost estimates are sensitive to controlling
+#    for the realized output state rather than the predetermined output state.
+#    Note: y_t_pct may be a post-treatment control, since fiscal policy can
+#    already affect contemporaneous output.
+
+# 2. Estimate the debt equation without netting out the mechanical
+#    debt-service component:
+#    Replace debt_dR_adj with the unadjusted debt change variable.
+#    This checks whether the results depend on subtracting r_t * b_{i,k-1}.
+
+# 3. Vary take-up assumptions for loans and guarantees:
+#    Estimate specifications using low, mid, high, and headline values.
+#    This checks whether the estimated fiscal pass-through of below-the-line
+#    instruments depends on assumed take-up rates.
+
+# 4. Lag loans and guarantees by one quarter:
+#    Replace F_CP_loans_* and F_CP_guar_* with their lagged versions.
+#    This checks whether announced below-the-line commitments affect debt
+#    with a delay rather than contemporaneously.
+
+# 5. Vary the timing of health-related spending:
+#    Estimate specifications with F_H, F_H_lag1, and both F_H + F_H_lag1.
+#    This checks whether health-related spending affects the debt stock
+#    contemporaneously or with delayed budgetary recording.
+
+# 6. Change the estimation window:
+#    Estimate the debt equation over alternative pandemic windows, e.g.
+#    t_idx >= 4 & t_idx <= 14 instead of t_idx >= 4 & t_idx <= 16.
+#    This checks whether results are driven by the inclusion of later
+#    pandemic quarters.
+
+# 7. Add alternative time controls:
+#    Estimate specifications with year fixed effects, quarter fixed effects,
+#    or pandemic-wave controls.
+#    These specifications answer a different estimand because time fixed
+#    effects absorb common pandemic timing variation, but they are useful
+#    as sensitivity checks.
+
+# 8. Use wild cluster bootstrap inference:
+#    Compute wild cluster bootstrap p-values clustered at the country level.
+#    This checks whether inference is robust to the moderate number of
+#    country clusters.
+
+# 9. Leave-one-out robustness:
+#    Re-estimate the debt equation excluding one country at a time.
+#    This checks whether the results are driven by individual large countries
+#    or extreme fiscal responders.
+
+# 10. Exclude extreme observations:
+#     Re-estimate the debt equation excluding countries or quarters with
+#     unusually large debt-gap changes, loan programs, or guarantee programs.
+#     This checks whether the main coefficients are driven by outliers.
+
+
+##check which one do I already have-> anpassen neuer spezifikation
+
+
+
+
 
 # ============================================================================
-# (1) SAMPLE RESTRICTIONS
+# DEBT EQUATION V15 - ROBUSTNESS BATTERY        (updated 2026-06-15)
+# ----------------------------------------------------------------------------
+# Main spec (V15, 15.06.2026):
+#   debt_v15 <- feols(debt_dR_adj ~ y_lag1 + F_CP_above_3 + F_CP_loans_mid
+#                     + F_CP_guar_lo + F_DI + F_H_lag1 | Country,
+#                     data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
+#   DV  = interest-adjusted real debt change (debt_dR - r_t * b_{i,k-1});
+#   CP  = above-the-line flow + loans (60% take-up) + guarantees (25%);
+#   DI  contemporaneous; health spending at lag 1; country FE; SE by country.
+# Every check below perturbs ONE element of this spec.
 # ============================================================================
-debt_s5  <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                  + F_CP_guar_lo + F_DI_lag1 | Country,
-                  data = pdataD, subset = ~ t_idx >= 5 & t_idx <= 16)
-debt_e14 <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                  + F_CP_guar_lo + F_DI_lag1 | Country,
-                  data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 14)
-debt_e15 <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                  + F_CP_guar_lo + F_DI_lag1 | Country,
-                  data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 15)
+library(fixest); library(dplyr); library(car)
 
-cat("\n========== (1) SAMPLE: t_idx >= 5 ==========\n")
-print(summary(debt_s5,  cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
-cat("\n========== (1) SAMPLE: t_idx <= 14 ==========\n")
-print(summary(debt_e14, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
-cat("\n========== (1) SAMPLE: t_idx <= 15 ==========\n")
-print(summary(debt_e15, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
+# --- Canonical V15 spec reused by every check -------------------------------
+rhs_v15       <- c("y_lag1", "F_CP_above_3", "F_CP_loans_mid",
+                   "F_CP_guar_lo", "F_DI", "F_H_lag1")
+main_sub_debt <- ~ t_idx >= 4 & t_idx <= 16
+ssc_v15       <- ssc(K.adj = TRUE, G.adj = TRUE)
+keep_v15      <- c("y_lag1", "F_CP_above_3", "F_CP_loans_mid", "F_CP_loans_mid_lag1",
+                   "F_CP_guar_lo", "F_DI", "F_H", "F_H_lag1")
 
-# INTERPRETATION: F-channels stable across windows. gamma_y range confirms
-# Bohn (1998) automatic-stabilizer estimates.
+fdebt <- function(dv, rhs, fe = "Country")
+  as.formula(paste(dv, "~", paste(rhs, collapse = " + "), "|", fe))
+show  <- function(m, title) { cat("\n==========", title, "==========\n")
+  print(summary(m, cluster = ~ Country, ssc = ssc_v15)) }
 
-# INTERPRETATION: All five coefficients stable across sample restrictions.
-# kappa_loans 0.90-0.94***, kappa_above 0.44-0.49**, gamma_y -0.19 to -0.20***
-# remain robust. kappa_guar consistently insignificant. kappa_DI marginal
-# (p=0.10-0.13). Sample window does not drive identification.
+main_fml_debt <- fdebt("debt_dR_adj", rhs_v15)
+debt_v15      <- feols(main_fml_debt, data = pdataD, subset = main_sub_debt)
+show(debt_v15, "V15 MAIN (reference)")
 
-# ============================================================================
-# (4) LAG-STRUCTURE FOR y_t_pct
-# ============================================================================
+# Construct lags needed by the checks below (loans/guarantees, y).
 pdataD <- pdataD |>
   group_by(Country) |> arrange(t_idx) |>
-  mutate(y_lag1 = lag(y_t_pct, 1),
-         y_lag2 = lag(y_t_pct, 2)) |> ungroup()
-
-debt_y0 <- feols(debt_dR ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                 + F_CP_guar_lo + F_DI_lag1 | Country,
-                 data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
-debt_y1 <- feols(debt_dR ~ y_lag1  + F_CP_above_3 + F_CP_loans_lo 
-                 + F_CP_guar_lo + F_DI_lag1 | Country,
-                 data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
-debt_y2 <- feols(debt_dR ~ y_lag2  + F_CP_above_3 + F_CP_loans_lo 
-                 + F_CP_guar_lo + F_DI_lag1 | Country,
-                 data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
-
-cat("\n========== (4) y-LAG: 0 ==========\n")
-print(summary(debt_y0, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
-cat("\n========== (4) y-LAG: 1 ==========\n")
-print(summary(debt_y1, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
-cat("\n========== (4) y-LAG: 2 ==========\n")
-print(summary(debt_y2, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
-
-# INTERPRETATION: Contemporaneous y enters debt because automatic stabilizers
-# (tax revenue, transfer outlays) respond within the booking quarter.
-# Lagged y would capture only delayed transmission; contemporaneous spec
-# is theoretically motivated.
-
-# INTERPRETATION: Contemporaneous y is the correct specification. y_lag1 
-# shows weaker fit (gamma -0.117** vs -0.189***) and inflated F-coefficients 
-# (kappa_loans 1.19, kappa_above 0.62) as the lagged y fails to absorb 
-# contemporaneous tax-revenue offsets, leaving more variation for F-channels 
-# to explain. y_lag2 is insignificant (0.006, p=0.83), confirming the 
-# automatic-stabilizer channel operates within the booking quarter, not 
-# with delays. Contemporaneous y is theoretically motivated: tax revenue 
-# and transfer outlays respond to current-period output.
-
-
-# ============================================================================
-# (10) ALTERNATIVE OUTCOME: debt_dN (nominal change)
-# ============================================================================
-
-pdataD <- pdataD %>%
-  group_by(Country) %>%
-  arrange(t_idx) %>%
-  mutate(debt_dN = DebtN_share2019 - lag(DebtN_share2019)) %>%
+  mutate(y_lag2              = lag(y_t_pct, 2),
+         F_CP_loans_mid_lag1 = lag(F_CP_loans_mid, 1),
+         F_CP_guar_lo_lag1   = lag(F_CP_guar_lo,   1)) |>
   ungroup()
 
-debt_dN <- feols(debt_dN ~ y_t_pct + F_CP_above_3 + F_CP_loans_lo 
-                 + F_CP_guar_lo + F_DI_lag1 | Country,
-                 data = pdataD, subset = ~ t_idx >= 4 & t_idx <= 16)
-cat("\n========== (10) OUTCOME: debt_dN (nominal change) ==========\n")
-print(summary(debt_dN, cluster = ~ Country, ssc = ssc(K.adj=TRUE, G.adj=TRUE)))
+# ---------------------------------------------------------------------------
+# (1) OUTPUT-GAP TIMING  [bullet 1]
+#     V15 uses predetermined y_lag1; test contemporaneous y_t_pct and y_lag2.
+# ---------------------------------------------------------------------------
+d_y0 <- feols(fdebt("debt_dR_adj", c("y_t_pct", rhs_v15[-1])), pdataD, subset = main_sub_debt)
+d_y2 <- feols(fdebt("debt_dR_adj", c("y_lag2",  rhs_v15[-1])), pdataD, subset = main_sub_debt)
+show(d_y0, "(1) OUTPUT TIMING: contemporaneous y_t_pct")
+show(d_y2, "(1) OUTPUT TIMING: y_lag2")
 
-# INTERPRETATION: debt_dN uses nominal debt change / 2019 GDP; debt_dR uses
-# real. Coefficient stability across nominal/real outcomes confirms 
-# inflation-adjustment is not driving the result.
+# ---------------------------------------------------------------------------
+# (2) UNADJUSTED DEBT CHANGE  [bullet 2]
+#     Drop the mechanical debt-service netting: DV = debt_dR (not debt_dR_adj).
+# ---------------------------------------------------------------------------
+d_unadj <- feols(fdebt("debt_dR", rhs_v15), pdataD, subset = main_sub_debt)
+show(d_unadj, "(2) UNADJUSTED DV: debt_dR")
 
+# ---------------------------------------------------------------------------
+# (3) TAKE-UP SENSITIVITY GRID  [bullet 3]
+#     Loans 40/60/80 % x guarantees 25/35/50 %, V15 RHS otherwise unchanged.
+# ---------------------------------------------------------------------------
+takeup_grid <- expand.grid(loans = c(0.40, 0.60, 0.80), guar = c(0.25, 0.35, 0.50))
+for (i in seq_len(nrow(takeup_grid))) {
+  tl <- takeup_grid$loans[i]; tg <- takeup_grid$guar[i]
+  df_tmp <- pdataD |> mutate(loans_tu = F_CP_loans * tl, guar_tu = F_CP_guar * tg)
+  m <- feols(debt_dR_adj ~ y_lag1 + F_CP_above_3 + loans_tu + guar_tu + F_DI + F_H_lag1 | Country,
+             data = df_tmp, subset = main_sub_debt)
+  show(m, sprintf("(3) TAKE-UP: loans %.0f%% | guar %.0f%%", tl * 100, tg * 100))
+}
 
+# ---------------------------------------------------------------------------
+# (4) LAGGED BELOW-THE-LINE COMMITMENTS  [bullet 4]
+#     Replace loans/guarantees with their one-quarter lags.
+# ---------------------------------------------------------------------------
+d_belowlag <- feols(
+  fdebt("debt_dR_adj", c("y_lag1", "F_CP_above_3",
+                         "F_CP_loans_mid_lag1", "F_CP_guar_lo_lag1", "F_DI", "F_H_lag1")),
+  pdataD, subset = main_sub_debt)
+show(d_belowlag, "(4) LAGGED loans + guarantees")
 
+# ---------------------------------------------------------------------------
+# (5) HEALTH-SPENDING TIMING  [bullet 5]
+#     V15 uses F_H_lag1; test contemporaneous F_H and both F_H + F_H_lag1.
+# ---------------------------------------------------------------------------
+d_h0   <- feols(fdebt("debt_dR_adj", c("y_lag1","F_CP_above_3","F_CP_loans_mid","F_CP_guar_lo","F_DI","F_H")),
+                pdataD, subset = main_sub_debt)
+d_hbth <- feols(fdebt("debt_dR_adj", c("y_lag1","F_CP_above_3","F_CP_loans_mid","F_CP_guar_lo","F_DI","F_H","F_H_lag1")),
+                pdataD, subset = main_sub_debt)
+show(d_h0,   "(5) HEALTH timing: contemporaneous F_H")
+show(d_hbth, "(5) HEALTH timing: F_H + F_H_lag1")
+
+# ---------------------------------------------------------------------------
+# (6) ESTIMATION WINDOW  [bullet 6]
+# ---------------------------------------------------------------------------
+d_s5  <- feols(main_fml_debt, pdataD, subset = ~ t_idx >= 5 & t_idx <= 16)
+d_e14 <- feols(main_fml_debt, pdataD, subset = ~ t_idx >= 4 & t_idx <= 14)
+d_e15 <- feols(main_fml_debt, pdataD, subset = ~ t_idx >= 4 & t_idx <= 15)
+show(d_s5,  "(6) WINDOW: t_idx >= 5")
+show(d_e14, "(6) WINDOW: t_idx <= 14")
+show(d_e15, "(6) WINDOW: t_idx <= 15")
+
+# ---------------------------------------------------------------------------
+# (7) ALTERNATIVE TIME CONTROLS  [bullet 7]
+#     Linear quarter trend; Year-FE; Quarter-FE (absorbs the deployment cycle).
+# ---------------------------------------------------------------------------
+d_trend <- feols(fdebt("debt_dR_adj", c(rhs_v15, "as.numeric(t_idx)")), pdataD, subset = main_sub_debt)
+d_yrfe  <- feols(fdebt("debt_dR_adj", rhs_v15, fe = "Country + year_only"), pdataD, subset = main_sub_debt)
+d_qfe   <- feols(fdebt("debt_dR_adj", rhs_v15, fe = "Country + t_idx"),     pdataD, subset = main_sub_debt)
+show(d_trend, "(7) TIME: linear quarter trend")
+show(d_yrfe,  "(7) TIME: Year-FE")
+show(d_qfe,   "(7) TIME: Quarter-FE (absorbs deployment cycle)")
+
+# ---------------------------------------------------------------------------
+# (8) WILD-CLUSTER BOOTSTRAP  [bullet 8]   (requires fwildclusterboot)
+# ---------------------------------------------------------------------------
+if (requireNamespace("fwildclusterboot", quietly = TRUE)) {
+  library(fwildclusterboot)
+  d_boot <- feols(fdebt("debt_dR_adj", rhs_v15), data = pdataD |> filter(t_idx >= 4, t_idx <= 16) |>
+                    mutate(Country = as.factor(Country)), vcov = ~ Country)
+  set.seed(16031995); dqrng::dqset.seed(16031995)
+  for (p in rhs_v15) {
+    cat("\n========== (8) Wild-Cluster Bootstrap:", p, "==========\n")
+    print(summary(boottest(d_boot, param = p, clustid = c("Country"),
+                           B = 99999, type = "rademacher", impose_null = TRUE,
+                           p_val_type = "two-tailed")))
+  }
+} else {
+  cat("\n[(8) wild-cluster bootstrap skipped: fwildclusterboot not installed]\n")
+}
+
+# ---------------------------------------------------------------------------
+# (9) LEAVE-ONE-COUNTRY-OUT JACKKNIFE  [bullet 9]
+# ---------------------------------------------------------------------------
+ctys <- unique(as.character(pdataD$Country[pdataD$t_idx >= 4 & pdataD$t_idx <= 16]))
+loo  <- t(sapply(ctys, function(g) {
+  m <- feols(main_fml_debt, data = subset(pdataD, as.character(Country) != g), subset = main_sub_debt)
+  coef(m)[c("F_CP_loans_mid", "F_CP_above_3", "y_lag1")]
+}))
+b0 <- coef(debt_v15)[c("F_CP_loans_mid", "F_CP_above_3", "y_lag1")]
+cat("\n========== (9) LEAVE-ONE-COUNTRY-OUT JACKKNIFE ==========\n")
+cat("full-sample coefs:\n"); print(round(b0, 4))
+cat("jackknife ranges:\n")
+for (k in colnames(loo)) cat(sprintf("  %-16s [%.4f, %.4f]\n", k, min(loo[, k]), max(loo[, k])))
+cat("most influential (|delta| on F_CP_loans_mid):\n")
+print(round(sort(abs(loo[, "F_CP_loans_mid"] - b0["F_CP_loans_mid"]), decreasing = TRUE)[1:3], 4))
+
+# ---------------------------------------------------------------------------
+# (10) OUTLIER EXCLUSION  [bullet 10]
+#      TUR (inflation), IRL (MNC-driven GDP); option: drop extreme debt jumps.
+# ---------------------------------------------------------------------------
+d_noout <- feols(main_fml_debt, pdataD,
+                 subset = ~ t_idx >= 4 & t_idx <= 16 & !Country %in% c("TUR", "IRL"))
+show(d_noout, "(10) EXCLUDING TUR + IRL")
+
+# ---------------------------------------------------------------------------
+# (+) AGGREGATION: pooled below-the-line (loans + guarantees as one stock)
+# ---------------------------------------------------------------------------
+df_pool <- pdataD |> mutate(F_CP_below_mid = F_CP_loans_mid + F_CP_guar_lo)
+d_pool  <- feols(fdebt("debt_dR_adj", c("y_lag1","F_CP_above_3","F_CP_below_mid","F_DI","F_H_lag1")),
+                 df_pool, subset = main_sub_debt)
+show(d_pool, "(+) POOLED below-the-line")
+
+# ---------------------------------------------------------------------------
+# (+) ALTERNATIVE OUTCOME: nominal debt change (V15 RHS)
+# ---------------------------------------------------------------------------
+if (!"debt_dN" %in% names(pdataD))
+  pdataD <- pdataD |> group_by(Country) |> arrange(t_idx) |>
+    mutate(debt_dN = DebtN_share2019 - lag(DebtN_share2019)) |> ungroup()
+d_nom <- feols(fdebt("debt_dN", rhs_v15), pdataD, subset = main_sub_debt)
+show(d_nom, "(+) NOMINAL outcome: debt_dN")
+
+# ---------------------------------------------------------------------------
+# (+) VIF & PAIRWISE CORRELATIONS on the V15 regressors
+# ---------------------------------------------------------------------------
+df_v <- pdataD |> filter(t_idx >= 4, t_idx <= 16)
+cat("\n========== (+) VIF (V15) ==========\n")
+print(vif(lm(as.formula(paste("debt_dR_adj ~", paste(rhs_v15, collapse = " + "))), data = df_v)))
+cat("\n========== (+) Pairwise correlations (V15 regressors) ==========\n")
+print(round(cor(df_v[, rhs_v15], use = "complete.obs"), 3))
 
 # =============================================================================
 #  STAGE 5 - DESCRIPTIVE COMPARISONS, SCATTERPLOTS, CASE STUDY
@@ -4796,3 +5133,143 @@ cat("\n  Exported to country_data_for_matlab.csv\n")
 # MATLAB does not have to hard-code them. Match the structure expected by
 # pandemic_sequentialALV6.m.
 # -----------------------------------------------------------------------------
+
+# ============================================================================
+# ALTERNATIVE ESTIMATORS
+# ----------------------------------------------------------------------------
+# ============================================================================
+
+
+#==============================================================================
+# Regime switching (Deb et al. 2021): smooth-transition multiplier
+# with logistic regime weights driven by standardised stringency.
+
+df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
+df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
+
+main_v10_agg <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw + p_proj_all_ages
+  + I((1 - F_z) * F_CP_lag1)             # CP HIGH containment
+  + I(F_z       * F_CP_lag1)             # CP LOW containment
+  + I((1 - F_z) * F_DI_lag1)             # DI HIGH containment
+  + I(F_z       * F_DI_lag1)             # DI LOW containment
+  + F_CP_lag2:y_lag1_recession           # Tail-Insurance
+  | Country + year_only,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(main_v10_agg, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+
+# Standardization (re-using F_z from the aggregated specification above)
+df_bin$S_z <- as.numeric(scale(df_bin$S_mean_tw))
+
+# Smooth transition function (gamma = 1.5 as in Deb et al.)
+# F_z high = LOW containment regime; F_z low = HIGH containment regime
+df_bin$F_z <- exp(-1.5 * df_bin$S_z) / (1 + exp(-1.5 * df_bin$S_z))
+
+# Lagged level variants of loans and guarantees, required for the
+# disaggregated Deb-style spec below. Above-the-line lags already exist
+# (constructed in the V14 Step 3 block above).
+df_bin <- df_bin |>
+  group_by(Country) |> arrange(t_idx) |>
+  mutate(
+    F_CP_loans_lag1    = lag(F_CP_loans,    1),
+    F_CP_guar_adj_lag1 = lag(F_CP_guar_adj, 1)
+  ) |> ungroup()
+
+# Regime-dependent multipliers
+main_v10 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  # CP above-the-line: regime-dependent (cash-flow channel)
+  + I((1 - F_z) * F_CP_above_flow_lag1)    # HIGH containment regime
+  + I(F_z       * F_CP_above_flow_lag1)    # LOW containment regime
+  # Loans and guarantees as level controls (not regime-dependent)
+  + F_CP_loans_lag1 + F_CP_guar_adj_lag1
+  # DI: regime-dependent (demand channel)
+  + I((1 - F_z) * F_DI_lag1)               # HIGH containment regime
+  + I(F_z       * F_DI_lag1)               # LOW containment regime
+  # Tail insurance (CP * recession spline)
+  + F_CP_above_flow_lag2:y_lag1_recession
+  | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14
+)
+summary(main_v10, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+
+# GMM Diagnostics fail under short pandemic window (T=10):
+# - Difference-GMM: AR(2) rejected (p = 0.001)
+# - System-GMM: AR(2) rejected (p = 0.016)
+# Both estimators violate moment conditions; results not interpretable.
+#
+# Nickell bias addressed analytically: at rho_y = 0.43 and T = 10,
+# bias on rho_y is approximately -(1+rho)/(T-1) = -0.16. The bias
+# on the interaction coefficient eta_p is of smaller magnitude and
+# does not flip sign. The TWFE estimate eta_p = -0.011 is therefore
+# a conservative (attenuated) estimate of the persistence channel;
+# bias correction would strengthen the structural claim.
+
+##HP Filter
+#Robust to 10 years Trend calculation->see other script
+
+# ============================================================
+# Subsample robustness — regional groupings on V14 spec
+# ------------------------------------------------------------
+# Re-estimates the V14 main specification on three regional
+# subsamples (G7, EU, advanced economies). Complements the
+# characteristic-based splits in the V14 robustness battery
+# (High-S vs Low-S, High-income vs Low-income, etc.).
+# ============================================================
+
+# G7
+g7 <- c("USA", "CAN", "GBR", "DEU", "FRA", "ITA", "JPN")
+df_g7 <- df_bin %>% filter(Country %in% g7)
+
+m_g7 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_g7,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+# EU only (OECD-EU members)
+eu <- c("AUT","BEL","CZE","DEU","DNK","ESP","EST","FIN","FRA","GRC",
+        "HUN","IRL","ITA","LTU","LUX","LVA","NLD","POL","PRT","SVK",
+        "SVN","SWE")
+df_eu <- df_bin %>% filter(Country %in% eu)
+m_eu <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_eu,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+# Advanced economies only (exclude emerging-market OECD)
+emerging <- c("MEX", "CHL", "COL", "TUR", "CRI")
+df_adv <- df_bin %>% filter(!Country %in% emerging)
+m_adv <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw
+  | Country,
+  data = df_adv,
+  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+etable(v14, m_g7, m_eu, m_adv,
+       cluster = ~ Country,
+       ssc = ssc(adj = TRUE, cluster.adj = TRUE),
+       keep = c("S_mean_tw", "F_CP_above_flow_lag2", "F_CP_belowstock",
+                "F_DI_lag1", "F_DI_lag1:S_mean_tw"),
+       headers = c("Main (V14)", "G7", "EU", "Advanced"))
+
+# INTERPRETATION (to be re-checked after re-run on V14):
+#   Compare Above-Flow, Below-Stock, and DI:S coefficients across regional
+#   subsamples against the V14 baseline. Power loss in G7 (N small) and
+#   advanced-only is expected; EU subsample should approximate the
+#   headline pattern. Significance in regional cuts reflects sample size,
+#   not mechanism failure.

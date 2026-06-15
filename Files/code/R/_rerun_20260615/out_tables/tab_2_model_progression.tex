@@ -1,0 +1,42 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Output Gap: Model Progression (OLS, Country FE, TWFE)},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-6}{solid, black, 0.05em},
+hline{24}={1-6}{solid, black, 0.05em},
+hline{1}={1-6}{solid, black, 0.08em},
+hline{26}={1-6}{solid, black, 0.08em},
+column{2-6}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1) OLS & (2) Country FE & (3) TWFE & (4) DI lag 1 & (5) DI lag 3 \\
+(Intercept) & \num{0.829}** &  &  &  &  \\
+& (\num{0.371}) &  &  &  &  \\
+Stringency (S) & \num{-0.054}*** & \num{-0.076}*** & \num{-0.023}* & \num{-0.027}** & \num{-0.027}** \\
+& (\num{0.018}) & (\num{0.012}) & (\num{0.012}) & (\num{0.012}) & (\num{0.012}) \\
+y(t-1) & \num{0.739}*** & \num{0.190}** & \num{0.260}*** & \num{0.260}*** & \num{0.259}*** \\
+& (\num{0.089}) & (\num{0.074}) & (\num{0.091}) & (\num{0.093}) & (\num{0.096}) \\
+F\textasciicircum{}CP & \num{0.365}** & \num{0.567}*** & \num{0.262}*** & \num{0.258}*** & \num{0.260}*** \\
+& (\num{0.158}) & (\num{0.172}) & (\num{0.087}) & (\num{0.077}) & (\num{0.077}) \\
+F\textasciicircum{}DI (lag 2) & \num{0.844}*** & \num{0.479}*** & \num{0.195}* &  &  \\
+& (\num{0.184}) & (\num{0.096}) & (\num{0.111}) &  &  \\
+Fear term & \num{-0.014} & \num{0.005} & \num{-0.020}** & \num{-0.021}** & \num{-0.021}** \\
+& (\num{0.016}) & (\num{0.013}) & (\num{0.009}) & (\num{0.009}) & (\num{0.009}) \\
+S × y(t-1)  [ψ] & \num{-0.004}** & \num{0.001} & \num{0.003}** & \num{0.002} & \num{0.002} \\
+& (\num{0.002}) & (\num{0.001}) & (\num{0.001}) & (\num{0.001}) & (\num{0.001}) \\
+S × F\textasciicircum{}CP   [η̃] & \num{-0.022}*** & \num{-0.023}*** & \num{-0.008}*** & \num{-0.006}*** & \num{-0.006}*** \\
+& (\num{0.005}) & (\num{0.005}) & (\num{0.003}) & (\num{0.002}) & (\num{0.002}) \\
+y\_lag1:F\_CP & \num{-0.040} & \num{-0.010} & \num{-0.023}* &  &  \\
+& (\num{0.027}) & (\num{0.024}) & (\num{0.014}) &  &  \\
+F\textasciicircum{}DI (lag 1) &  &  &  & \num{-0.070} &  \\
+&  &  &  & (\num{0.103}) &  \\
+F\textasciicircum{}DI (lag 3) &  &  &  &  & \num{0.029} \\
+&  &  &  &  & (\num{0.136}) \\
+Num.Obs. & \num{380} & \num{380} & \num{380} & \num{380} & \num{380} \\
+R2 & \num{0.545} & \num{0.522} & \num{0.281} & \num{0.272} & \num{0.271} \\
+\end{talltblr}
+\end{table}

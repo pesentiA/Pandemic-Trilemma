@@ -1,0 +1,93 @@
+% =====================================================================
+%  APPENDIX: ROBUSTNESS ANALYSIS  (debt equation, V15 main spec)
+%  Requires: booktabs. Place after \appendix.
+%  All figures verified against the full re-run on 2026-06-15 (N = 494).
+% =====================================================================
+\section{Robustness Analysis: Debt Equation}\label{app:robustness_debt}
+
+This appendix documents the robustness battery for the preferred debt-transition
+specification (V15, eq.~\ref{eq:debt_est}). The dependent variable is the
+\emph{interest-adjusted} change in the real debt-to-GDP ratio,
+$\Delta \tilde b_{ik}=\Delta b_{ik}-r_{k}\,b_{i,k-1}$, which nets out the
+mechanical debt-service component. The estimator is country fixed effects,
+\[
+\Delta \tilde b_{ik}= \gamma_y\,y_{i,k-1}
+   +\kappa_{\text{above}}\,F^{CP,\text{above}}_{ik}
+   +\kappa_{\text{loans}}\,L_{ik}
+   +\kappa_{\text{guar}}\,G_{ik}
+   +\kappa_{DI}\,F^{DI}_{ik}
+   +\kappa_{H}\,F^{H}_{i,k-1}
+   +\delta_i+\varepsilon_{ik},
+\]
+estimated on 38 OECD countries over $t\in[4,16]$ (Q4.2019--Q4.2022, $N=494$),
+with standard errors clustered by country. Below-the-line commitments enter at
+the central take-up calibration (loans 60\%, guarantees 25\%). The preferred
+estimates are
+$\hat\gamma_y=-0.13^{**}$, $\hat\kappa_{\text{above}}=0.62^{**}$,
+$\hat\kappa_{\text{loans}}=0.81^{***}$, $\hat\kappa_{\text{guar}}=0.51$,
+$\hat\kappa_{DI}=0.33$, and $\hat\kappa_{H}=1.08^{*}$
+(within $R^2=0.23$). Table~\ref{tab:robustness_debt} lists every check.
+
+The \emph{robust core} of the debt equation comprises the loan channel
+($\kappa_{\text{loans}}$), which is significant in every specification and
+implies an effective pass-through of $\approx 0.49$ (loans convert roughly
+one-for-one into realised debt at $\approx 40$--$60\%$ drawdown); the lagged
+health channel ($\kappa_{H}$); and the automatic-stabiliser term
+($\gamma_y$), which is robust in real terms. The above-the-line channel
+($\kappa_{\text{above}}$) is robust to most checks but weakens once a time
+trend or year/quarter fixed effects absorb the common debt drift. Guarantees
+($\kappa_{\text{guar}}$) and demand injection ($\kappa_{DI}$) are the weak
+channels---consistent with low contingent-liability conversion of guarantees
+and with DI being a small, transfer-based flow.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\caption{Robustness battery for the V15 debt-transition specification}
+\label{tab:robustness_debt}
+\begin{tabular}{@{}p{0.255\textwidth} p{0.37\textwidth} p{0.315\textwidth}@{}}
+\toprule
+\textbf{Check} & \textbf{What it probes} & \textbf{Outcome} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{A.\ Identification \& collinearity}}\\
+VIF \& pairwise correlations & Collinearity among the six regressors & All $|r|<0.35$ (max $r_{\text{above,guar}}=0.34$); no collinearity. \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{B.\ Outcome \& output-state definition}}\\
+Unadjusted debt change (drop debt-service netting) & DV $=\Delta b$ instead of $\Delta\tilde b$ & Near-identical: $\kappa_{\text{loans}}=0.79^{***}$, $\kappa_{\text{above}}=0.57^{*}$, $\kappa_{H}=1.03^{*}$; netting is not driving results. \\
+Output-gap timing & $y_{i,k-1}$ (main) vs.\ $y_{ik}$ vs.\ $y_{i,k-2}$ & Fiscal channels stable; $y_{ik}$ absorbs more ($\gamma=-0.20^{***}$), $y_{i,k-2}$ null ($-0.01$). Predetermined $y_{i,k-1}$ is the conservative choice. \\
+Nominal outcome & DV $=$ nominal debt change & $\kappa_{\text{loans}}=0.91^{***}$ stable; $\gamma_y\!\approx\!0$ (the stabiliser is a real-debt phenomenon). \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{C.\ Instrument construction \& timing}}\\
+Take-up grid (loans 40/60/80\%, guar.\ 25/35/50\%) & Below-the-line take-up assumptions & Effective pass-through invariant ($0.40\times1.22=0.60\times0.81\approx0.49$ for loans); coefficient scales inversely. \\
+Lag below-the-line 1Q & Loans/guarantees lagged & Lagged terms insignificant ($0.55$, $0.12$) $\Rightarrow$ below-the-line affects debt \emph{contemporaneously} (booked at announcement). \\
+Health-spending timing & $F^H$ vs.\ $F^H_{k-1}$ vs.\ both & Contemporaneous $F^H$ null ($-0.08$); $F^H_{k-1}=1.08^{*}$ $\Rightarrow$ lag-1 (delayed budgetary recording) is correct. \\
+Pooled below-the-line & Loans $+$ guarantees as one term & $\kappa_{\text{below}}=0.68^{***}$; disaggregation retained (loans dominate, guarantees near-zero). \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{D.\ Time effects \& sample composition}}\\
+Estimation window ($t\!\ge\!5$; $\le\!14$; $\le\!15$) & Inclusion of late pandemic quarters & All coefficients stable ($\kappa_{\text{loans}}$ $0.79$--$0.82^{***}$, $\kappa_{H}$ $0.99$--$1.08^{*}$). \\
+Linear trend / Year-FE / Quarter-FE & Common debt drift \& deployment cycle & $\kappa_{\text{loans}}$ \& $\kappa_{H}$ survive throughout; $\kappa_{\text{above}}$ weakens under Year-FE ($0.39$, n.s.) and Quarter-FE ($0.26$, n.s.). Quarter-FE over-absorbs the deployment cycle. \\
+Outlier exclusion (TUR, IRL) & Inflation- / MNC-driven debt \& GDP & Core unchanged: $\kappa_{\text{loans}}=0.83^{***}$, $\kappa_{H}=1.13^{*}$. \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{E.\ Small-cluster inference} ($N_{\text{cl}}=38$)}\\
+Wild-cluster restricted bootstrap-$t$ (CGM 2008, Rademacher) & CRV1 over-rejection & $\gamma_y$ ($p=0.005$), $\kappa_{\text{above}}$ ($0.014$), $\kappa_{\text{loans}}$ ($0.036$), $\kappa_{H}$ ($0.014$) remain significant; $\kappa_{\text{guar}}$ ($0.13$) and $\kappa_{DI}$ ($0.38$) not. \\
+Leave-one-country-out jackknife & Influential clusters & $\kappa_{\text{loans}}\in[0.74,1.03]$, $\kappa_{\text{above}}\in[0.52,0.77]$, $\gamma_y\in[-0.14,-0.11]$; no single country overturns the result (most influential: JPN). \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: interest-adjusted real debt change $\Delta\tilde b_{ik}$
+(pp of 2019 GDP). All fiscal variables in pp of 2019 GDP. All models include country fixed effects with
+country-clustered standard errors; small-sample correction applied. Significance: $^{*}p<0.1$, $^{**}p<0.05$,
+$^{***}p<0.01$. Loans $=L_{ik}$ (60\% take-up), guarantees $=G_{ik}$ (25\% take-up), $F^H_{k-1}$ lagged one
+quarter. Effective pass-through $=$ coefficient $\times$ assumed take-up rate.}
+\end{table}
+
+Overall, the debt equation's central message---that realised debt accumulation
+is driven mechanically by below-the-line \emph{loans} (near one-for-one) and by
+\emph{health} outlays recorded with a one-quarter delay, partly offset by
+automatic stabilisers, while guarantees and demand injection contribute
+little---is invariant to the outcome definition, the timing of the output
+control, instrument-construction assumptions, sample window, and small-cluster
+inference. The above-the-line channel is robust except under the most
+aggressive time-fixed-effects controls, which absorb the common debt drift that
+also identifies it.

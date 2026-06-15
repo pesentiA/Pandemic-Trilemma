@@ -37,16 +37,16 @@ alpha_S_DI    = -0.0406;
 beta_d        =  0.0115;       % deaths/10^6/week -> pp output drag
 
 % --- Take-up adjustments ---
-takeup_loans  =  0.40;
+takeup_loans  =  0.6;
 takeup_guar   =  0.25;
 
 % --- Debt equation ---
-r_int       =  0.001;
-gamma_y     =  0.176;
-kappa_above =  0.392;
-kappa_loans =  0.891;
-kappa_guar  =  0.111;
-kappa_DI    =  0.396;
+r_int       =  0.001; %schon neu 15.06.2026
+gamma_y     =  0.12768;
+kappa_above =  0.621239;
+kappa_loans =  0.812797;
+kappa_guar  =  0.508031;
+kappa_DI    =  0.32;
 phi_t       = -0.076;
 
 % --- Health block (descriptive; theta_obs / d_obs enter as inputs) ---
@@ -181,7 +181,7 @@ for i = 1:n_c
     end
 
     cdata(i).FCP_loans_adj   = takeup_loans * cdata(i).FCP_loans;
-    cdata(i).FCP_guar_adj    = (takeup_guar / 0.35) * cdata(i).FCP_guar;
+    cdata(i).FCP_guar_adj = takeup_guar * cdata(i).FCP_guar;
     cdata(i).FCP_below_flow  = cdata(i).FCP_loans_adj + cdata(i).FCP_guar_adj;
     cdata(i).FCP_below_stock = cumsum(cdata(i).FCP_below_flow);
 

@@ -1,0 +1,41 @@
+\begin{table}[H]
+\centering
+\caption{Output Transition Estimates}
+\label{tab:output_transition}
+\scriptsize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{} l c c c c @{}}
+\toprule
+ & (1) & (2) & (3) & (4) \\
+ & State/shock & Aggregate fiscal & Decomposed fiscal & Full baseline \\
+ & only & support & channels & (preferred) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Persistence channel:}} \\[2pt]
+$y_{i,k-1}$ \,($\rho_y$) & $0.154***$ & $0.064$ & $0.221***$ & $0.231***$ \\
+ & (0.043) & (0.046) & (0.052) & (0.050) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Containment channel:}} \\[2pt]
+$S_{ik}$ \,($\alpha_S$) & $-0.101***$ & $-0.087***$ & $-0.101***$ & $-0.095***$ \\
+ & (0.011) & (0.010) & (0.011) & (0.013) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Aggregate fiscal channel:}} \\[2pt]
+$F^{\text{total}}_{i,k-1}$ &  & $-41.315***$ &  &  \\
+ &  & (9.556) &  &  \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Capacity-preservation channels:}} \\[2pt]
+$F^{CP,\,\text{above}}_{i,k-2}$ \, (flow) \,[$\alpha_{\text{above}}$] &  &  & $0.588***$ & $0.544***$ \\
+ &  &  & (0.202) & (0.189) \\[4pt]
+$K^{CP,\,\text{below}}_{ik}$ \, (stock) \,[$\alpha_{\text{below}}$] &  &  & $0.304**$ & $0.261*$ \\
+ &  &  & (0.142) & (0.145) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Demand-injection channels:}} \\[2pt]
+$F^{DI}_{i,k-1}$ \,($\alpha_{DI}$) &  &  & $-0.615$ & $1.470**$ \\
+ &  &  & (0.419) & (0.569) \\[4pt]
+$F^{DI}_{i,k-1} \times S_{ik}$ \,($\alpha_{S\cdot DI}$) &  &  &  & $-0.041***$ \\
+ &  &  &  & (0.014) \\[4pt]
+\midrule
+Country FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Observations & 418 & 418 & 418 & 418 \\
+$R^2$ (adj.) & 0.565 & 0.638 & 0.584 & 0.590 \\
+Within $R^2$ & 0.395 & 0.498 & 0.426 & 0.436 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: output gap $y_{ik}$, measured in percentage points of potential GDP. Sample: 38 OECD countries over the pandemic estimation window $t \in [4,14]$. All specifications include country fixed effects. Standard errors clustered at the country level with small-sample correction are reported in parentheses. Column~(1) includes only the lagged output gap and containment intensity. Column~(2) adds aggregate fiscal support. Columns~(3) and~(4) decompose fiscal support by transmission channel. Column~(4) is the preferred specification used to parameterize the output transition in the planner problem. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\end{table}
