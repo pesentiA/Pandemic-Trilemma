@@ -50,6 +50,7 @@ lower bound rather than a precisely identified estimate.
 Within/between decomposition & Variation usable by country FE & Within-share $>77\%$ for all regressors ($S$: 94\%, $F^{CP}$: 97\%). \\
 VIF \& pairwise correlations & Collinearity among Above, Below, $S$, DI & Main terms VIF $<1.4$, $|r|<0.42$; the DI$\times S$ VIFs ($\approx14$) are mechanical interaction artefacts. \\
 $S$--composition orthogonality & Fiscal mix endogenous to severity? & $r(\bar S,\bar F^{CP})\!\approx\!0.13$; composition driven by institutions/safety nets, not contemporaneous severity. \\
+DI channel relevance (joint Wald; marginal effect vs.\ $S$) & Whether the two DI terms are jointly relevant, and how to read them under collinearity & Jointly significant (Wald $F{=}4.23$, $p{=}0.022$), so retained; level and interaction \emph{not} separately identified ($r{=}0.96$; $158/418$ nonzero-DI quarters). Only the marginal effect is interpretable: $\partial y/\partial F^{DI}_{i,k-1}={+}1.47$ (95\% CI $[0.36,2.59]$) at $S{=}0$, indistinguishable from $0$ at $S\geq 37$ (zero-crossing $S^{\star}\approx 36$); unconditional DI insignificant ($-0.62$, $p{=}0.15$). \\
 \addlinespace
 \multicolumn{3}{@{}l}{\textit{B.\ Estimator \& dynamic-panel bias}}\\
 \texttt{feols} vs.\ \texttt{plm} & Estimator invariance & Identical point estimates. \\

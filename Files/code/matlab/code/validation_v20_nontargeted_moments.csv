@@ -1,0 +1,9 @@
+Moment,Value
+"Output SD ratio, mean across quarters",1.08234441239313
+"Output AC(1), observed mean",0.229620143660431
+"Output AC(1), simulated mean",0.148671991407424
+"Output AC(1), absolute gap",0.0809481522530068
+"Output ICC, observed",0.262028127015237
+"Output ICC, simulated",0.324366270674878
+"Debt ICC, observed",1.01932841207049
+"Debt ICC, simulated",1.02099730293339

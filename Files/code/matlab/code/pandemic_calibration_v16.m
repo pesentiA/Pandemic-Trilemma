@@ -44,39 +44,39 @@ fprintf('  %s\n\n', datestr(now));
 
 % --- Output equation ---
 rho_y         =  0.231;
-alpha_S       = -0.0952;
-alpha_above   =  0.544; %0.544
-alpha_below   =  0.261165; %0.261165
+alpha_S       = -0.095;
+alpha_above   =  0.544; 
+alpha_below   =  0.261; 
 alpha_DI_lag1 =  1.470;
-alpha_S_DI    = -0.0406;
-beta_d        =  0.0115;       % deaths/10^6/week -> pp output drag
+alpha_S_DI    = -0.041;
+beta_d        =  0.0;       % nicht identifiziert
 
 % --- Take-up adjustments ---
 takeup_loans  =  0.60;
 takeup_guar   =  0.25;
 
 % --- Debt equation ---
-r_int       =  0.001; %schon neu 15.06.2026
-gamma_y     =  0.12768;
-kappa_above =  0.621239;
-kappa_loans =  0.812797;
-kappa_guar  =  0.508031;
-kappa_DI    =  0.32;
-kappa_H     =  1.083;      %%Maybe raus
-phi_t       = -0.076;
+r_int       =  0.001; 
+gamma_y     =  0.117; 
+kappa_above =  0.664;
+kappa_loans =  0.836;
+kappa_guar  =  0.536;
+kappa_DI    =  0.526;
+kappa_H     =  0.908;      
+phi_t       = 0;     %kein Zeittrend
 
 % --- Health block (descriptive; theta_obs / d_obs enter as inputs) ---
-rho_theta   =  1.035;
-phi_S       =  0.314;        % S in [0,1]
+rho_theta   =  1.;   %Aus der eigenen Schätzung
+phi_S       =  0.5;        % S in [0,1] 
 
 % Wave-specific IFR (mirrors descriptives.R:4548-4552):
 %   W1=0.9%  W1_summer=0.7%  W2_wt=0.6%  W2_alpha=0.4%  W3_delta=0.3%  W4_omicron=0.04%
-ifr_by_wave         = [0.009, 0.007, 0.006, 0.004, 0.003, 0.0004];
+ifr_by_wave         = [0.009, 0.007, 0.006, 0.004, 0.003, 0.0004];  %%Quellen angeben im Text!
 delta_theta_by_wave = ifr_by_wave * 1e6;   % -> deaths/10^6/week per unit theta
 
 % Quarterly variant-dominance assignment (OECD-median), Q4.19 ... Q4.22:
 %   1=W1  2=W1_summer  3=W2_wt  4=W2_alpha  5=W3_delta  6=W4_omicron
-wave_idx_q  = [1 1 1 2 3 3 4 5 5 6 6 6 6];
+wave_idx_q  = [1 1 1 2 3 3 4 5 5 5 6 6 6];
 delta_theta = delta_theta_by_wave(wave_idx_q);   % 1xN row vector
 
 %% ========================================================================
@@ -95,11 +95,11 @@ cfe_y_val = [+1.1057, -1.0400, +0.3009, -0.0979, +1.2987, +1.3246, +1.9894, +0.1
              +0.7002, +2.3568, -0.6830, -3.2057, +1.0604, +1.2218, -1.0616, -0.5966, ...
              -2.7751, -0.2578, -1.8284, +1.0349, +4.0658, +1.0987];
 
-cfe_b_val = [+0.2296, +0.3707, +0.3387, +0.7393, +0.5104, -0.0655, +1.4904, +0.9267, ...
-             -0.0006, -0.0780, -0.5517, -0.2551, +0.3079, +0.2583, +0.0484, -0.0142, ...
-             +0.1481, -0.0351, +1.3739, -0.1310, +0.7809, +0.1886, +0.0381, +0.3889, ...
-             +0.3229, +1.0169, +0.8753, -0.5943, +0.4736, +0.7201, +1.2750, +0.0755, ...
-             -0.9275, +0.6452, +0.0694, +0.3347, +0.9441, +1.3417];
+cfe_b_val = [-0.8525, -0.6001, -0.8731, -0.2648, -0.4315, -1.0291, +0.5492, +0.1213, ...
+             -0.6570, -1.0947, -1.6607, -0.9624, -0.4810, -0.6315, -0.9667, -1.3722, ...
+             -1.3041, -0.9670, -0.2702, -0.8165, -0.3418, -1.1930, -1.6567, -0.5136, ...
+             -0.4824, +0.1193, +0.0475, -0.9082, -0.4272, -0.1091, +0.0389, -0.6929, ...
+             -1.7242, -0.1307, -0.9910, -0.5114, -0.3150, -0.2251];
 
 b0_val = [ 37.6,  69.7,  77.9,  44.2,  16.3,  29.6,  47.7,  53.2, ...
            30.2,  34.0,  34.1,  86.0,  11.8,  54.5,  85.4, 107.0, ...
@@ -189,7 +189,7 @@ for i = 1:n_c
         cdata(i).S(k)         = row.S_mean_tw;
         cdata(i).FCP_above(k) = row.F_CP_above_3;
         cdata(i).FCP_loans(k) = row.F_CP_loans;
-        cdata(i).FCP_guar(k)  = row.F_CP_guar_adj;
+        cdata(i).FCP_guar(k)  = row.F_CP_guar;
         cdata(i).FDI(k)       = row.F_DI;
         cdata(i).y(k)         = row.y_t_pct;
         % Exogenous health spending: read if column exists, else stays 0.
@@ -202,7 +202,7 @@ for i = 1:n_c
     end
 
     cdata(i).FCP_loans_adj   = takeup_loans * cdata(i).FCP_loans;
-    cdata(i).FCP_guar_adj    = (takeup_guar / 0.35) * cdata(i).FCP_guar;
+    cdata(i).FCP_guar_adj    = takeup_guar * cdata(i).FCP_guar;
     cdata(i).FCP_below_flow  = cdata(i).FCP_loans_adj + cdata(i).FCP_guar_adj;
     cdata(i).FCP_below_stock = cumsum(cdata(i).FCP_below_flow);
 
@@ -580,7 +580,6 @@ checks = {
     'SD ratio in [0.7, 1.3]',              mean(sd_ratios)>0.7 && mean(sd_ratios)<1.3;
     'AC(1) gap < 0.1',                     abs(mean(ac1_obs)-mean(ac1_sim))<0.1;
     'Total fiscal > 0 (median)',           median(total_fiscal)>0;
-    'Health drag < 0 (median)',            median(health_contrib)<0;
 };
 for i = 1:size(checks,1)
     status = '[FAIL]'; if checks{i,2}, status = '[ OK ]'; end
@@ -653,3 +652,88 @@ function fill_iqr(x, data, col, alpha)
     fill([x, fliplr(x)], [p25, fliplr(p75)], col, ...
         'FaceAlpha', alpha, 'EdgeColor', 'none');
 end
+
+
+%% ========================================================================
+%  STEP 5b: FORWARD ROLL — EPIDEMIC BLOCK ONLY, NO INNOVATIONS (quarterly)
+%  -------------------------------------------------------------------------
+%  Pure deterministic dynamics of the two epidemic transition equations:
+%     theta_{k+1} = rho_theta * (1 - phi_S * S_k/100) * theta_k     (eps=0)
+%     d_{k+1}     = delta_theta(k) * theta_k                        (wave IFR)
+%  Seeded at the FIRST observed theta>0 (Q4.19 has theta=0 by construction,
+%  which the multiplicative map cannot leave). This isolates how much of the
+%  observed theta path the transition equation reproduces WITHOUT the
+%  back-fitted eps_theta — i.e. how much is endogenous dynamics vs. exogenous
+%  (variant-driven) innovations.
+% =========================================================================
+fprintf('\n========================================\n');
+fprintf('  STEP 5b: Epidemic roll, NO innovations (quarterly)\n');
+fprintf('========================================\n');
+
+for i = 1:n_c
+    th_free = zeros(1, N);     % theta with eps_theta = 0
+    d_free  = zeros(1, N);     % d implied by th_free
+
+    % Seed at first quarter with positive observed theta (skip Q4.19=0).
+    k_seed = find(cdata(i).theta_obs > 0, 1, 'first');
+    if isempty(k_seed), cdata(i).sim_theta_free = th_free;
+                        cdata(i).sim_d_free = d_free; continue; end
+    th_free(k_seed) = cdata(i).theta_obs(k_seed);   % seed from data
+
+    for k = k_seed:N
+        Sk_norm = cdata(i).S(k) / 100;
+        % deaths in quarter k from theta in quarter k (same convention as
+        % your forward_roll_v15: xs(4,k+1) = delta_theta(k)*xs(3,k))
+        d_free(k) = P.delta_theta(k) * th_free(k);
+        % theta transition WITHOUT eps (the honest test)
+        if k < N
+            th_free(k+1) = P.rho_theta * (1 - P.phi_S * Sk_norm) * th_free(k);
+        end
+    end
+
+    cdata(i).sim_theta_free = th_free;
+    cdata(i).sim_d_free     = d_free;
+
+    % RMSE of the innovation-free path vs observed (Wave-1 window)
+    rng = k_seed:K_theta;
+    cdata(i).rmse_theta_free = sqrt(mean((th_free(rng) - cdata(i).theta_obs(rng)).^2));
+    cdata(i).rmse_d_free     = sqrt(mean((d_free(rng)  - cdata(i).d_obs(rng)).^2));
+end
+
+% --- Compare: innovation-free vs full (with eps) vs observed ---------------
+fprintf('  Median RMSE theta:  full (with eps) %.5f  |  free (no eps) %.5f\n', ...
+    median([cdata.rmse_theta]), median([cdata.rmse_theta_free]));
+fprintf('  Median RMSE d:      full (with eps) %.2f  |  free (no eps) %.2f\n', ...
+    median([cdata.rmse_d]),     median([cdata.rmse_d_free]));
+fprintf('  (free >> full  =>  the eps_theta carry the dynamics; theta is\n');
+fprintf('   largely exogenous/variant-driven, not endogenous to S.)\n\n');
+
+fprintf('  OECD median: observed vs free (no-innovation) epidemic path\n');
+fprintf('  %8s %10s %10s %9s %9s\n', ...
+    'Quarter','th_obs','th_free','d_obs','d_free');
+for k = 1:N
+    tho = median(arrayfun(@(c) c.theta_obs(k),      cdata));
+    thf = median(arrayfun(@(c) c.sim_theta_free(k), cdata));
+    do  = median(arrayfun(@(c) c.d_obs(k),          cdata));
+    df  = median(arrayfun(@(c) c.sim_d_free(k),     cdata));
+    marker = ' '; if k > K_theta, marker = '*'; end
+    fprintf('  %8s %+10.5f %+10.5f %+9.2f %+9.2f %s\n', ...
+        qlbl{k}, tho, thf, do, df, marker);
+end
+fprintf('  (* outside Wave-1 window)\n');
+
+% --- Optional: plot the free vs observed theta path ------------------------
+sim_thfree_all = reshape([cdata.sim_theta_free], N, n_c)';
+obs_theta_all2 = zeros(n_c, N);
+for i = 1:n_c, obs_theta_all2(i,:) = cdata(i).theta_obs; end
+figure('Name','Theta: no-innovation roll','Color','w','Position',[100 100 720 430]);
+hold on;
+plot(1:K_theta, median(sim_thfree_all(:,1:K_theta)), 'r-o','LineWidth',2);
+plot(1:K_theta, median(obs_theta_all2(:,1:K_theta)), 'k--s','LineWidth',2);
+yline(0,':'); grid on;
+set(gca,'XTick',1:K_theta,'XTickLabel',qlbl(1:K_theta),'XTickLabelRotation',45);
+ylabel('\theta (share infected)');
+title('\theta: pure transition (no \epsilon) vs observed');
+legend('Free (\epsilon=0)','Observed','Location','NE');
+
+

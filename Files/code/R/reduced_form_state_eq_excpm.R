@@ -120,6 +120,120 @@ print(tibble(
   se_phi  = c(p1$se_phi, p2$se_phi, p3$se_phi)
 ), n = Inf)
 
+
+
+
+## ============================================================================
+##  WAVE-SPECIFIC rho_theta — FIXED i() SYNTAX
+##  Bug was ref = NA (invalid). Drop ref entirely: i(wave_coarse, theta_hat)
+##  includes a slope for every wave level. With Country FE this is fine because
+##  i() with a continuous `var` produces interaction slopes (not dummies), so
+##  there is no collinearity with the FE intercepts.
+## ============================================================================
+
+library(fixest)
+library(dplyr)
+
+## ===========================================================================
+##  (A) WEEKLY: wave-specific rho via interaction
+## ===========================================================================
+cat("\n############## (A) WEEKLY, wave-specific rho ##############\n")
+
+# CORRECT: no ref argument -> one theta_hat slope per wave level.
+wk_rho <- feols(
+  theta_lead1 ~ i(wave_coarse, theta_hat) + St_x_th | Country,
+  data = wkly, vcov = ~ Country
+)
+cat("\n-- weekly rho_theta by wave (slopes on theta_hat) --\n")
+print(summary(wk_rho))
+
+cat("\n-- observations per wave --\n")
+print(table(wkly$wave_coarse))
+
+# BOTH rho and containment wave-specific
+cat("\n-- weekly: BOTH rho and containment wave-specific --\n")
+wk_both <- feols(
+  theta_lead1 ~ i(wave_coarse, theta_hat) + i(wave_coarse, St_x_th) | Country,
+  data = wkly, vcov = ~ Country
+)
+print(summary(wk_both))
+
+## ===========================================================================
+##  (B) QUARTERLY: aggregate to quarter, then estimate  <-- FEEDS MATLAB
+## ===========================================================================
+cat("\n\n############## (B) QUARTERLY, wave-specific rho ##############\n")
+
+wkly_q <- wkly %>%
+  mutate(
+    qtr = pmin(ceiling(isowk / 13), 4),
+    quarter_id = paste0(isoyr, "Q", qtr)
+  ) %>%
+  group_by(Country, quarter_id) %>%
+  summarise(
+    theta_q     = mean(theta_hat,    na.rm = TRUE),
+    S_q         = mean(S_daily_mean, na.rm = TRUE),
+    wave_coarse = dplyr::first(wave_coarse),
+    .groups = "drop"
+  ) %>%
+  arrange(Country, quarter_id) %>%
+  group_by(Country) %>%
+  mutate(
+    theta_q_lead1 = lead(theta_q, 1),
+    Sq_x_thq      = S_q * theta_q
+  ) %>%
+  ungroup()
+
+cat("\n-- quarterly obs per wave --\n")
+print(table(wkly_q$wave_coarse))
+
+q_const <- feols(theta_q_lead1 ~ theta_q + Sq_x_thq | Country,
+                 data = wkly_q, vcov = ~ Country)
+cat("\n-- quarterly CONSTANT rho (baseline) --\n")
+print(summary(q_const))
+
+q_wave <- feols(
+  theta_q_lead1 ~ i(wave_coarse, theta_q) + Sq_x_thq | Country,
+  data = wkly_q, vcov = ~ Country
+)
+cat("\n-- quarterly WAVE-SPECIFIC rho --\n")
+print(summary(q_wave))
+
+cat("\n############## INTERPRETATION ##############\n")
+cat("Compare quarterly wave slopes. Overlapping CIs ~1.03 -> constant rho is\n")
+cat("justified; do NOT add wave-specific rho to MATLAB. W1 much higher and\n")
+cat("precise -> wave-specific rho warranted. Use ONLY quarterly values in MATLAB.\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # =============================================================================
 # (2) D-EQUATION with population-normalised DV: d_lead1_excpm
 #     Headline replaces p_proj from the previous run.

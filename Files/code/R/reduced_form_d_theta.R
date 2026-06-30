@@ -229,3 +229,170 @@ if (length(dropped)) {
 cat("\n", strrep("=", 78), "\n  END\n", strrep("=", 78), "\n", sep = "")
 sink()
 cat("Log: ", log_path, "\n")
+
+
+
+
+
+
+colnames(panel_w)
+
+
+library(fixest)
+library(dplyr)
+
+## ============================================================================
+##  ENDOGENEITY TEST: can the transition equation, applied to CONFIRMED CASES
+##  (an INPUT measure, not deaths-in-disguise), explain the wave dynamics —
+##  and is the implied phi_S plausible?
+##
+##  If YES (phi_S in literature range 0.6-0.8, good fit) -> containment has
+##  genuine bite, endogenous theta is defensible, Path B may work.
+##  If NO (phi_S implausible >1, or poor fit) -> the waves are NOT driven by
+##  containment (susceptible depletion / variants), confirming Path A.
+## ============================================================================
+
+# Build the transition variables on CASES (not deaths).
+# S_mean here is the weekly stringency. Check its scale: if 0-100, the
+# interaction below matches your MATLAB (1 - phi_S*S/100). If 0-1, drop /100.
+dat <- panel_w %>%
+  arrange(Country, date) %>%
+  group_by(Country) %>%
+  mutate(
+    cases_lead1 = lead(cases_pm, 1),          # cases one week ahead (LHS)
+    S_x_cases   = (S_mean/100) * cases_pm      # containment interaction (S in 0-100)
+  ) %>%
+  ungroup() %>%
+  filter(is.finite(cases_lead1), is.finite(cases_pm), is.finite(S_x_cases),
+         cases_pm > 0)                          # drop zeros/NA for the multiplicative form
+
+## --- 1. CONSTANT rho (baseline) ---------------------------------------------
+m_const <- feols(cases_lead1 ~ cases_pm + S_x_cases | Country,
+                 data = dat, vcov = ~ Country)
+cat("\n=== CASES transition, CONSTANT rho ===\n")
+print(summary(m_const))
+
+## --- 2. WAVE-SPECIFIC rho ----------------------------------------------------
+m_wave <- feols(cases_lead1 ~ i(wave_coarse, cases_pm) + S_x_cases | Country,
+                data = dat, vcov = ~ Country)
+cat("\n=== CASES transition, WAVE-SPECIFIC rho ===\n")
+print(summary(m_wave))
+
+## --- 3. RECOVER implied phi_S -----------------------------------------------
+## Transition: cases' = rho*(1 - phi_S*S/100)*cases = rho*cases - rho*phi_S*S_x_cases
+##   coef(cases_pm)  = rho
+##   coef(S_x_cases) = -rho*phi_S   ->   phi_S = -coef(S_x_cases)/coef(cases_pm)
+b <- coef(m_const)
+rho_hat   <- b["cases_pm"]
+phi_S_hat <- -b["S_x_cases"] / rho_hat
+cat(sprintf("\n=== IMPLIED STRUCTURAL PARAMETERS (constant-rho spec) ===\n"))
+cat(sprintf("  rho_hat   = %.4f\n", rho_hat))
+cat(sprintf("  phi_S_hat = %.4f   (literature plausible range: 0.6 - 0.8)\n", phi_S_hat))
+if (phi_S_hat > 1) {
+  cat("  -> phi_S > 1 is IMPLAUSIBLE (more than full transmission suppression).\n")
+  cat("     The equation needs an impossible containment effect to fit the\n")
+  cat("     wave peaks -> peaks are NOT containment-driven -> supports Path A.\n")
+} else if (phi_S_hat >= 0.5 && phi_S_hat <= 0.9) {
+  cat("  -> phi_S in a plausible range: containment plausibly drives wave shape.\n")
+  cat("     Endogenous theta from cases may be defensible (worth pursuing Path B).\n")
+} else {
+  cat("  -> phi_S outside the expected band; interpret with caution.\n")
+}
+
+## --- 4. FIT CHECK: does the equation track the case waves? -------------------
+cat(sprintf("\n  Constant-rho within-R2: %.3f\n", fitstat(m_const, "wr2")$wr2))
+cat(sprintf("  Wave-rho   within-R2: %.3f\n", fitstat(m_wave,  "wr2")$wr2))
+cat("  (High R2 + plausible phi_S = containment explains cases. Low R2 or\n")
+cat("   implausible phi_S = it does not — the waves come from elsewhere.)\n")
+
+## --- 5. TESTING-BIAS caveat (diagnostic only) -------------------------------
+## cases_pm is test-biased over time. A crude check: does the case-to-excess
+## ratio drift? If cases explain a SHRINKING share of excess deaths early
+## (undertesting) and more later, the rho is contaminated by ascertainment.
+bias_chk <- panel_w %>%
+  filter(is.finite(cases_pm), is.finite(excess_pm), excess_pm > 0) %>%
+  group_by(wave_coarse) %>%
+  summarise(mean_case_to_excess = mean(cases_pm / excess_pm, na.rm = TRUE),
+            .groups = "drop")
+cat("\n=== Testing-bias diagnostic: cases_pm / excess_pm by wave ===\n")
+cat("(If this ratio rises sharply across waves, confirmed cases are\n")
+cat(" increasingly capturing infections — i.e. early undertesting biases rho.)\n")
+print(bias_chk)
+
+
+
+
+
+
+
+
+## ============================================================================
+##  OECD-AVERAGE STRINGENCY: weekly series + quarterly aggregate
+##  Cross-country mean per week (equal country weight), then quarterly mean.
+## ============================================================================
+
+library(dplyr)
+library(tidyr)
+
+## --- 1. WEEKLY OECD average: mean across countries within each ISO week -----
+## Group by week first, average over countries -> equal weight per country.
+S_weekly_oecd <- wkly %>%
+  group_by(isoyr, isowk) %>%
+  summarise(
+    S_oecd_w  = mean(S_daily_mean, na.rm = TRUE),  # OECD cross-country mean
+    n_country = sum(!is.na(S_daily_mean)),         # how many countries that week
+    .groups = "drop"
+  ) %>%
+  arrange(isoyr, isowk) %>%
+  # quarter label: ceiling(week/13) capped at 4  (ADJUST if your MATLAB
+  # quarter convention differs — see note below)
+  mutate(
+    qtr        = pmin(ceiling(isowk / 13), 4),
+    quarter_id = paste0(isoyr, "Q", qtr)
+  )
+
+cat("=== WEEKLY OECD-average stringency (with quarter label) ===\n")
+print(S_weekly_oecd, n = Inf)
+
+## --- 2. QUARTERLY OECD average -----------------------------------------------
+## Two ways to aggregate; they differ and you should pick deliberately:
+##  (a) mean of the weekly OECD means  (each week equal weight)
+##  (b) mean over all country-weeks in the quarter (each country-week equal)
+## (a) matches "average the weekly OECD line"; (b) matches the MATLAB
+## C.S_exo construction if that averages country-quarter means. Reporting both.
+
+# (a) mean of weekly OECD means
+S_quarterly_a <- S_weekly_oecd %>%
+  group_by(quarter_id) %>%
+  summarise(S_q_from_weekly = mean(S_oecd_w, na.rm = TRUE),
+            n_weeks = n(), .groups = "drop")
+
+# (b) country-week pooled mean within quarter
+S_quarterly_b <- wkly %>%
+  mutate(qtr = pmin(ceiling(isowk / 13), 4),
+         quarter_id = paste0(isoyr, "Q", qtr)) %>%
+  group_by(quarter_id) %>%
+  summarise(S_q_pooled = mean(S_daily_mean, na.rm = TRUE),
+            n_cw = sum(!is.na(S_daily_mean)), .groups = "drop")
+
+S_quarterly <- full_join(S_quarterly_a, S_quarterly_b, by = "quarter_id") %>%
+  arrange(quarter_id)
+
+cat("\n=== QUARTERLY OECD-average stringency ===\n")
+cat("(a) mean of weekly OECD means | (b) pooled country-week mean\n")
+print(S_quarterly, n = Inf)
+
+## --- 3. Optional: export to CSV ---------------------------------------------
+write.csv(S_weekly_oecd,  "S_weekly_oecd.csv",    row.names = FALSE)
+write.csv(S_quarterly,    "S_quarterly_oecd.csv", row.names = FALSE)
+cat("\nWritten: S_weekly_oecd.csv, S_quarterly_oecd.csv\n")
+
+## ---------------------------------------------------------------------------
+## NOTE on quarter convention:
+##  ceiling(isowk/13) gives wk 1-13 -> Q1, 14-26 -> Q2, 27-39 -> Q3, 40-52 -> Q4.
+##  ISO weeks do NOT align exactly with calendar quarters (a calendar quarter
+##  boundary can fall mid-week). If your MATLAB qord uses CALENDAR quarters
+##  (Q1 = Jan-Mar by date), replace the qtr line with a date-based quarter:
+##     mutate(qtr = quarter(date), quarter_id = paste0(year(date),"Q",qtr))
+##  using your weekly `date` column. Check which matches C.S_exo in MATLAB.
+## ---------------------------------------------------------------------------

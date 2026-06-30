@@ -1,0 +1,33 @@
+
+# ============================================================================
+# ROBUSTNESS: BELOW-STOCK COMPOSITION (loans-stock vs guarantees-stock)
+# ----------------------------------------------------------------------------
+# Splits the aggregate Below-Stock channel (F_CP_belowstock = F_CP_loans_stock
+# + F_CP_guar_stock) into its two components to see which carries the effect.
+# ============================================================================
+v14_belowsplit <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_flow_lag2 + F_CP_loans_stock + F_CP_guar_stock
+  + F_DI_lag1 * S_mean_tw | Country,
+  data = df_bin, subset = ~ t_idx >= 4 & t_idx <= 14)
+
+cat("\n========== BELOW-STOCK SPLIT: loans-stock vs guarantees-stock ==========\n")
+print(etable(list("V14 (aggregate below)"  = v14,
+                  "V14 (loans/guar split)" = v14_belowsplit),
+             cluster = ~ Country, ssc = ssc(adj = TRUE, cluster.adj = TRUE),
+             keep = c("y_lag1","S_mean_tw","F_CP_above_flow_lag2","F_CP_belowstock",
+                      "F_CP_loans_stock","F_CP_guar_stock","F_DI_lag1","S_mean_tw:F_DI_lag1")))
+
+cat("\nCor(loans_stock, guar_stock) =",
+    round(cor(df_bin$F_CP_loans_stock, df_bin$F_CP_guar_stock, use = "complete.obs"), 3), "\n")
+
+# INTERPRETATION (verified 2026-06-16, N = 418): The entire Below-Stock effect
+# is carried by the LOANS stock (alpha_loans = 0.56, p = 0.076); the GUARANTEES
+# stock is inert (0.004, p = 0.99). The pooled Below-Stock coefficient (0.26) is
+# a diluted blend, since guarantees add stock mass but no output signal.
+# Cor(loans-stock, guar-stock) = 0.23, so the two are separately identified.
+# Mirrors the debt equation (loans drive realised debt; guarantees near-zero
+# pass-through via low contingent-liability conversion): below-the-line LOANS
+# are the active instrument; guarantees a contingent liability that neither
+# moves output nor accumulates as debt. (Marginally significant at T = 11; the
+# cumulative stock is trend-sensitive, as for the aggregate Below-Stock channel.)
