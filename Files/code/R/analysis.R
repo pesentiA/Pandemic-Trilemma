@@ -1963,6 +1963,26 @@ summary(v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
 # but keep chi_cap_liq as a calibrated bounded parameter rather than a directly estimated coefficient.
 
 
+##Above auch als stock
+df_bin <- df_bin %>%
+  arrange(Country, t_idx) %>%
+  group_by(Country) %>%
+  mutate(
+    F_CP_above_3_stock_lag1 = lag(F_CP_above_3_stock, 1),
+    F_CP_above_3_stock_lag2 = lag(F_CP_above_3_stock, 2),
+  ) %>%
+  ungroup()
+
+v14 <- feols(
+  y_t_pct ~ y_lag1 + S_mean_tw
+  + F_CP_above_3_stock_lag1*F_CP_belowstock
+  + F_DI_lag1 * S_mean_tw  | Country ,
+  data = df_bin,  subset = ~ t_idx >= 4 & t_idx <= 14
+)
+
+summary(v14, cluster = ~ Country, ssc = ssc(K.adj = TRUE, G.adj = TRUE))
+
+##nicht so suaber, wir verlieren beobachtungen
 
 
 
