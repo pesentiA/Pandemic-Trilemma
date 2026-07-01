@@ -4994,9 +4994,13 @@ theta_quarterly_CJT <- mort_m %>%
 cat(sprintf("\n  Quarterly theta_hat (from monthly imputation), CRI/JPN/TUR:\n"))
 print(theta_quarterly_CJT, n = 40)
 
-write.csv(theta_quarterly_CJT, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv", row.names = FALSE)
-cat(sprintf("\n  Saved: theta_quarterly_CRI_JPN_TUR_frommonthly.csv (%d rows)\n",
-            nrow(theta_quarterly_CJT)))
+matlab_dir <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Paper 1/Pandemic-Trilemma/Files/code/matlab/code"
+
+write.csv(theta_quarterly_CJT,
+          file.path(matlab_dir, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv"),
+          row.names = FALSE)
+
+cat(sprintf("\n  Saved: %s\n", file.path(matlab_dir, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv")))
 
 ## ============================================================================
 ##  OPTIONAL diagnostic (not for MATLAB): confirmed vs. excess mortality
