@@ -116,7 +116,7 @@ b0_val=[37.6 69.7 77.9 44.2 16.3 29.6 47.7 53.2 30.2 34.0 34.1 86.0 11.8 54.5 ..
 eps_v14=[-3.62 -8.55 -6.46 -7.79 -4.73 -10.10 -11.20 -3.75 -5.10 -5.98 -1.95 ...
          -9.57 -2.43 -1.97 -8.49 -12.50 -9.94 -8.99 -1.10 -4.70 -0.66 -10.90 ...
          -6.82 -1.83 -0.03 -5.31 -7.43 -7.97 -5.17 -2.45 -5.49 -1.80 -9.75 ...
-         -4.87 -6.78 -4.70 -10.40 -4.79]; %FLAG
+         -4.87 -6.78 -4.70 -10.40 -4.79]; 
 
 %% ------------------------------------------------------------------------
 %  DATA
@@ -132,11 +132,20 @@ M.d_pmw = M.deaths_w ./ M.pop * 1e6;
 [gid,gC,gQ] = findgroups(M.Country, M.qstr); %FLAG-> wie rechnet er das hoch?
 th_q = splitapply(@nanmean, M.theta_hat, gid);
 d_q  = splitapply(@nanmean, M.d_pmw, gid);
+
 th_map = containers.Map(); d_map = containers.Map();
 for r0 = 1:length(gC)
     key = sprintf('%s_%s', gC{r0}, gQ{r0});
     th_map(key)=th_q(r0); d_map(key)=d_q(r0);
 end
+
+T_theta_patch = readtable('theta_quarterly_CRI_JPN_TUR_frommonthly.csv');
+for r0 = 1:height(T_theta_patch)
+    key = sprintf('%s_%s', T_theta_patch.Country{r0}, T_theta_patch.Quarter{r0});
+    th_map(key) = T_theta_patch.theta_hat(r0);
+end
+fprintf('  [patch] theta ueberschrieben fuer CRI/JPN/TUR (th_map)\n');
+
 
 countries = unique(T.Country,'stable'); n_c = numel(countries); N = P.N;
 [S_o,Fa,Fl,Fg,Fd,y_o,bd,th_o,d_o] = deal(zeros(n_c,N));
@@ -267,6 +276,7 @@ W.u_scale = ub_cap;
 W.u_scale(W.u_scale <= 0 | isnan(W.u_scale) | isinf(W.u_scale)) = 1;
 lb = zeros(P.m, P.N);
 ub = repmat(ub_cap, 1, P.N);
+ub(1,:) = 100;   %Rausnehmen wenn wieder der 99 percentil Cap eingefügt werden soll
 ub(:, 1:(P.q_start-1)) = 0; 
 % F komplett ausschalten: nur S bleibt Control
 %ub(2:5, :) = 0;    % Fab, Flo, Fgu, Fdi alle auf 0 gedeckelt-> ziegt was

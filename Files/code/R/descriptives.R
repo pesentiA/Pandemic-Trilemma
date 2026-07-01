@@ -8,7 +8,7 @@ packages_vector <- c( "did2s","haven", "dplyr",  "sandwich",  "jtools", "data.ta
                       "fBasics","gtools","rnaturalearth", "rnaturalearthdata", "foreign","gt", "Synth","gridExtra", "fixest","huxtable", 
                       "xtable", "foreign", "stargazer", "AER", "causalweight", "tidyr","expss","stringr","pscore","AER","ggplot2","haven","lubridate" ,"knitr",
                       "kableExtra", "psych", "pastecs","purrr","magrittr","did","remote", "did2s", "patchwork", "readxl", "did2s", "plm", "scales", "mFilter", 
-                      "countrycode", "tidyverse", "corrplot", "rnaturalearthdata", "ggExtra", "gt", "sf", "RColorBrewer","UpSetR")
+                      "countrycode","kableExtra", "tidyverse", "corrplot", "rnaturalearthdata", "ggExtra", "gt", "sf", "RColorBrewer","UpSetR")
 
 
 
@@ -66,7 +66,9 @@ colnames(economist_w)
 colnames(fm_d)
 
 #Oxford und eigenen Indexe für S
-colnames(oxd_d)
+unique(excess_w$entity)
+unique(p_values_oecd_w$entity)
+colnames(p_values_oecd_w)
 #Alle Oxoford Daten für alle Länder
 colnames(oxd_spatial_d)
 
@@ -4239,6 +4241,11 @@ theme_aer <- theme_classic(base_size = 10) +
 #            projected_deaths_since_2020_all_ages (expected deaths)
 # Missing: CRI, JPN, TUR (monthly only)
 
+
+p_values_oecd_w %>%
+  filter(entity %in% c("CRI","JPN","TUR")) %>%
+  select(entity, date, p_proj_all_ages)   # Spaltenname anpassen
+
 mort_w <- p_values_oecd_w %>%
   filter(time_unit == "weekly") %>%
   mutate(
@@ -4836,6 +4843,187 @@ print(kable(wave_theta %>%
               select(wave_label, N, ifr_used, mean_th, median_th, p95_th, max_th),
             digits = c(0, 0, 4, 3, 3, 3, 3),
             col.names = c("Wave","N","IFR","Mean%","Med%","P95%","Max%")))
+
+##############ADDING MONTHLY JPN; CRI AND TUR DATA#############################3
+
+## ============================================================================
+##  MONTHLY MIRROR of the weekly theta-imputation pipeline (Sections 1a/3a)
+##  ----------------------------------------------------------------------
+##  WHY. p_values_oecd_w has no time_unit=="weekly" rows for CRI, JPN, TUR --
+##  only time_unit=="monthly" (per your comment "ohne CRI, JPN, TUR" above).
+##  This block reproduces the SAME imputation logic (excess -> lead -> /ifr)
+##  at monthly resolution, SCOPED ONLY to these three countries. The other
+##  35 already have complete weekly theta_hat and are untouched here.
+##
+##  IMPORTANT: this does NOT touch deaths_w / d_pmw / d_obs. That quantity
+##  comes from conf_weekly (confirmed COVID deaths, oxd_spatial_d), a
+##  SEPARATE data stream that already covers all 38 countries uniformly,
+##  including CRI/JPN/TUR. Only theta_hat (excess-mortality-based infection
+##  imputation) has the gap. Do not merge a d_pmw column back from this
+##  pipeline -- it would silently swap a confirmed-deaths basis for an
+##  excess-mortality basis in exactly these three countries, creating a new
+##  cross-country inconsistency instead of fixing the old one.
+## ============================================================================
+
+mort_m <- p_values_oecd_w %>%
+  filter(time_unit == "monthly") %>%
+  filter(entity %in% c("CRI", "JPN", "TUR")) %>%
+  mutate(
+    Country = entity,
+    date    = as.Date(date)
+  ) %>%
+  filter(date >= as.Date("2020-01-01"), date <= as.Date("2022-12-31")) %>%
+  select(
+    Country, date, time,
+    p_proj    = p_proj_all_ages,
+    excess    = excess_proj_all_ages,
+    expected  = projected_deaths_since_2020_all_ages,
+    observed  = deaths_since_2020_all_ages,
+    p_15_64   = p_proj_15_64,
+    p_65_74   = p_proj_65_74,
+    p_75_84   = p_proj_75_84,
+    p_85p     = p_proj_85p
+  ) %>%
+  arrange(Country, date)
+
+cat(sprintf("  Monthly excess mortality (CRI/JPN/TUR): %d obs, %d countries, %s to %s\n",
+            nrow(mort_m), n_distinct(mort_m$Country),
+            if (nrow(mort_m) > 0) min(mort_m$date) else NA,
+            if (nrow(mort_m) > 0) max(mort_m$date) else NA))
+
+# Sanity check FIRST -- confirm the monthly rows actually exist before
+# building anything on top of an empty frame.
+if (nrow(mort_m) == 0) {
+  stop("No monthly rows found for CRI/JPN/TUR. Check table(p_values_oecd_w$time_unit) ",
+       "and table(p_values_oecd_w$entity[p_values_oecd_w$time_unit=='monthly']).")
+}
+print(mort_m %>% group_by(Country) %>%
+        summarise(n = n(), from = min(date), to = max(date), .groups = "drop"))
+
+# --- Population: reuse the SAME pop table already built in Section 1b ------
+mort_m <- mort_m %>%
+  left_join(pop, by = "Country")
+
+# --- Wave assignment: identical date-based logic, unchanged from Section 2a
+mort_m <- mort_m %>%
+  mutate(
+    wave = case_when(
+      date < as.Date("2020-06-15")  ~ "W1",
+      date < as.Date("2020-09-15")  ~ "W1_summer",
+      date < as.Date("2021-03-01")  ~ "W2_wt",
+      date < as.Date("2021-07-01")  ~ "W2_alpha",
+      date < as.Date("2022-01-01")  ~ "W3_delta",
+      TRUE                          ~ "W4_omicron"
+    )
+  ) %>%
+  left_join(ifr_wave %>% select(wave, ifr, ifr_lo, ifr_hi), by = "wave")
+
+# --- Core imputation, MONTHLY lead ------------------------------------------
+# ell_central = 3 WEEKS (~0.69 months) in the weekly pipeline. At monthly
+# resolution the nearest whole-month lag is 1 month (~4.3 weeks) -- about
+# 30% longer than the weekly central estimate; this is the coarsest
+# granularity available and cannot be made more precise without daily/weekly
+# data. Sensitivity ell_month in {0,1,2} brackets the weekly ell in {2,3,4}.
+ell_month_central <- 1
+ell_month_range   <- 0:2
+
+mort_m <- mort_m %>%
+  arrange(Country, date) %>%
+  group_by(Country) %>%
+  mutate(
+    d_pc    = excess / pop,
+    d_lead0 = lead(d_pc, n = 0),
+    d_lead1 = lead(d_pc, n = 1),
+    d_lead2 = lead(d_pc, n = 2)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    theta_hat    = d_lead1 / ifr,   # central, ell = 1 month
+    theta_hat_l0 = d_lead0 / ifr,
+    theta_hat_l2 = d_lead2 / ifr
+  )
+
+n_negative_m <- sum(mort_m$theta_hat < 0, na.rm = TRUE)
+n_total_m    <- sum(!is.na(mort_m$theta_hat))
+cat(sprintf("  Monthly theta imputation: %d obs, %d negative (%.1f%%) -- floored at 0\n",
+            n_total_m, n_negative_m, 100 * n_negative_m / max(n_total_m, 1)))
+
+mort_m <- mort_m %>%
+  mutate(
+    theta_hat    = pmax(0, theta_hat),
+    theta_hat_l0 = pmax(0, theta_hat_l0),
+    theta_hat_l2 = pmax(0, theta_hat_l2)
+  )
+
+## ============================================================================
+##  Aggregate monthly -> quarterly, MATLAB-ready (theta_hat only)
+##  ----------------------------------------------------------------------
+##  Mirrors the MATLAB-side splitapply(@nanmean, theta_hat, ...) step that
+##  turns weekly theta_hat into quarterly theta_o for the other 35 countries
+##  -- here averaging 3 months instead of ~13 weeks per quarter.
+## ============================================================================
+
+mort_m <- mort_m %>%
+  mutate(
+    yr      = year(date),
+    qn      = quarter(date),
+    Quarter = paste0("Q", qn, ".", yr)
+  )
+unique(mort_m$theta_hat)
+
+weeks_per_month <- 365.25 / 12 / 7
+
+mort_m <- mort_m %>%
+  mutate(
+    theta_hat    = theta_hat    / weeks_per_month,
+    theta_hat_l0 = theta_hat_l0 / weeks_per_month,
+    theta_hat_l2 = theta_hat_l2 / weeks_per_month
+  )
+
+# danach die Quartals-Aggregation nochmal:
+theta_quarterly_CJT <- mort_m %>%
+  group_by(Country, Quarter) %>%
+  summarise(theta_hat = mean(theta_hat, na.rm = TRUE), .groups = "drop")
+
+write.csv(theta_quarterly_CJT, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv", row.names = FALSE)
+
+theta_quarterly_CJT <- mort_m %>%
+  group_by(Country, Quarter) %>%
+  summarise(theta_hat = mean(theta_hat, na.rm = TRUE), .groups = "drop")
+
+cat(sprintf("\n  Quarterly theta_hat (from monthly imputation), CRI/JPN/TUR:\n"))
+print(theta_quarterly_CJT, n = 40)
+
+write.csv(theta_quarterly_CJT, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv", row.names = FALSE)
+cat(sprintf("\n  Saved: theta_quarterly_CRI_JPN_TUR_frommonthly.csv (%d rows)\n",
+            nrow(theta_quarterly_CJT)))
+
+## ============================================================================
+##  OPTIONAL diagnostic (not for MATLAB): confirmed vs. excess mortality
+##  ----------------------------------------------------------------------
+##  Cross-check only. d_obs in MATLAB stays sourced from deaths_w (confirmed
+##  COVID deaths) as for all other countries -- do NOT feed this into d_map.
+##  Included only in case a large confirmed-vs-excess gap for these three
+##  countries (e.g. under-certification) is itself worth a footnote.
+## ============================================================================
+# mort_m %>%
+#   mutate(d_pmw_excess = pmax(0, excess) / pop * 1e6 / 4.345) %>%
+#   group_by(Country, Quarter) %>%
+#   summarise(d_pmw_excess = mean(d_pmw_excess, na.rm = TRUE), .groups = "drop")
+
+# 1. Zeig mir die 10 höchsten theta_hat-Zeilen mit allen Zwischenwerten
+mort_m %>%
+  select(Country, date, wave, excess, pop, d_pc, d_lead1, ifr, theta_hat) %>%
+  filter(!is.na(theta_hat)) %>%
+  arrange(desc(theta_hat)) %>%
+  head(15)
+
+# 2. pop sauber pro Land geprüft (JPN sollte ~126 Mio, CRI ~5 Mio, TUR ~83 Mio sein)
+mort_m %>% distinct(Country, pop)
+
+# 3. Was kommt NACH der Quartals-Aggregation raus? Das ist, was tatsächlich nach MATLAB geht
+print(theta_quarterly_CJT, n = 40)
+
 
 
 # --- 3c. OECD aggregate θ̂ trajectory -----------------------------------------

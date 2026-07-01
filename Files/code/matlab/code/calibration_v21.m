@@ -14,6 +14,10 @@
 %       variant-driven), the level of rho leaves the fitted theta and d
 %       paths numerically invariant; the break only re-labels how much of
 %       theta_{k} is attributed to endogenous persistence vs. innovation.
+%       NOTE: the current solver script (V21) has since moved to
+%       rho_theta_post=0.75. This calibration script intentionally keeps
+%       0.5, per the invariance argument above -- see chat history for the
+%       decision record. Do not change without re-checking that argument.
 %   (B) Wave-to-quarter mapping aligned to solver V17 in the MEDIAN block
 %       (wave_idx_q). 
 %         %         Mean block   (SP.delta_q):  [1 1 2 3 4 5 5 6 6 7 7 7 7]
@@ -293,16 +297,12 @@ for r = 1:length(gC)
     theta_map(key) = theta_q(r);
     d_map(key)     = d_q(r);
 end
-%Monthly Data for CRI, JPN and CRI
-theta_map = containers.Map();
-d_map     = containers.Map();
-for r = 1:length(gC)
-    key = sprintf('%s_%s', gC{r}, gQ{r});
-    theta_map(key) = theta_q(r);
-    d_map(key)     = d_q(r);
-end
 
-% Monthly-derived theta patch for CRI, JPN, TUR
+% Monthly-derived theta patch for CRI, JPN, TUR (see appendix: weekly-freq
+% excess-mortality source has no rows for these 3; theta_hat rebuilt from
+% monthly-freq excess mortality, rescaled to weekly-equivalent basis).
+% d_map/d_obs is NOT touched here -- deaths_w (confirmed COVID deaths) is
+% already complete and consistent across all 38 countries for that series.
 T_theta_patch = readtable('theta_quarterly_CRI_JPN_TUR_frommonthly.csv');
 for r = 1:height(T_theta_patch)
     key = sprintf('%s_%s', T_theta_patch.Country{r}, T_theta_patch.Quarter{r});
@@ -658,15 +658,20 @@ fprintf('\n   PASSED: %d / %d\n\n', sum([checks{:,2}]), size(checks,1));
 %  -------------------------------------------------------------------------
 %  PURPOSE. The Median validation above (Steps 6, 9) checks the CALIBRATION
 %  model country by country and aggregates by the cross-country MEDIAN. The
-%  optimal-control benchmark (solver V17), however, optimizes a single
+%  optimal-control benchmark (solver V21), however, optimizes a single
 %  REPRESENTATIVE economy built from cross-country MEANS of all inputs, with
 %  country fixed effects set to zero. This block validates exactly THAT
 %  object: one forward roll on mean-aggregated inputs, mu_y = mu_b = 0,
 %  compared against the MEAN of the observed data.
 %
-%  CLOSURE. By explicit design decision this roll uses the SOLVER closure,
-%  not the calibration closure, so that the validated object is the exact
-%  solver economy. Concretely it differs from forward_roll_v15 in:
+%  CLOSURE. By explicit design decision this roll uses an n=8 solver-style
+%  closure (mirroring solver V17: no capacity-preservation stock, take-up
+%  applied INSIDE the roll rather than pre-applied to the data), NOT the
+%  n=9 closure of the current V21 solver (capacity stock + bilinear
+%  above/below complementarity). This is intentional and unchanged: it
+%  demonstrates that a solver-style closure reproduces the mean OECD data.
+%  The CURRENT V21 (n=9) closure is validated separately, at country level,
+%  in Step 10c below. Concretely this block differs from forward_roll_v15 in:
 %     - below-the-line: stock with geometric decay (decay_K) and solver
 %       take-up coefficients c_lo, c_gu (NOT the calibration cumsum with
 %       take-up 0.60/0.25);
@@ -674,9 +679,12 @@ fprintf('\n   PASSED: %d / %d\n\n', sum([checks{:,2}]), size(checks,1));
 %     - theta innovations entered with the solver guard eth = max(eth,0)
 %       before vaccination (q < q_vax), and read at slot (q+2);
 %     - delta_q wave mapping identical to the (now aligned) wave_idx_q.
-%  CONSEQUENCE. This block therefore validates a DIFFERENT model than the
-%  Median block: the SOLVER model. That is intentional — it demonstrates
-%  that the object actually optimized reproduces the mean OECD data.
+%
+%  PARAMETER CORRECTION (this version): SP.c_lo was 0.4, a stale value from
+%  an earlier iteration of the solver. The solver's current take-up rate is
+%  c_lo=0.6 (matching this script's own takeup_loans=0.6). Corrected below.
+%  This changes the numbers this block reports and the data feeding its
+%  figure -- the plotting code itself is untouched.
 %
 %  AGGREGATION. Inputs are cross-country means (matching solver U_obs =
 %  [mean(S_o); ...]). theta innovations follow the solver exactly:
@@ -690,7 +698,7 @@ fprintf('################################################################\n\n');
 SP = struct();
 SP.rho_y=0.231; SP.alpha_S=-0.095; SP.alpha_above=0.544; SP.alpha_below=0.261;
 SP.alpha_DI=1.470; SP.alpha_SDI=-0.041; SP.beta_d=0;
-SP.c_lo=0.4; SP.c_gu=0.25; SP.r=0.001; SP.gamma_y=0.117;
+SP.c_lo=0.6; SP.c_gu=0.25; SP.r=0.001; SP.gamma_y=0.117;   % c_lo corrected 0.4 -> 0.6
 SP.k_ab=0.664; SP.k_lo=0.836; SP.k_gu=0.536; SP.k_di=0.526; SP.phi_t=0;
 SP.decay_K=0.1; SP.phi_S=0.8; SP.th_max=Inf;
 SP.N=N; SP.n=8; SP.m=5; SP.q_vax=q_vax;
@@ -815,8 +823,99 @@ sgtitle('Mean validation: representative OECD economy (solver closure) vs mean d
 
 
 %% ========================================================================
-%  FUNCTIONS
+%  STEP 10c: SOLVER-CLOSURE (V21, n=9) VALIDATION AT COUNTRY LEVEL
+%  -------------------------------------------------------------------------
+%  PURPOSE. Step 10b validates a solver closure that mirrors V17 (n=8, no
+%  capacity-preservation stock). The closure actually used by solver V21 --
+%  the one under which the per-country planner problems are solved -- adds
+%  a capacity stock and a bilinear above/below complementarity term, and
+%  drops the exogenous kappa_H health term from the debt equation. This
+%  block re-implements THAT exact closure (f_step_v21, mirrored verbatim
+%  from the V21 solver script) and validates it at country level, using the
+%  SAME structural parameters as the panel-wide solve (shared, not
+%  re-estimated) and only country-specific inputs (S, F*, eps_th, eps_y,
+%  b0, mu_y, mu_b).
+%
+%  ASSUMPTION TO CONFIRM. Country-level rolls below use the country fixed
+%  effects (mu_y_i, mu_b_i) from cfe_y_map / cfe_b_map, matching how Step 5's
+%  additive-closure country validation is set up. If your actual per-country
+%  V21 solver run uses mu_y = mu_b = 0 (treating heterogeneity as entering
+%  only through inputs and b0, as the representative-economy solve does),
+%  change C21_i.mu_y / C21_i.mu_b below to 0 accordingly.
 % =========================================================================
+fprintf('\n################################################################\n');
+fprintf('#  STEP 10c: SOLVER-CLOSURE (V21) VALIDATION, COUNTRY LEVEL       #\n');
+fprintf('################################################################\n\n');
+
+% --- Shared V21 structural parameters (identical to the solver script) ----
+P21 = struct();
+P21.rho_y = 0.231; P21.alpha_S = -0.095; P21.alpha_above = 0.544;
+P21.alpha_below = 0.261; P21.alpha_DI = 1.470; P21.alpha_SDI = -0.041;
+P21.beta_d = 0; P21.r = 0.001; P21.gamma_y = 0.117;
+P21.k_ab = 0.664; P21.k_lo = 0.836; P21.k_gu = 0.536; P21.k_di = 0.526;
+P21.phi_t = 0;
+P21.rho_th_q = rho_th_q;                 % from Step 3, quarter-varying, length N
+P21.q_vax = q_vax; P21.phi_S = phi_S; P21.th_max = Inf;
+P21.delta_q = ifr_by_wave([1 1 2 3 4 5 5 6 6 7 7 7 7]) * 1e6;  % mean-block mapping
+P21.N = N; P21.n = 9; P21.m = 5; P21.yr = year_idx_vec;
+
+target_half_life_cap_q = 6;
+P21.decay_cap   = 1 - 0.5^(1/target_half_life_cap_q);
+P21.alpha_cap   = 0.30 * P21.alpha_above;
+P21.chi_cap_liq = 0.50;
+P21.decay_K     = 0.1;
+
+% cap_scale: 99th percentile of positive above-line spend, pooled across the
+% FULL panel -- a shared/technical scale parameter, not re-fit per country,
+% exactly as in the panel-wide V21 solve.
+Fa_pool = arrayfun(@(c) c.FCP_above, cdata, 'UniformOutput', false);
+Fa_pool = [Fa_pool{:}]; Fa_pool = Fa_pool(Fa_pool > 0);
+P21.cap_scale = max(pctile21(Fa_pool, 99), 1);
+fprintf('  P21.cap_scale = %.3f (99th pct of pooled above-line spend, n=%d obs)\n\n', ...
+        P21.cap_scale, numel(Fa_pool));
+
+country_list = {cdata.iso};   % robust to insertion order; do not depend on
+                               % the later Added-Metrics block's `iso` var
+
+% ---------------------------------------------------------------------
+% Country-level solver-closure validation
+% ---------------------------------------------------------------------
+fprintf('  --- Country-level solver-closure (V21) validation ---\n');
+rmse21_y  = zeros(n_c,1); rmse21_b  = zeros(n_c,1);
+rmse21_th = zeros(n_c,1); rmse21_d  = zeros(n_c,1);
+
+for i = 1:n_c
+    c = cdata(i);
+    U_i  = [c.S; c.FCP_above; c.FCP_loans_adj; c.FCP_guar_adj; c.FDI];  % take-up already applied
+    x0_i = zeros(P21.n,1); x0_i(2) = c.b0;
+
+    C21_i.mu_y  = c.mu_y;             % <-- confirm vs. your actual country-level solve
+    C21_i.mu_b  = c.mu_b;             % <-- confirm vs. your actual country-level solve
+    C21_i.eps_y  = c.eps_y_vec;       % length N+1, Q2.20 shock in slot 4
+    C21_i.eps_th = c.eps_theta_vec;   % length N+1, same (q+2) convention as the solver
+
+    X21_i = rollout_v21(U_i, x0_i, P21, C21_i);
+
+    sim_y_i  = X21_i(1,2:end); sim_b_i  = X21_i(2,2:end);
+    sim_th_i = X21_i(3,1:end); sim_d_i  = X21_i(4,1:end);
+
+    rmse21_y(i)  = sqrt(mean((sim_y_i(1:K_y)      - c.y(1:K_y)).^2));
+    rmse21_b(i)  = sqrt(mean((sim_b_i(1:K_b)      - c.obs_b_level(1:K_b)).^2));
+    rmse21_th(i) = sqrt(mean((sim_th_i(1:K_theta) - c.theta_obs(1:K_theta)).^2));
+    rmse21_d(i)  = sqrt(mean((sim_d_i(1:K_theta)  - c.d_obs(1:K_theta)).^2));
+end
+
+fprintf('  Median RMSE (solver closure)  y: %.2f  b(level): %.2f  theta: %.5f  d: %.2f\n', ...
+        median(rmse21_y), median(rmse21_b), median(rmse21_th), median(rmse21_d));
+fprintf('  For comparison, Step 6 additive-closure medians were  y: 1.85  b(level): 2.53  theta: 0.00000  d: 12.59\n\n');
+
+T_solver_country = table(string(country_list)', rmse21_y, rmse21_b, rmse21_th, rmse21_d, ...
+    'VariableNames', {'Country','RMSE_y_solver','RMSE_b_solver','RMSE_theta_solver','RMSE_d_solver'});
+disp(T_solver_country);
+writetable(T_solver_country, 'validation_v20_solver_closure_by_country.csv');
+
+fprintf('\nSaved:\n  validation_v20_solver_closure_by_country.csv\n\n');
+
 
 %% ========================================================================
 %  STEP 5b: FORWARD ROLL — EPIDEMIC BLOCK ONLY, NO INNOVATIONS (quarterly)
@@ -1218,6 +1317,15 @@ fprintf('  validation_v20_representative_metrics.csv\n');
 fprintf('  validation_v20_checklist.csv\n\n');
 
 
+%% ========================================================================
+%  LOCAL FUNCTIONS
+%  ------------------------------------------------------------------------
+%  MATLAB requires all local functions in a script file to appear after
+%  every top-level executable statement. Nothing below this point is
+%  ever executed top-to-bottom; MATLAB dispatches into these only when
+%  called from the code above.
+% =========================================================================
+
 function xs = forward_roll_v15(c, P)
     N_ = P.N;
     xs = zeros(P.nx, N_+1);
@@ -1282,167 +1390,7 @@ function fill_iqr(x, data, col, alpha)
 end
 
 %% ========================================================================
-%  INSERTION POINT 1 of 2
-%  -------------------------------------------------------------------------
-%  Paste this ENTIRE block into your V20 calibration script directly AFTER
-%  the last line of Step 10b, i.e. right after:
-%
-%      sgtitle('Mean validation: representative OECD economy (solver closure) vs mean data', ...
-%              'FontWeight','bold');
-%
-%  and BEFORE the line:
-%
-%      %% ========================================================================
-%      %  FUNCTIONS
-%
-%  It uses variables already in scope at that point: N, n_c, cdata, countries,
-%  rho_th_q, q_vax, phi_S, ifr_by_wave, year_idx_vec, K_y, K_b, K_theta.
-% =========================================================================
-
-%% ========================================================================
-%  STEP 10c: SOLVER-CLOSURE (V21, n=9) VALIDATION AT COUNTRY LEVEL
-%  -------------------------------------------------------------------------
-%  PURPOSE. Step 10b validates a solver closure that mirrors V17 (n=8, no
-%  capacity-preservation stock). The closure actually used by solver V21 --
-%  the one under which the per-country planner problems are solved -- adds
-%  a capacity stock and a bilinear above/below complementarity term, and
-%  drops the exogenous kappa_H health term from the debt equation. This
-%  block re-implements THAT exact closure (f_step_v21, mirrored verbatim
-%  from the V21 solver script) and validates it at country level, using the
-%  SAME structural parameters as the panel-wide solve (shared, not
-%  re-estimated) and only country-specific inputs (S, F*, eps_th, eps_y,
-%  b0, mu_y, mu_b).
-%
-%  ASSUMPTION TO CONFIRM. Country-level rolls below use the country fixed
-%  effects (mu_y_i, mu_b_i) from cfe_y_map / cfe_b_map, matching how Step 5's
-%  additive-closure country validation is set up. If your actual per-country
-%  V21 solver run uses mu_y = mu_b = 0 (treating heterogeneity as entering
-%  only through inputs and b0, as the representative-economy solve does),
-%  change C21_i.mu_y / C21_i.mu_b below to 0 accordingly.
-% =========================================================================
-fprintf('\n################################################################\n');
-fprintf('#  STEP 10c: SOLVER-CLOSURE (V21) VALIDATION, COUNTRY LEVEL       #\n');
-fprintf('################################################################\n\n');
-
-% --- Shared V21 structural parameters (identical to the solver script) ----
-P21 = struct();
-P21.rho_y = 0.231; P21.alpha_S = -0.095; P21.alpha_above = 0.544;
-P21.alpha_below = 0.261; P21.alpha_DI = 1.470; P21.alpha_SDI = -0.041;
-P21.beta_d = 0; P21.r = 0.001; P21.gamma_y = 0.117;
-P21.k_ab = 0.664; P21.k_lo = 0.836; P21.k_gu = 0.536; P21.k_di = 0.526;
-P21.phi_t = 0;
-P21.rho_th_q = rho_th_q;                 % from Step 3, quarter-varying, length N
-P21.q_vax = q_vax; P21.phi_S = phi_S; P21.th_max = Inf;
-P21.delta_q = ifr_by_wave([1 1 2 3 4 5 5 6 6 7 7 7 7]) * 1e6;  % mean-block mapping
-P21.N = N; P21.n = 9; P21.m = 5; P21.yr = year_idx_vec;
-
-target_half_life_cap_q = 6;
-P21.decay_cap   = 1 - 0.5^(1/target_half_life_cap_q);
-P21.alpha_cap   = 0.30 * P21.alpha_above;
-P21.chi_cap_liq = 0.50;
-P21.decay_K     = 0.1;
-
-% cap_scale: 99th percentile of positive above-line spend, pooled across the
-% FULL panel -- a shared/technical scale parameter, not re-fit per country,
-% exactly as in the panel-wide V21 solve.
-Fa_pool = arrayfun(@(c) c.FCP_above, cdata, 'UniformOutput', false);
-Fa_pool = [Fa_pool{:}]; Fa_pool = Fa_pool(Fa_pool > 0);
-P21.cap_scale = max(pctile21(Fa_pool, 99), 1);
-fprintf('  P21.cap_scale = %.3f (99th pct of pooled above-line spend, n=%d obs)\n\n', ...
-        P21.cap_scale, numel(Fa_pool));
-
-country_list = {cdata.iso};   % robust to insertion order; do not depend on
-                               % the later Added-Metrics block's `iso` var
-
-% ---------------------------------------------------------------------
-% Country-level solver-closure validation
-% ---------------------------------------------------------------------
-fprintf('  --- Country-level solver-closure (V21) validation ---\n');
-rmse21_y  = zeros(n_c,1); rmse21_b  = zeros(n_c,1);
-rmse21_th = zeros(n_c,1); rmse21_d  = zeros(n_c,1);
-
-for i = 1:n_c
-    c = cdata(i);
-    U_i  = [c.S; c.FCP_above; c.FCP_loans_adj; c.FCP_guar_adj; c.FDI];  % take-up already applied
-    x0_i = zeros(P21.n,1); x0_i(2) = c.b0;
-
-    C21_i.mu_y  = c.mu_y;             % <-- confirm vs. your actual country-level solve
-    C21_i.mu_b  = c.mu_b;             % <-- confirm vs. your actual country-level solve
-    C21_i.eps_y  = c.eps_y_vec;       % length N+1, Q2.20 shock in slot 4
-    C21_i.eps_th = c.eps_theta_vec;   % length N+1, same (q+2) convention as the solver
-
-    X21_i = rollout_v21(U_i, x0_i, P21, C21_i);
-
-    sim_y_i  = X21_i(1,2:end); sim_b_i  = X21_i(2,2:end);
-    sim_th_i = X21_i(3,1:end); sim_d_i  = X21_i(4,1:end);
-
-    rmse21_y(i)  = sqrt(mean((sim_y_i(1:K_y)      - c.y(1:K_y)).^2));
-    rmse21_b(i)  = sqrt(mean((sim_b_i(1:K_b)      - c.obs_b_level(1:K_b)).^2));
-    rmse21_th(i) = sqrt(mean((sim_th_i(1:K_theta) - c.theta_obs(1:K_theta)).^2));
-    rmse21_d(i)  = sqrt(mean((sim_d_i(1:K_theta)  - c.d_obs(1:K_theta)).^2));
-end
-
-fprintf('  Median RMSE (solver closure)  y: %.2f  b(level): %.2f  theta: %.5f  d: %.2f\n', ...
-        median(rmse21_y), median(rmse21_b), median(rmse21_th), median(rmse21_d));
-fprintf('  For comparison, Step 6 additive-closure medians were  y: 1.85  b(level): 2.53  theta: 0.00000  d: 13.13\n\n');
-
-T_solver_country = table(string(country_list)', rmse21_y, rmse21_b, rmse21_th, rmse21_d, ...
-    'VariableNames', {'Country','RMSE_y_solver','RMSE_b_solver','RMSE_theta_solver','RMSE_d_solver'});
-disp(T_solver_country);
-writetable(T_solver_country, 'validation_v20_solver_closure_by_country.csv');
-
-fprintf('\nSaved:\n  validation_v20_solver_closure_by_country.csv\n\n');
-
-
-%% ========================================================================
-%  INSERTION POINT 2 of 2
-%  -------------------------------------------------------------------------
-%  Paste this ENTIRE block into the LOCAL FUNCTIONS section at the very end
-%  of your file, directly AFTER your existing `rollout_solver_closure`
-%  function (which mirrors V17). These three functions are new and do not
-%  replace anything already there.
-% =========================================================================
-
-function xp = f_step_v21(x, u, q, P, C)
-% Exact mirror of solver V21's f_step (n=9: capacity-preservation stock +
-% bilinear above/below complementarity). Used ONLY for validation rollouts
-% with OBSERVED U as input -- never for optimization.
-    S=u(1); fab=u(2); flo=u(3); fgu=u(4); fdi=u(5);
-    y=x(1); b=x(2); th=x(3); d=x(4); a1=x(5); di1=x(7); st_liq=x(8); st_cap=x(9);
-
-    liq_used = (1-P.decay_K)*st_liq + flo + fgu;
-    cap_used = (1-P.decay_cap)*st_cap + fab;
-    cap_multiplier = 1 + P.chi_cap_liq * cap_used / (cap_used + P.cap_scale);
-
-    eth = 0;
-    if (q+2) <= numel(C.eps_th), eth = C.eps_th(q+2); end
-    if q < P.q_vax, eth = max(eth, 0); end
-
-    xp = zeros(P.n,1);
-    xp(3) = P.rho_th_q(q)*(1-P.phi_S*S/100)*th*(1 - th/P.th_max) + eth;
-    xp(4) = P.delta_q(q)*th;
-    xp(1) = C.mu_y + P.rho_y*y + P.alpha_S*S ...
-          + P.alpha_cap*cap_used + P.alpha_below*liq_used*cap_multiplier ...
-          + P.alpha_DI*di1 + P.alpha_SDI*S*di1 - P.beta_d*d + C.eps_y(q+1);
-    xp(2) = C.mu_b + (1+P.r)*b - P.gamma_y*y + P.k_ab*fab ...
-          + P.k_lo*flo + P.k_gu*fgu + P.k_di*di1 + P.phi_t*P.yr(q);
-    xp(5) = fab; xp(6) = a1; xp(7) = fdi; xp(8) = liq_used; xp(9) = cap_used;
-end
-
-function X = rollout_v21(U, x0, P, C)
-    X = zeros(P.n, P.N+1); X(:,1) = x0;
-    for q = 1:P.N, X(:,q+1) = f_step_v21(X(:,q), U(:,q), q, P, C); end
-end
-
-function v = pctile21(x, p)
-    x = sort(x(:)); n = numel(x);
-    idx = 1 + (n-1)*p/100;
-    lo = floor(idx); hi = ceil(idx);
-    v = x(lo) + (idx-lo)*(x(hi)-x(lo));
-end
-
-%% ========================================================================
-%  LOCAL FUNCTION FOR STEP 10b: solver-closure rollout (mirrors solver f_step)
+%  LOCAL FUNCTION FOR STEP 10b: solver-closure rollout (mirrors solver V17)
 % =========================================================================
 function X = rollout_solver_closure(U, x0, SP, SC)
 % One deterministic roll under the SOLVER closure (n=8 state), used by the
@@ -1480,4 +1428,45 @@ function X = rollout_solver_closure(U, x0, SP, SC)
 
         X(:,q+1) = xp;
     end
+end
+
+%% ========================================================================
+%  LOCAL FUNCTIONS FOR STEP 10c: solver-closure V21 (n=9) rollout
+% =========================================================================
+function xp = f_step_v21(x, u, q, P, C)
+% Exact mirror of solver V21's f_step (n=9: capacity-preservation stock +
+% bilinear above/below complementarity). Used ONLY for validation rollouts
+% with OBSERVED U as input -- never for optimization.
+    S=u(1); fab=u(2); flo=u(3); fgu=u(4); fdi=u(5);
+    y=x(1); b=x(2); th=x(3); d=x(4); a1=x(5); di1=x(7); st_liq=x(8); st_cap=x(9);
+
+    liq_used = (1-P.decay_K)*st_liq + flo + fgu;
+    cap_used = (1-P.decay_cap)*st_cap + fab;
+    cap_multiplier = 1 + P.chi_cap_liq * cap_used / (cap_used + P.cap_scale);
+
+    eth = 0;
+    if (q+2) <= numel(C.eps_th), eth = C.eps_th(q+2); end
+    if q < P.q_vax, eth = max(eth, 0); end
+
+    xp = zeros(P.n,1);
+    xp(3) = P.rho_th_q(q)*(1-P.phi_S*S/100)*th*(1 - th/P.th_max) + eth;
+    xp(4) = P.delta_q(q)*th;
+    xp(1) = C.mu_y + P.rho_y*y + P.alpha_S*S ...
+          + P.alpha_cap*cap_used + P.alpha_below*liq_used*cap_multiplier ...
+          + P.alpha_DI*di1 + P.alpha_SDI*S*di1 - P.beta_d*d + C.eps_y(q+1);
+    xp(2) = C.mu_b + (1+P.r)*b - P.gamma_y*y + P.k_ab*fab ...
+          + P.k_lo*flo + P.k_gu*fgu + P.k_di*di1 + P.phi_t*P.yr(q);
+    xp(5) = fab; xp(6) = a1; xp(7) = fdi; xp(8) = liq_used; xp(9) = cap_used;
+end
+
+function X = rollout_v21(U, x0, P, C)
+    X = zeros(P.n, P.N+1); X(:,1) = x0;
+    for q = 1:P.N, X(:,q+1) = f_step_v21(X(:,q), U(:,q), q, P, C); end
+end
+
+function v = pctile21(x, p)
+    x = sort(x(:)); n = numel(x);
+    idx = 1 + (n-1)*p/100;
+    lo = floor(idx); hi = ceil(idx);
+    v = x(lo) + (idx-lo)*(x(hi)-x(lo));
 end
