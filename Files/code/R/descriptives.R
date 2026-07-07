@@ -43,6 +43,8 @@ conflicted::conflicts_prefer(data.table::isoweek)
 conflicted::conflicts_prefer(data.table::month)
 conflicted::conflicts_prefer(dplyr::lead)
 
+
+library(kableExtra)
 ##Data from qcode Skript laden
 
 safedata <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/Database/Analyse"
@@ -224,6 +226,66 @@ latex_table <- kable(
 
 # 3. Den fertigen LaTeX-Code in der Konsole ausgeben ...
 cat(latex_table)
+
+
+##by channel, by country
+by_channel_country <- fm %>%
+  group_by(transmission_channel, Country) %>%
+  summarise(
+    n_measures     = n(),
+    total_gdp_pct  = sum(broad_fiscal_gdp, na.rm = TRUE),
+    mean_size      = mean(broad_fiscal_gdp, na.rm = TRUE),
+    median_size    = median(broad_fiscal_gdp, na.rm = TRUE),
+    sd_size        = sd(broad_fiscal_gdp, na.rm = TRUE),
+    min_size       = min(broad_fiscal_gdp, na.rm = TRUE),
+    p25            = quantile(broad_fiscal_gdp, 0.25, na.rm = TRUE),
+    p75            = quantile(broad_fiscal_gdp, 0.75, na.rm = TRUE),
+    p90            = quantile(broad_fiscal_gdp, 0.90, na.rm = TRUE),
+    p99            = quantile(broad_fiscal_gdp, 0.99, na.rm = TRUE),
+    max_size       = max(broad_fiscal_gdp, na.rm = TRUE),
+    n_zero         = sum(broad_fiscal_gdp == 0, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(transmission_channel) %>%
+  mutate(
+    channel_n_measures    = sum(n_measures),
+    channel_total_gdp_pct = sum(total_gdp_pct, na.rm = TRUE),
+    pct_of_channel_volume = round(total_gdp_pct / channel_total_gdp_pct * 100, 1),
+    pct_of_channel_measures = round(n_measures / channel_n_measures * 100, 1)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    pct_of_total_volume = round(total_gdp_pct / sum(total_gdp_pct, na.rm = TRUE) * 100, 1),
+    pct_of_total_measures = round(n_measures / sum(n_measures) * 100, 1)
+  )
+
+cat("\n--- 2b. Summary by Transmission Channel and Country ---\n")
+print(as.data.frame(by_channel_country))
+
+
+library(dplyr)
+library(tidyr)
+
+by_country_channels <- fm %>%
+  filter(transmission_channel %in% c("CP", "DI", "H")) %>%
+  group_by(Country, transmission_channel) %>%
+  summarise(
+    total_gdp_pct = sum(broad_fiscal_gdp, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_wider(
+    names_from  = transmission_channel,
+    values_from = total_gdp_pct,
+    values_fill = 0
+  ) %>%
+  mutate(
+    total_all_channels = CP + DI + H
+  ) %>%
+  arrange(Country)
+
+cat("\n--- Sum by Country: CP, DI, H ---\n")
+print(as.data.frame(by_country_channels))
+
 
 #Volume dominance of CP:
   #  - CP accounts for 66.9% of measures but 78.5% of fiscal volume

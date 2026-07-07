@@ -1381,6 +1381,17 @@ fig_ts <- pdataY %>%
 ggsave(file.path(safeplots, "fig03_output_gap_ts.pdf"), fig_ts, width=9, height=5)
 cat("  → Saved: fig03_output_gap_ts.pdf\n\n")
 print(fig_ts)
+
+
+colnames(pdata)
+
+
+
+
+
+
+
+
 # -----------------------------------------------------------------------------
 #  STEP 2 - MODEL JUSTIFICATION: OLS -> COUNTRY FE -> TWFE
 #  Walks through the FE progression that motivates the main TWFE specification.
@@ -1752,6 +1763,85 @@ df_bin <- df_bin |>
     F_DI_stock         = cumsum(replace_na(F_DI, 0))
   ) |> ungroup()
 
+colnames(df_bin)
+
+
+##DESCRIPTIVES OF USED FISCAL VARIABLES
+
+
+# Variablen definieren
+fiscal_vars <- c(
+  "F_CP",
+  "F_DI",
+  "F_H",
+  "F_CP_above_3",
+  "F_CP_loans",
+  "F_CP_guar"
+)
+
+# Prüfen, ob alle Variablen existieren
+missing_vars <- setdiff(fiscal_vars, names(df_bin))
+
+if (length(missing_vars) > 0) {
+  stop(
+    paste(
+      "Diese Variablen fehlen in df_bin:",
+      paste(missing_vars, collapse = ", ")
+    )
+  )
+}
+
+# Summen pro Land über das ganze Sample
+fiscal_sums_by_country <- df_bin %>%
+  group_by(Country) %>%
+  summarise(
+    across(
+      all_of(fiscal_vars),
+      ~ sum(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  arrange(Country)
+
+# Saubere Namen für die Tabelle
+fiscal_sums_table <- fiscal_sums_by_country %>%
+  rename(
+    `Country` = Country,
+    `Capacity Preservation` = F_CP,
+    `Demand Injection` = F_DI,
+    `Health` = F_H,
+    `Above` = F_CP_above_3,
+    `Loans` = F_CP_loans,
+    `Guarantees` = F_CP_guar
+  )
+
+# LaTeX-Tabelle erzeugen
+latex_fiscal_table <- fiscal_sums_table %>%
+  mutate(
+    across(
+      -Country,
+      ~ round(.x, 2)
+    )
+  ) %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    caption = "Fiscal Policy Sums by Country",
+    label = "tab:fiscal_sums_country",
+    align = c("l", rep("r", 5)),
+    digits = 2
+  ) %>%
+  kable_styling(
+    latex_options = c("hold_position", "scale_down"),
+    font_size = 8
+  ) %>%
+  footnote(
+    general = "Notes: Values are summed over the full sample period. CP = capacity preservation, DI = demand injection, H = health-related spending. Loans and guarantees refer to capacity-preservation below-the-line instruments.",
+    threeparttable = TRUE
+  )
+
+# Ausgabe in Console / Viewer
+latex_fiscal_table
 
 # ----------------------------------------------------------------------------
 # V14 is the MAIN SPECIFICATION
