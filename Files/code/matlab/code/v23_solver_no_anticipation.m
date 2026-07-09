@@ -46,6 +46,8 @@ RUN.frontier_figure  = true;    % 6.2 Vergleichsfigur (braucht RUN.frontier)
 RUN.weight_sweep     = true;    % 6.3 (tau_b, lam_d)-Sweep (7 Szenarien x 4 iLQR-Starts)
 RUN.chi_sweep        = false;   % Appendix: chi in {0, .25, .50} x Frontier - SEHR LANGSAM
                                 % (fuer den finalen Lauf auf true setzen)
+RUN.no_anticipation  = true;    % Robustness: Q1.20 an beobachtete Politik geklemmt
+                                % (Planner reagiert erst MIT dem Q2.20-Schock)
 
 %% ------------------------------------------------------------------------
 %  Calibrated V15 parameters
@@ -182,8 +184,8 @@ end
 C.eps_th = mean(eps_th,1);
 C.b0 = mean(b0_val); C.mu_y = 0; C.mu_b = 0;
 C.eps_y = zeros(1,N+1);
-C.eps_y(3) = 0 * mean(eps_v14); %%SHOCK HINEIN Q1.2020->DEFAULT: 0
-C.eps_y(4) = 1 * mean(eps_v14); %%SHOCK HINEIN Q2.2020-> DEFAULT: 1
+C.eps_y(3) = 1 * mean(eps_v14); %%SHOCK HINEIN Q1.2020
+C.eps_y(4) = 1.8 * mean(eps_v14); %%SHOCK HINEIN Q2.2020
 
 dev  = b_lvl - b0_val';
 allF = [Fa(Fa>0); Fl(Fl>0); Fg(Fg>0); Fd(Fd>0)];
@@ -227,13 +229,13 @@ W.u_scale = ub_cap;
 W.u_scale(W.u_scale <= 0 | isnan(W.u_scale) | isinf(W.u_scale)) = 1;
 lb = zeros(P.m, P.N);
 ub = repmat(ub_cap, 1, P.N);
-%ub(1,:) = 100;
+ub(1,:) = 100;
 ub(:, 1:(P.q_start-1)) = 0;
 
 % ---- dS CONSTRAINT ------------------------------------------------------
 dS_obs = abs(diff(S_o,1,2));
 dS_obs = dS_obs(dS_obs > 0);
-P.dS_max = pctile(dS_obs, 95); %DEFINE
+P.dS_max = pctile(dS_obs, 95);
 fprintf('  dS_max (obs p95 |Delta S|) = %.1f S-points/quarter\n', P.dS_max);
 
 fprintf('  b0 = %.1f%% GDP | mu_y %+.3f | mu_b %+.3f | eps_y(Q2.20) %+.2f\n', ...
@@ -291,7 +293,7 @@ fprintf('  terminal debt %%   | %7.2f | %9.2f | %8.2f\n', ...
 % -------------------------------------------------------------------------
 if RUN.baseline_figures
 
-idx_plot = 1:P.N;
+idx_plot = 2:P.N;
 x = 1:numel(idx_plot);
 xlabels = qlbl(idx_plot);
 
@@ -360,7 +362,7 @@ grid on; ax = gca; ax.GridAlpha = 0.12; ax.XGrid = 'off';
 nexttile;
 plot(x, b_opt, '-', 'Color', planner_col,'LineWidth',lw_planner,'Marker','o','MarkerSize',ms); hold on;
 plot(x, b_obsm, '--','Color', obs_col,'LineWidth',lw_obs,'Marker','s','MarkerSize',ms);
-title('B. Public debt','FontWeight','normal'); ylabel('% of 2019 GDP');
+title('B. Public debt','FontWeight','normal'); ylabel('% of GDP');
 xlim([1 numel(x)]);
 set(gca,'XTick',show_ticks,'XTickLabel',show_labels,'TickDir','out','Box','off','FontSize',9);
 grid on; ax = gca; ax.GridAlpha = 0.12; ax.XGrid = 'off';
@@ -381,7 +383,7 @@ xlim([1 numel(x)]); ylim([0 max([theta_opt theta_obsm])*1.15 + 1e-6]);
 set(gca,'XTick',show_ticks,'XTickLabel',show_labels,'TickDir','out','Box','off','FontSize',9);
 grid on; ax = gca; ax.GridAlpha = 0.12; ax.XGrid = 'off';
 
-lgd = legend({'Planner benchmark','OECD model-implied'}, ...
+lgd = legend({'Planner benchmark','Observed OECD policy'}, ...
              'Orientation','horizontal','Box','off','FontSize',9);
 lgd.Layout.Tile = 'south';
 
@@ -752,6 +754,67 @@ disp(T_chi);
 writetable(T_chi, 'table_chi_sweep.csv');
 
 end % RUN.chi_sweep
+
+%% ------------------------------------------------------------------------
+%  ROBUSTNESS: NO-ANTICIPATION                                 [V22 NEU]
+% -------------------------------------------------------------------------
+% Q1.2020 (letztes Vor-Schock-Quartal) wird an die beobachtete Politik
+% geklemmt: der Planner darf erst MIT dem Q2.20-Schock abweichen. Die
+% Differenz zum Baseline-Gain beziffert den Wert der perfekten Voraussicht.
+if RUN.no_anticipation
+
+q_pre = P.q_start;                       % = 2: Q1.2020
+lb_na = lb; ub_na = ub;
+lb_na(:,q_pre) = U_obs(:,q_pre);
+ub_na(:,q_pre) = U_obs(:,q_pre);
+
+fprintf('\n=== NO-ANTICIPATION: Q1.20 controls fixed at observed ===\n');
+starts_na = planner_starts(U_obs, ub_na, P);
+for s = 1:numel(starts_na), starts_na{s}(:,q_pre) = U_obs(:,q_pre); end
+
+[Xna, Una, Jna] = planner_multistart(starts_na, x0, P, C, W, lb_na, ub_na, false);
+gain_base = 100*(J_obs - J)/J_obs;
+gain_na   = 100*(J_obs - Jna)/J_obs;
+fprintf('  weighted gain: baseline %.1f%% | no-anticipation %.1f%% | Anteil Voraussicht %.1f pp\n', ...
+        gain_base, gain_na, gain_base - gain_na);
+fprintf('  Q2.20 trough y: model@obs %+.2f | planner %+.2f | no-anticipation %+.2f\n', ...
+        Xo(1,4), X(1,4), Xna(1,4));
+
+R_na = nan(4,3);
+R_na(1,:) = [gain_base, gain_na, gain_base - gain_na];
+R_na(2,:) = [X(1,4), Xna(1,4), Xo(1,4)];
+
+if RUN.frontier
+    imps_na = nan(1,3);
+    try
+        [~, ~, MA_na] = solve_frontier_multistart('output', starts_na, x0, P, C, W, lb_na, ub_na, M_obs, frontier);
+        imps_na(1) = 100*(M_obs.Ly - MA_na.Ly)/M_obs.Ly;
+    catch ME, fprintf('  NA output frontier failed: %s\n', ME.message); end
+    try
+        [~, ~, MB_na] = solve_frontier_multistart('mortality', starts_na, x0, P, C, W, lb_na, ub_na, M_obs, frontier);
+        imps_na(2) = 100*(M_obs.Dcum - MB_na.Dcum)/M_obs.Dcum;
+    catch ME, fprintf('  NA mortality frontier failed: %s\n', ME.message); end
+    try
+        [~, ~, MC_na] = solve_frontier_multistart('debt', starts_na, x0, P, C, W, lb_na, ub_na, M_obs, frontier);
+        imps_na(3) = 100*(M_obs.bT - MC_na.bT)/abs(M_obs.bT);
+    catch ME, fprintf('  NA debt frontier failed: %s\n', ME.message); end
+
+    imps_base = [100*(M_obs.Ly - MA.Ly)/M_obs.Ly, ...
+                 100*(M_obs.Dcum - MB.Dcum)/M_obs.Dcum, ...
+                 100*(M_obs.bT - MC.bT)/abs(M_obs.bT)];
+    fprintf('  frontier improvements: baseline A %.1f%% B %.1f%% C %.1f%% | NA A %.1f%% B %.1f%% C %.1f%%\n', ...
+            imps_base, imps_na);
+    R_na(3,:) = imps_base;
+    R_na(4,:) = imps_na;
+end
+
+T_na = array2table(R_na, 'VariableNames', {'Col1','Col2','Col3'});
+T_na = addvars(T_na, ["Gain_base_vs_NA_vs_Diff"; "Trough_planner_NA_obs"; ...
+                      "Frontier_base_ABC"; "Frontier_NA_ABC"], ...
+               'Before', 1, 'NewVariableNames','Row');
+writetable(T_na, 'table_no_anticipation.csv');
+
+end % RUN.no_anticipation
 
 fprintf('\n=== V22 DONE. Outputs fuer Results-Section geschrieben. ===\n');
 
