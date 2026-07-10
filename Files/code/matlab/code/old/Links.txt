@@ -1,0 +1,5 @@
+https://jonathan-hui.medium.com/rl-lqr-ilqr-linear-quadratic-regulator-a5de5104c750
+
+https://rail.eecs.berkeley.edu/deeprlcourse-fa17/f17docs/lecture_8_model_based_planning.pdf
+
+https://arxiv.org/html/2412.06662v5

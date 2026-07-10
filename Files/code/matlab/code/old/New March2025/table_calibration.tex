@@ -1,0 +1,77 @@
+% ================================================================
+% PARAMETER CALIBRATION TABLE
+% Mapping empirical estimates to iLQR parameters
+% ================================================================
+
+% --- Scaling Derivation ---
+% Empirical units: y in pp, S in [0,100], F in \% GDP, b in pp of 2019 GDP, theta in \%
+% Theoretical units (iLQR): y as fraction, S in [0,1], F as fraction of GDP, b as fraction, theta as fraction
+%
+% Conversions: y_pp = 100*y_frac, S_100 = 100*S_01, F_pct = 100*F_frac
+%
+% Output equation scaling:
+%   100*y = rho*100*y_lag + psi_emp*100*S*100*y_lag - alphaS_emp*100*S + alphaF_emp*100*F + gamma_emp*100*S*100*F
+%   => y = rho*y_lag + 100*psi_emp*S*y_lag - alphaS_emp*S + alphaF_emp*F + 100*gamma_emp*S*F
+%   => Interaction terms scale by 100, level terms transfer directly.
+%
+% Debt equation scaling:
+%   100*db = -gammaY_emp*100*y + kappa_emp*100*F
+%   => db = -gammaY_emp*y + kappa_emp*F
+%   => All coefficients transfer directly (same unit on both sides).
+
+\begin{table}[htbp]
+\centering
+\caption{Parameter Calibration for the Optimal Control Model}
+\label{tab:calibration}
+\small
+\begin{tabular}{llccccl}
+\toprule
+ & Parameter & Empirical & Scale & iLQR & Source & Notes \\
+ &           & Estimate  & Factor & Value &        &       \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel A: Output Transition Equation}} \\
+\multicolumn{7}{l}{$y_{k+1} = \rho_y y_k + \psi S_k y_k - \alpha_S S_k + \alpha_F^{CP} F_k^{CP} + \gamma S_k F_k^{CP} + \alpha_F^{DI} z_k^{(2)}$} \\[6pt]
+$\rho_y$         & Baseline persistence     & $0.064$   & $\times 1$   & $0.064$  & Estimated & Insignificant; set to $0$ \\
+$\psi$           & Lockdown-induced scarring & $0.00424$ & $\times 100$ & $0.424$  & Estimated & $p < 0.001$ \\
+$\alpha_S$       & Containment flow damage   & $0.0284$  & $\times 1$   & $0.028$  & Estimated & $p = 0.036$ \\
+$\alpha_F^{CP}$  & CP level effect           & $0.253$   & $\times 1$   & $0.253$  & Estimated & $p < 0.001$ \\
+$\gamma$         & CP state-dependence       & $-0.00596$& $\times 100$ & $-0.596$ & Estimated & $p = 0.007$ \\
+$\alpha_F^{DI}$  & DI multiplier (lag 2)     & $0.244$   & $\times 1$   & $0.244$  & Estimated & $p = 0.042$; fragile \\
+$\beta_\theta$   & Fear/behavioral effect    & ---       & ---          & $-0.05$  & Calibrated & Goolsbee \& Syverson (2021) \\[6pt]
+\multicolumn{7}{l}{\textit{Implied thresholds (iLQR scale):}} \\
+\multicolumn{7}{l}{\quad CP break-even: $S^* = \alpha_F^{CP}/|\gamma| = 0.253/0.596 = 0.42$ \quad ($= 42$ on 0--100 scale)} \\[6pt]
+\midrule
+\multicolumn{7}{l}{\textit{Panel B: Debt Transition Equation}} \\
+\multicolumn{7}{l}{$b_{k+1} = (1+r)b_k - \gamma_y y_k + \kappa^{CP} F_k^{CP} + \kappa^{DI} z_k^{(1)} + c_H \theta_k$} \\[6pt]
+$r$              & Real interest rate        & ---       & ---          & $0.001$  & Calibrated & OECD avg.\ 2020--2021 \\
+$\gamma_y$       & Automatic stabilizers     & $0.191$   & $\times 1$   & $0.191$  & Estimated & $p < 0.001$ \\
+$\kappa^{CP}$    & CP budget cost (pooled)   & $0.193$   & $\times 1$   & $0.193$  & Estimated & $p = 0.004$ \\
+$\kappa^{CP}_{above}$ & STW budget cost      & $0.521$   & $\times 1$   & $0.521$  & Estimated & $p = 0.052$ \\
+$\kappa^{CP}_{below}$ & Guarantee cost (adj.)& $0.466$   & $\times 1$   & $0.466$  & Estimated & $p = 0.006$ \\
+$\kappa^{DI}$    & DI budget cost (lag 1)    & $0.468$   & $\times 1$   & $0.468$  & Estimated & $p = 0.092$ \\
+$c_H$            & Health cost per infection  & ---       & ---          & $0.02$   & Calibrated & IMF Fiscal Monitor \\[6pt]
+\midrule
+\multicolumn{7}{l}{\textit{Panel C: Infection Dynamics}} \\
+\multicolumn{7}{l}{$\theta_{k+1} = \rho_\theta (1 - \phi_S S_k) \theta_k$} \\[6pt]
+$\rho_\theta$    & Base reproduction         & ---       & ---          & $1.30$   & Calibrated & Wave-specific \\
+$\phi_S$         & Containment effectiveness & ---       & ---          & $0.45$   & Calibrated & Hsiang et al.\ (2020) \\
+$\delta_\theta$  & Infection fatality rate    & ---       & ---          & $0.03$   & Calibrated & Wave-specific IFR \\[6pt]
+\multicolumn{7}{l}{\textit{Implied threshold:} $S^{crit} = (1-1/\rho_\theta)/\phi_S = 0.51$ (containment must exceed this to suppress)} \\[6pt]
+\midrule
+\multicolumn{7}{l}{\textit{Panel D: Mortality Equation}} \\
+\multicolumn{7}{l}{$d_{k+1} = \delta_\theta \theta_k$} \\[6pt]
+$\delta_\theta$  & Infection fatality rate    & ---       & ---          & $0.03$   & Calibrated & $\hat{\theta}$ methodology \\[6pt]
+\midrule
+\multicolumn{7}{l}{\textit{Panel E: Auxiliary State Variables (DI Timing)}} \\
+\multicolumn{7}{l}{$z_{k+1}^{(1)} = F_k^{DI}$, \quad $z_{k+1}^{(2)} = z_k^{(1)}$} \\[6pt]
+\multicolumn{7}{l}{DI enters output at lag 2 via $z^{(2)}$ and debt at lag 1 via $z^{(1)}$.} \\[6pt]
+\midrule
+\multicolumn{7}{l}{\textit{Panel F: Objective Function Weights}} \\[6pt]
+$w_y$            & Output gap weight         & ---       & ---          & $1.00$   & Normalized & Numeraire \\
+$w_d$            & Mortality weight           & ---       & ---          & TBD      & VSL-based  & $\approx$ VSL/GDP p.c. \\
+$w_b$            & Debt weight               & ---       & ---          & TBD      & Pareto frontier & Sensitivity parameter \\
+$w_S$            & Containment cost          & ---       & ---          & TBD      & Revealed pref.\ & From observed $S$ paths \\[4pt]
+\bottomrule
+\multicolumn{7}{p{14.5cm}}{\footnotesize \textit{Notes:} Empirical estimates from Tables~\ref{tab:output_equation} and \ref{tab:debt_equation}. Scale factor reflects unit conversion from empirical (y in pp, S in 0--100, F in \% GDP) to theoretical (all in fractions, S in 0--1). Interaction terms ($\psi$, $\gamma$) scale by $\times 100$ because both interacted variables convert; level terms transfer directly. Calibrated parameters from external literature. The extended state vector is $x_k = (y_k, d_k, b_k, \theta_k, z_k^{(1)}, z_k^{(2)})' \in \mathbb{R}^6$ with control $u_k = (S_k, F_k^{DI}, F_k^{CP})' \in \mathbb{R}^3$.} \\
+\end{tabular}
+\end{table}

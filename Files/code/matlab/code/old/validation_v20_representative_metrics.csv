@@ -1,0 +1,6 @@
+Rep_Metric,Rep_Horizon,Rep_RMSE
+Output gap,k=1:11,1.19489842128125
+Debt change,k=1:13,0.820564679164182
+Debt level,k=1:13,3.1396897717895
+Infection state theta,k=1:11,0.00244262589025123
+Excess mortality d,k=1:11,2.98456884489016

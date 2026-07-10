@@ -1,0 +1,756 @@
+\documentclass[12pt, a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{pdflscape}
+\usepackage{threeparttable}
+\usepackage{tabularx}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\geometry{margin=2.5cm}
+\onehalfspacing
+
+\newcommand{\Sk}{S_k}
+\newcommand{\Fk}{F_k}
+
+\title{\textbf{The Pandemic Trilemma} \\[0.5em]
+\Large Online Appendix}
+\author{Aulis Pesenti \\ University of Basel}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\setcounter{section}{0}
+\renewcommand{\thesection}{O\arabic{section}}
+\renewcommand{\thetable}{O\arabic{table}}
+\renewcommand{\thefigure}{O\arabic{figure}}
+\renewcommand{\theequation}{O.\arabic{equation}}
+
+\noindent This Online Appendix accompanies ``The Pandemic Trilemma'' and provides supplementary material organized as follows. Section~O1 documents the fiscal classification protocol and data construction. Section~O2 reports complete descriptive statistics. Section~O3 contains the full output and debt estimation tables referenced in the main text. Section~O4 presents the instrument decomposition results. Section~O5 documents the Local Projection specifications and additional IRFs. Section~O6 reports all robustness checks (alternative specifications, standard errors, outlier exclusion, sample horizons). Section~O7 presents the subsample analysis. Section~O8 provides the guarantee take-up sensitivity analysis. Section~O9 contains the crisis comparison and structured literature table referenced in Section~2 of the main text.
+
+
+% =============================================================
+% O1 — Classification Protocol
+% =============================================================
+\section{Fiscal Classification Protocol}
+\label{app:classification}
+
+\subsection{Classification Principle}
+
+The classification assigns each fiscal policy measure in the dataset to one of three transmission channel categories based on the theoretical framework developed in Section~2 of the paper:
+
+\begin{itemize}
+  \item \textbf{Demand Injection (DI):} Measures that directly increase the flow of disposable income to households or aggregate expenditure in the economy. These transmit through the multiplier channel $\alpha_F^{DI}$ in the output equation, shifting the output level by a constant amount per unit deployed.
+  \item \textbf{Capacity Preservation (CP):} Measures that preserve productive structures---firm--worker matches, firm solvency, supply chain integrity---thereby reducing the persistence of the output gap. These transmit through the parameter $\eta$, counteracting lockdown-induced hysteresis ($\psi S_k$).
+  \item \textbf{Health (H):} Pandemic-specific health expenditures that are not a policy instrument in the planner's fiscal composition problem but an endogenous cost driven by the epidemiological state $\theta_k$.
+\end{itemize}
+
+The classification operates at the \texttt{PolicyCode} level (49 codes as defined in the Codebook) to ensure reproducibility and eliminate subjective judgment at the individual measure level.
+
+\subsection{Decision Rules}
+
+The following hierarchy governs classification decisions:
+
+\begin{enumerate}
+  \item \textbf{Primary criterion: transmission mechanism.} The decisive question is \textit{how} the measure affects the economy, not \textit{who} receives the funds. A wage subsidy paid to firms that maintains employment relationships is CP even though it ultimately supports worker income. A direct cash transfer to households is DI even if the household uses it to pay rent to a business.
+  \item \textbf{Recipient as tiebreaker.} When the transmission mechanism is ambiguous, the recipient disambiguates: measures targeting firms default to CP; measures targeting households default to DI.
+  \item \textbf{Tax deferrals.} All tax deferrals are classified as CP regardless of recipient. Deferrals operate as zero-interest short-term government loans that preserve liquidity and prevent insolvency cascades. They generate no permanent change in disposable income and thus have no sustained multiplier effect.
+  \item \textbf{Health expenditures.} All health-related measures (PolicyCodes~30--34 and \texttt{general}) are assigned to H.
+  \item \textbf{Code-level homogeneity.} Classification is applied uniformly within each PolicyCode. For codes with heterogeneous content (notably Code~39), the dominant transmission mechanism determines the classification.
+\end{enumerate}
+
+\subsection{Complete Classification Mapping}
+
+Table~\ref{tab:mapping_full} provides the exhaustive mapping from PolicyCode to transmission channel.
+
+\begin{small}
+\begin{longtable}{p{0.8cm} p{5.5cm} p{1.2cm} p{5.5cm}}
+\caption{Classification of PolicyCodes to Transmission Channels}
+\label{tab:mapping_full} \\
+\toprule
+\textbf{Code} & \textbf{Description} & \textbf{Channel} & \textbf{Rationale} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Code} & \textbf{Description} & \textbf{Channel} & \textbf{Rationale} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\textit{Continued on next page}} \\
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{4}{l}{\textit{Category 1: Revenue Measures to Protect Businesses}} \\
+\midrule
+1--14 & Accelerated depreciation, loss carry-forward, tax credits/reductions/exemptions/waivers, deferral of tax filing/payments, accelerating refunds, suspend debt collection/audit & CP & Reduces firm tax burden; preserves cash flow and solvency \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 2: Revenue Measures to Protect Individuals}} \\
+\midrule
+15--16 & Deferral of tax filing/payments (individual) & CP & Liquidity preservation (Decision Rule~3) \\
+17--22 & Tax rate reduction, credits, exemptions, waivers (individual) & DI & Permanent increase in disposable income \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 3: Revenue Measures to Boost Consumption}} \\
+\midrule
+25--26 & Exemption/reduction of consumption tax (VAT) & DI & Reduces consumer prices; stimulates spending \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 4: Expenditure Measures to Boost Demand}} \\
+\midrule
+27--29 & Infrastructure, green investments, tourism & DI & Government spending multiplier; direct demand injection \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 5: Health Expenditure Measures}} \\
+\midrule
+30--34, gen. & Medical items, health infrastructure, workforce & H & Health system cost; calibrates $c_H$ \\
+23--24 & Tax-free alcohol (disinfectant), customs relief on medical goods & H & Health-adjacent; medical supply availability \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 6: Expenditure Measures to Individuals}} \\
+\midrule
+35 & Direct cash transfers & DI & Canonical demand injection \\
+36 & Expansion of unemployment benefits & DI & Income flow to unemployed \\
+37 & Temporary expansion of existing benefits & DI & Augments existing transfer programs \\
+38 & Supplementary ad hoc programs & DI & Pandemic-specific income support \\
+39 & Wage compensation / enhanced paid leave & CP & Dominant mechanism: preserves employer--employee matches (Kurzarbeit, CJRS, JobKeeper) \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 7: Credit and Equity Measures}} \\
+\midrule
+40 & Preferential loans to firms & CP & Preserves firm solvency through liquidity \\
+41 & Equity or quasi-equity investments & CP & Preserves firm capital structure \\
+42 & Preferential loans to households & DI & Provides liquidity to households \\
+43 & Guarantees for loans for business & CP & Preserves firm access to credit \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 8: Expenditure Measures for Businesses}} \\
+\midrule
+45--48 & Income support (general, non-profit, sectoral, education) & CP & Preserves firm/institutional operations \\
+\midrule
+
+\multicolumn{4}{l}{\textit{Category 9: Transfers to Local Governments}} \\
+\midrule
+49 & Income support for local governments & CP & Preserves public service delivery \\
+
+\end{longtable}
+\end{small}
+
+\subsection{Treatment of Special Cases}
+
+\paragraph{Code~39 (Wage Compensation).} Classified as CP at the code level. Among the 159 measures coded as 39 across 37 countries, the overwhelming majority ($>$90\% by fiscal volume) are short-time work schemes whose defining feature is that the payment flows through the employer to maintain the employment relationship.
+
+\paragraph{Tax Deferrals.} All 154 tax deferral measures are classified as CP regardless of recipient. Deferrals are temporary liquidity injections: the deferred amount is repaid, generating no permanent change in disposable income. The fiscal cost is limited to the time value of the deferred revenue. These measures are \textit{excluded} from the baseline estimation sample, as their near-zero realized fiscal cost would distort the estimated $\kappa_F^{CP}$.
+
+\paragraph{EU-Level Measures.} The 29 NextGenerationEU/RRF entries and 7 EIB Guarantee Fund entries carry a separate flag (\texttt{is\_eu} = 1) and are analyzed separately.
+
+
+% =============================================================
+% O2 — Descriptive Statistics
+% =============================================================
+\section{Descriptive Statistics}
+\label{app:descriptives}
+
+Table~\ref{tab:desc_full} reports summary statistics for all variables in the estimation sample.
+
+\begin{table}[htbp]
+\centering
+\caption{Descriptive Statistics: Estimation Sample (Q1.2020--Q1.2022)}
+\label{tab:desc_full}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+Variable & N & Mean & SD & Min & P25 & Median & Max \\
+\midrule
+Output Gap (pp) & 342 & $-2.35$ & 4.82 & $-22.5$ & $-4.57$ & $-1.50$ & 11.3 \\
+Stringency Index (0--100) & 342 & 42.1 & 20.6 & 0.0 & 26.2 & 42.6 & 87.0 \\
+CP (pp GDP) & 342 & 1.46 & 2.01 & 0.0 & 0.10 & 0.72 & 15.2 \\
+DI (pp GDP) & 342 & 0.29 & 0.57 & 0.0 & 0.0 & 0.07 & 4.96 \\
+Infection Prevalence (\%) & 342 & 0.16 & 0.18 & 0.0 & 0.03 & 0.10 & 1.07 \\
+Debt Change, real (pp 2019 GDP) & 304 & 0.87 & 2.96 & $-7.1$ & $-0.57$ & 0.69 & 21.4 \\
+Health Expenditure (pp GDP) & 342 & 0.13 & 0.26 & 0.0 & 0.0 & 0.03 & 2.13 \\
+Vaccination Rate (\%) & 342 & 30.4 & 44.0 & 0.0 & 0.0 & 1.1 & 186.9 \\
+\bottomrule
+\multicolumn{8}{p{13cm}}{\footnotesize \textit{Notes:} CP and DI are flows per quarter in percentage points of 2019 GDP. Tax deferrals excluded. Vaccination rate is cumulative doses per capita $\times$ 100.} \\
+\end{tabular}
+\end{table}
+
+\paragraph{Fiscal composition by transmission channel.} The 2,301 fiscal measures with broad\_fiscal $\in \{1, 2, 3\}$ (excluding deferrals) comprise 1,506 CP measures (total volume: 4.98\% of GDP), 563 DI measures (0.99\%), and 232 H measures (0.44\%). CP dominates by volume, reflecting the extensive deployment of short-time work schemes, loan guarantees, and firm-level grants across OECD economies.
+
+
+% =============================================================
+% O3 — Full Estimation Tables
+% =============================================================
+\section{Full Estimation Tables}
+\label{app:tables}
+
+\subsection{Output Equation}
+
+Table~\ref{tab:output_full} reproduces the output equation from the main text with additional specifications.
+
+\begin{table}[htbp]
+\centering
+\caption{Output Gap Equation: Full Specification Table}
+\label{tab:output_full}
+\small
+\begin{tabular}{lccccc}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) \\
+ & Pooled & Country FE & TWFE & TWFE & TWFE \\
+ &        &            &      & lag~1 DI & + $\theta$ \\
+\midrule
+$S_k$
+  & $-0.071^{**}$ & $-0.106^{***}$ & $-0.028^{*}$ & $-0.027^{*}$ & $-0.028^{*}$ \\
+  & (0.024)       & (0.018)        & (0.014)      & (0.013)      & (0.014)      \\[3pt]
+$y_{k-1}$
+  & $0.622^{***}$ & $0.192^{*}$ & $0.063$ & $0.060$ & $0.064$ \\
+  & (0.117)       & (0.087)     & (0.105) & (0.107) & (0.108) \\[3pt]
+$F_k^{CP}$
+  & $0.293^{*}$ & $0.438^{**}$ & $0.260^{***}$ & $0.260^{***}$ & $0.259^{***}$ \\
+  & (0.145)     & (0.146)      & (0.076)       & (0.078)       & (0.077)       \\[3pt]
+$S_k \cdot y_{k-1}$
+  & $-0.002$ & $-0.000$ & $0.004^{***}$ & $0.004^{***}$ & $0.004^{***}$ \\
+  & (0.003)  & (0.002)  & (0.001)       & (0.001)       & (0.001)       \\[3pt]
+$S_k \cdot F_k^{CP}$
+  & $-0.018^{***}$ & $-0.019^{***}$ & $-0.006^{**}$ & $-0.006^{**}$ & $-0.006^{**}$ \\
+  & (0.004)        & (0.003)        & (0.002)       & (0.002)       & (0.002)       \\[3pt]
+$F_{k-2}^{DI}$
+  & $0.828^{***}$ &  & $0.239^{*}$ &  & $0.240^{*}$ \\
+  & (0.203)       &  & (0.120)     &  & (0.120)     \\[3pt]
+$F_{k-1}^{DI}$
+  &  &  &  & $-0.017$ & \\
+  &  &  &  & (0.095)  & \\[3pt]
+$\theta_k$ (\%)
+  &  &  &  &  & $-0.044$ \\
+  &  &  &  &  & (0.284)  \\[3pt]
+\midrule
+Country FE & No & Yes & Yes & Yes & Yes \\
+Quarter FE & No & No  & Yes & Yes & Yes \\
+SE         & HC1 & HC1 & HC1 & HC1 & HC1 \\
+$N$        & 342 & 342 & 342 & 342 & 342 \\
+Countries  & 38 & 38 & 38 & 38 & 38 \\
+Adj.~$R^2$ &  &  & 0.114 & 0.101 & 0.111 \\
+\bottomrule
+\multicolumn{6}{p{13cm}}{\footnotesize \textit{Notes:} Dependent variable: output gap $y_k$ (pp). Column~(3) is the main specification. Column~(5) adds infection prevalence $\theta_k$ to verify that CP is not proxying for pandemic severity. HC1 cluster-robust SEs (country). $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Debt Equation}
+
+Table~\ref{tab:debt_full} reports the debt equation with additional specifications including the Mundlak test, first differences, and the above/below-the-line CP decomposition.
+
+\begin{table}[htbp]
+\centering
+\caption{Debt Equation: Full Specification Table}
+\label{tab:debt_full}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) \\
+ & Pooled & FE & FE split & FD & FD split & TWFE \\
+\midrule
+$y_k$
+  & $-0.131^{***}$ & $-0.207^{***}$ & $-0.193^{***}$ & $-0.188^{***}$ & $-0.188^{***}$ & $-0.155$ \\
+  & (0.030)        & (0.050)        & (0.051)        & (0.045)        & (0.045)        & (0.103) \\[3pt]
+$F_k^{CP}$
+  & $0.243^{***}$ & $0.191^{**}$ &  &  &  &  \\
+  & (0.058)       & (0.067)      &  &  &  &  \\[3pt]
+$F_k^{CP,above}$
+  &  &  & $0.464^{.}$ &  & $0.628^{*}$ &  \\
+  &  &  & (0.272)     &  & (0.274)     &  \\[3pt]
+$F_k^{CP,below}$ (adj.)
+  &  &  & $0.464^{**}$ &  & $0.507^{*}$ &  \\
+  &  &  & (0.171)      &  & (0.202)     &  \\[3pt]
+$F_{k-1}^{DI}$
+  & $0.551^{.}$ & $0.406^{.}$ & $0.401^{.}$ & $0.521^{*}$ & $0.521^{*}$ & $0.152$ \\
+  & (0.313)     & (0.233)     & (0.244)     & (0.218)     & (0.218)     & (0.213) \\[3pt]
+Linear trend
+  & $-0.090$ & $-0.069$ & $-0.072$ &  &  &  \\
+  & (0.070)  & (0.071)  & (0.072)  &  &  &  \\[3pt]
+\midrule
+Country FE & No & Yes & Yes & (FD) & (FD) & Yes \\
+Quarter FE & No & No  & No  & No   & No   & Yes \\
+$N$        & 304 & 304 & 304 & 266 & 266 & 304 \\
+\bottomrule
+\multicolumn{7}{p{14cm}}{\footnotesize \textit{Notes:} Dependent variable: $\Delta b_k^R$ (real debt change, pp of 2019 GDP). Column~(3) is the main specification. Column~(6) demonstrates that TWFE absorbs the fiscal deployment cycle, rendering fiscal variables insignificant---justifying the use of Country FE with linear trend. Below-the-line CP adjusted to 35\% estimated take-up rate. $^{.}p<0.10$; $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
+\end{tabular}
+\end{table}
+
+
+% =============================================================
+% O4 — Instrument Decomposition
+% =============================================================
+\section{Instrument Decomposition}
+\label{app:decomposition}
+
+\subsection{CP Sub-Components: Loans versus Guarantees}
+
+Table~\ref{tab:cp_decomp} presents the three-way CP decomposition in both the output and debt equations. This is the central decomposition discussed in Section~5.3 of the main text.
+
+\begin{table}[htbp]
+\centering
+\caption{CP Instrument Decomposition: Output and Debt}
+\label{tab:cp_decomp}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & Panel A: Output & Panel B: Debt \\
+ & (TWFE, each $\times S$) & (Country FE) \\
+\midrule
+$F_k^{CP,above}$ (grants, STW)
+  & $0.283$ & $0.440^{.}$ \\
+  & (0.212) & (0.263) \\[3pt]
+$S_k \cdot F_k^{CP,above}$
+  & $-0.007$ & --- \\
+  & (0.007) & \\[3pt]
+$F_k^{CP,loans}$ (Code~40+41)
+  & $-0.094$ & $0.339^{***}$ \\
+  & (0.184) & (0.092) \\[3pt]
+$S_k \cdot F_k^{CP,loans}$
+  & $0.005$ & --- \\
+  & (0.003) & \\[3pt]
+$F_k^{CP,guar}$ (Code~43, adj.~0.35)
+  & $0.981^{*}$ & $0.187$ \\
+  & (0.389) & (0.263) \\[3pt]
+$S_k \cdot F_k^{CP,guar}$
+  & $-0.025^{**}$ & --- \\
+  & (0.008) & \\[3pt]
+$F_{k-2}^{DI}$ / $F_{k-1}^{DI}$
+  & $0.243^{*}$ & $0.381$ \\
+  & (0.116) & (0.245) \\[3pt]
+\midrule
+Country FE & Yes & Yes \\
+Quarter FE & Yes & No \\
+$N$ & 342 & 304 \\
+\bottomrule
+\multicolumn{3}{p{11cm}}{\footnotesize \textit{Notes:} Panel~A: output gap equation with each CP sub-component interacted with $S_k$. Panel~B: debt equation with Country FE and linear trend. Guarantees adjusted to 35\% estimated take-up rate. $^{*}p<0.05$; $^{**}p<0.01$; $^{***}p<0.001$.} \\
+\end{tabular}
+\end{table}
+
+\subsection{DI Sub-Components}
+
+Table~\ref{tab:di_decomp} decomposes DI into direct transfers (Codes~35--38), demand stimulus (Codes~27--29), and individual tax relief (Codes~17--22, 25--26).
+
+\begin{table}[htbp]
+\centering
+\caption{DI Instrument Decomposition: Output Equation (TWFE)}
+\label{tab:di_decomp}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & (1) Three-way split & (2) Transfers vs.\ rest \\
+ & (all lag~2)         & (lag~2) \\
+\midrule
+$F_{k-2}^{DI,transfers}$ (Codes 35--38)
+  & $0.290^{*}$ & $0.290^{*}$ \\
+  & (0.118)     & (0.116) \\[3pt]
+$F_{k-2}^{DI,demand}$ (Codes 27--29)
+  & $-0.153$ & \\
+  & (0.245) & \\[3pt]
+$F_{k-2}^{DI,tax}$ (Codes 17--22, 25--26)
+  & $0.094$ & \\
+  & (0.464) & \\[3pt]
+$F_{k-2}^{DI,nontransfer}$
+  & & $-0.069$ \\
+  & & (0.208) \\[3pt]
+\midrule
+\multicolumn{3}{p{9cm}}{\footnotesize \textit{Notes:} Only direct cash transfers are significant. Infrastructure spending and tax relief show no output effect within the pandemic window.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Health Expenditure Decomposition}
+
+\begin{table}[htbp]
+\centering
+\caption{Health Expenditure Decomposition: Output Equation (TWFE)}
+\label{tab:h_decomp}
+\small
+\begin{tabular}{lccc}
+\toprule
+ & (1) + $F^H$ & (2) $H$ split & (3) $S \times F^H$ \\
+\midrule
+$F_k^H$ (pooled)
+  & $-0.044$ &  & $1.184$ \\
+  & (0.284)  &  & (0.735) \\[3pt]
+$F_k^{H,supply}$ (Codes 30--32)
+  &  & $-0.626^{**}$ & \\
+  &  & (0.191)       & \\[3pt]
+$F_k^{H,infra}$ (Codes 33--34, gen.)
+  &  & $0.469$ & \\
+  &  & (0.296) & \\[3pt]
+$S_k \cdot F_k^H$
+  &  &  & $-0.025^{.}$ \\
+  &  &  & (0.014) \\[3pt]
+\bottomrule
+\multicolumn{4}{p{11cm}}{\footnotesize \textit{Notes:} Pooled $F^H$ is insignificant (Column~1). The split reveals that $H_{supply}$ is significantly negative---reflecting reverse causality (harder-hit countries spent more on procurement). This confirms H as an endogenous cost driven by $\theta_k$, not a policy instrument. $^{.}p<0.10$; $^{**}p<0.01$.} \\
+\end{tabular}
+\end{table}
+
+
+% =============================================================
+% O5 — Local Projections
+% =============================================================
+\section{Local Projections: Full Results}
+\label{app:lp}
+
+\subsection{Specification}
+
+The LP estimates cumulative impulse response functions at horizons $h = 0, \ldots, 5$:
+\begin{equation}
+    y_{i,t+h} - y_{i,t-1} = \alpha_i^h + \delta_t^h + \beta_h^{CP} F_{it}^{CP} + \beta_h^{DI} F_{it}^{DI} + \Gamma^h X_{it} + \varepsilon_{it}^h
+\end{equation}
+where $X_{it} = (S_{it}, y_{i,t-1}, \theta_{it})'$ are controls. Standard errors are clustered by country at each horizon. The LP sample extends to Q4.2022 to provide response horizons; pre-pandemic quarters (2019) anchor the counterfactual at $F = 0$.
+
+\subsection{Output IRFs}
+
+\begin{table}[htbp]
+\centering
+\caption{LP Output IRFs: Joint CP + DI (TWFE)}
+\label{tab:lp_output}
+\small
+\begin{tabular}{ccccccc}
+\toprule
+$h$ & $\hat{\beta}_h^{CP}$ & SE & $p$ & $\hat{\beta}_h^{DI}$ & SE & $p$ \\
+\midrule
+0 & $0.006$  & 0.049 & 0.90 & $0.025$  & 0.132 & 0.85 \\
+1 & $-0.079$ & 0.078 & 0.29 & $-0.013$ & 0.150 & 0.91 \\
+2 & $0.026$  & 0.053 & 0.70 & $0.231$  & 0.164 & 0.19 \\
+3 & $0.030$  & 0.048 & 0.70 & $0.084$  & 0.179 & 0.70 \\
+4 & $0.009$  & 0.057 & 0.73 & $0.033$  & 0.163 & 0.94 \\
+5 & $0.030$  & 0.051 & 1.00 & $0.127$  & 0.156 & 0.55 \\
+\bottomrule
+\multicolumn{7}{p{11cm}}{\footnotesize \textit{Notes:} Unconditional output IRFs are insignificant under TWFE. The operative channel is the stringency interaction (Table~\ref{tab:lp_state_dep}).} \\
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{LP State-Dependent Output IRFs: $F^{CP} + S \times F^{CP} + F^{DI}$ (TWFE)}
+\label{tab:lp_state_dep}
+\small
+\begin{tabular}{ccccccccc}
+\toprule
+ & \multicolumn{2}{c}{$F^{CP}$ (level)} & \multicolumn{2}{c}{$S \times F^{CP}$} & \multicolumn{2}{c}{$F^{DI}$} \\
+$h$ & Coef & $p$ & Coef & $p$ & Coef & $p$ \\
+\midrule
+0 & $0.241^{**}$  & 0.006 & $-0.006^{*}$ & 0.022 & $-0.025$ & 0.85 \\
+1 & $0.024$       & 0.94  & $-0.003$     & 0.56  & $-0.036$ & 0.80 \\
+2 & $0.200$       & 0.16  & $-0.004^{.}$ & 0.09  & $0.193$  & 0.28 \\
+3 & $0.195^{.}$   & 0.17  & $-0.004^{.}$ & 0.16  & $0.046$  & 0.84 \\
+4 & $0.125$       & 0.52  & $-0.003$     & 0.36  & $0.007$  & 0.82 \\
+5 & $0.110$       & 0.33  & $-0.002$     & 0.30  & $0.110$  & 0.65 \\
+\bottomrule
+\multicolumn{9}{p{13cm}}{\footnotesize \textit{Notes:} The $S \times F^{CP}$ interaction is significant at $h=0$ ($p = 0.02$) and marginally at $h=2$--$3$, confirming that CP's output effect operates through the stringency channel and is contemporaneous.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Debt IRFs}
+
+\begin{table}[htbp]
+\centering
+\caption{LP Debt IRFs: Joint CP + DI (Country FE)}
+\label{tab:lp_debt}
+\small
+\begin{tabular}{ccccccc}
+\toprule
+$h$ & $\hat{\beta}_h^{CP}$ & SE & $p$ & $\hat{\beta}_h^{DI}$ & SE & $p$ \\
+\midrule
+0 & $0.161^{**}$  & 0.050 & 0.002 & $0.269$      & 0.294 & 0.39 \\
+1 & $0.348^{***}$ & 0.085 & 0.000 & $0.782$      & 0.498 & 0.16 \\
+2 & $0.458^{***}$ & 0.080 & 0.000 & $0.930^{.}$  & 0.424 & 0.08 \\
+3 & $0.484^{***}$ & 0.091 & 0.000 & $1.032^{*}$  & 0.382 & 0.04 \\
+4 & $0.478^{***}$ & 0.098 & 0.000 & $1.050^{*}$  & 0.410 & 0.05 \\
+5 & $0.486^{***}$ & 0.106 & 0.000 & $1.321^{*}$  & 0.431 & 0.03 \\
+\bottomrule
+\multicolumn{7}{p{11cm}}{\footnotesize \textit{Notes:} CP debt accumulates monotonically with no mean reversion. DI debt builds more slowly, significant from $h = 3$.} \\
+\end{tabular}
+\end{table}
+
+\subsection{TWFE versus Country-FE-Only Comparison}
+
+Table~\ref{tab:lp_fe_compare} bounds the output estimates by comparing the two FE specifications.
+
+\begin{table}[htbp]
+\centering
+\caption{LP Output: TWFE vs.\ Country-FE-Only (State-Dependent Specification)}
+\label{tab:lp_fe_compare}
+\small
+\begin{tabular}{ccccccc}
+\toprule
+ & \multicolumn{3}{c}{TWFE} & \multicolumn{3}{c}{Country FE only} \\
+$h$ & $F^{CP}$ & $S \times F^{CP}$ & $F^{DI}$ & $F^{CP}$ & $S \times F^{CP}$ & $F^{DI}$ \\
+\midrule
+0 & $0.241^{**}$ & $-0.006^{*}$  & $-0.025$ & $0.674^{***}$ & $-0.025^{***}$ & $-0.600$ \\
+1 & $0.024$      & $-0.003$      & $-0.036$ & $-0.841^{*}$  & $0.006$        & $-0.610$ \\
+2 & $0.200$      & $-0.004^{.}$  & $0.193$  & $-0.036$      & $-0.006^{*}$   & $-0.171$ \\
+3 & $0.195$      & $-0.004$      & $0.046$  & $0.013$       & $-0.006^{**}$  & $-0.219$ \\
+\bottomrule
+\multicolumn{7}{p{13cm}}{\footnotesize \textit{Notes:} The $S \times F^{CP}$ interaction is significant under both specifications. The Country-FE estimate ($-0.025$) is 4$\times$ larger than TWFE ($-0.006$), bounding the true effect. TWFE is conservative (absorbs signal along with confounders); Country-FE preserves temporal variation at the cost of potential common-shock contamination.} \\
+\end{tabular}
+\end{table}
+
+
+% =============================================================
+% O6 — Robustness Checks
+% =============================================================
+\section{Robustness Checks}
+\label{app:robustness}
+
+\subsection{Alternative Standard Errors}
+
+\begin{table}[htbp]
+\centering
+\caption{Output Equation: Alternative Standard Error Specifications}
+\label{tab:se_robust}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & HC1 & HC3 & Bootstrap & Driscoll-Kraay \\
+ & (baseline) & (bias-corrected) & ($R = 999$) & \\
+\midrule
+$F_k^{CP}$            & $0.260^{***}$ & $0.260^{**}$ & $0.260^{***}$ & $0.260^{**}$ \\
+$S_k \cdot F_k^{CP}$  & $-0.006^{**}$ & $-0.006^{*}$ & $-0.006^{**}$ & $-0.006^{*}$ \\
+$F_{k-2}^{DI}$        & $0.239^{*}$   & $0.239^{.}$  & $0.239^{*}$   & $0.239^{*}$  \\
+$S_k \cdot y_{k-1}$   & $0.004^{***}$ & $0.004^{**}$ & $0.004^{**}$  & $0.004^{**}$ \\
+\bottomrule
+\multicolumn{5}{p{12cm}}{\footnotesize \textit{Notes:} All SE specifications yield qualitatively identical inference. HC3 is most conservative with $N = 38$ clusters.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Outlier Exclusion}
+
+\begin{table}[htbp]
+\centering
+\caption{Output Equation: Outlier Robustness}
+\label{tab:outliers}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & Full & $-$ IRL & $-$ TUR & $-$ Both \\
+\midrule
+$F_k^{CP}$           & $0.260^{***}$ & $0.246^{***}$ & $0.265^{***}$ & $0.250^{***}$ \\
+$S_k \cdot F_k^{CP}$ & $-0.006^{**}$ & $-0.006^{**}$ & $-0.006^{**}$ & $-0.006^{**}$ \\
+$F_{k-2}^{DI}$       & $0.239^{*}$   & $0.175$       & $0.234^{*}$   & $0.173$       \\
+\bottomrule
+\multicolumn{5}{p{11cm}}{\footnotesize \textit{Notes:} CP results are fully stable. DI weakens when Ireland is excluded, reflecting Ireland's large GDP volatility.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Sample Horizon}
+
+\begin{table}[htbp]
+\centering
+\caption{Output Equation: Alternative Sample Horizons}
+\label{tab:horizon}
+\small
+\begin{tabular}{lccc}
+\toprule
+ & Q1.20--Q1.22 & Q1.20--Q4.21 & Q1.20--Q2.21 \\
+ & (baseline) & (pre-Omicron) & (acute phase) \\
+\midrule
+$F_k^{CP}$           & $0.260^{***}$ & $0.260^{**}$ & $0.252^{*}$ \\
+$S_k \cdot F_k^{CP}$ & $-0.006^{**}$ & $-0.006^{*}$ & $-0.006^{*}$ \\
+$F_{k-2}^{DI}$       & $0.239^{*}$   & $0.237^{.}$  & $0.102$ \\
+\bottomrule
+\multicolumn{4}{p{10cm}}{\footnotesize \textit{Notes:} CP is stable across all horizons. DI disappears in the acute phase---confirming that DI's output effect materializes only in the recovery period (lag~2).} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Containment Measurement}
+
+\begin{table}[htbp]
+\centering
+\caption{Output Equation: Mean vs.\ Maximum Stringency}
+\label{tab:containment}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & $S_k^{mean}$ (baseline) & $S_k^{max}$ \\
+\midrule
+$S_k$                 & $-0.028^{*}$  & $-0.024^{**}$ \\
+$S_k \cdot F_k^{CP}$  & $-0.006^{**}$ & $-0.004^{**}$ \\
+Critical $S^*$        & 42            & 73 \\
+\bottomrule
+\multicolumn{3}{p{9cm}}{\footnotesize \textit{Notes:} Using $S^{max}$ raises the critical threshold to 73, implying that CP tolerates peak stringency values up to 73 while remaining effective. The difference ($S^*_{mean} = 42$ vs.\ $S^*_{max} = 73$) reflects that intermittent relaxation within a quarter allows firms to utilize the structures preserved by CP.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Nickell Bias Assessment}
+
+With $T = 9$ quarters and a lagged dependent variable, the Nickell (1981) bias in $\hat{\rho}_y$ is of order $O(1/T) \approx 11\%$. The bias-adjusted persistence is $\hat{\rho}_y^{adj} = \hat{\rho}_y / (1 - 1/T) = 0.063 / (1 - 1/9) = 0.071$---a negligible correction. The interaction terms ($\hat{\psi}$, $\hat{\eta}$) are not subject to Nickell bias as they do not involve the lagged dependent variable directly.
+
+
+% =============================================================
+% O7 — Subsample Analysis
+% =============================================================
+\section{Subsample Analysis}
+\label{app:subsamples}
+
+\subsection{Sample Definitions}
+
+\begin{table}[htbp]
+\centering
+\caption{Subsample Definitions}
+\label{tab:subsample_def}
+\small
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Split} & \textbf{Countries} \\
+\midrule
+AE (high income) & AUS, AUT, BEL, CAN, CHE, CZE, DEU, DNK, FIN, FRA, GBR, IRL, ISL, KOR, LUX, NLD, NOR, SWE, USA (19) \\[3pt]
+EM (low income) & CHL, COL, CRI, ESP, EST, GRC, HUN, ISR, ITA, JPN, LTU, LVA, MEX, NZL, POL, PRT, SVK, SVN, TUR (19) \\[3pt]
+Strong safety net & AUT, BEL, CHE, DEU, DNK, FIN, FRA, ISL, LUX, NLD, NOR, SWE (12) \\[3pt]
+Weak safety net & All others (26) \\[3pt]
+High stringency & AUT, BEL, CHL, COL, CRI, CZE, DEU, ESP, FRA, GBR, GRC, IRL, ISR, ITA, NLD, POL, PRT, SVN, TUR (19) \\[3pt]
+Low stringency & All others (19) \\
+\bottomrule
+\multicolumn{2}{p{13cm}}{\footnotesize \textit{Notes:} Income split at median GDP per capita (2019). Safety net based on Esping-Andersen (1990) typology (Nordic + Continental = Strong). Stringency split at median pandemic-period mean $S_k$.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Output Equation by Subsample}
+
+\begin{table}[htbp]
+\centering
+\caption{Output Equation: Subsample Comparison (TWFE)}
+\label{tab:sub_output}
+\small
+\begin{tabular}{lccccc}
+\toprule
+ & Full & AE & EM & Strong SN & Weak SN \\
+\midrule
+$F_k^{CP}$
+  & $0.260^{***}$ & $0.303^{**}$ & $0.279^{***}$ & $0.333^{.}$ & $0.262^{***}$ \\
+$S_k \cdot F_k^{CP}$
+  & $-0.006^{**}$ & $-0.007^{*}$ & $-0.006^{***}$ & $-0.009^{*}$ & $-0.006^{**}$ \\
+$F_{k-2}^{DI}$
+  & $0.239^{*}$ & $0.121$ & $0.278^{*}$ & $-0.068$ & $0.254^{.}$ \\
+\midrule
+ & Full & High $S$ & Low $S$ & High debt & Low debt \\
+\midrule
+$F_k^{CP}$
+  & $0.260^{***}$ & $0.251^{*}$ & $-0.023$ & $0.286^{***}$ & $0.178$ \\
+$S_k \cdot F_k^{CP}$
+  & $-0.006^{**}$ & $-0.005^{*}$ & $0.001$ & $-0.007^{***}$ & $-0.004$ \\
+$F_{k-2}^{DI}$
+  & $0.239^{*}$ & $0.265^{.}$ & $0.079$ & $0.089$ & $0.284^{*}$ \\
+\midrule
+Countries & 38 & 19 & 19 & 19 & 19 \\
+\bottomrule
+\multicolumn{6}{p{13cm}}{\footnotesize \textit{Notes:} Key findings: (i) CP is insignificant in low-stringency countries, confirming it as a lockdown-specific tool; (ii) DI is insignificant in strong-safety-net countries, confirming that automatic stabilizers substitute for discretionary DI; (iii) CP is equally effective in AE and EM.} \\
+\end{tabular}
+\end{table}
+
+
+\subsection{Debt Equation by Subsample}
+
+\begin{table}[htbp]
+\centering
+\caption{Debt Equation: Subsample Comparison (Country FE)}
+\label{tab:sub_debt}
+\small
+\begin{tabular}{lccccc}
+\toprule
+ & Full & AE & EM & Strong SN & Weak SN \\
+\midrule
+$F_k^{CP}$
+  & $0.191^{**}$ & $0.218^{*}$ & $0.146^{*}$ & $0.301^{*}$ & $0.138^{*}$ \\
+$F_{k-1}^{DI}$
+  & $0.406^{.}$ & $0.345$ & $0.235$ & $0.276$ & $0.264$ \\
+\midrule
+ & Full & High $S$ & Low $S$ & High debt & Low debt \\
+\midrule
+$F_k^{CP}$
+  & $0.191^{**}$ & $0.152^{*}$ & $0.181^{.}$ & $0.082^{.}$ & $0.350^{***}$ \\
+$F_{k-1}^{DI}$
+  & $0.406^{.}$ & $0.115$ & $0.556^{.}$ & $0.582^{*}$ & $0.044$ \\
+\bottomrule
+\multicolumn{6}{p{13cm}}{\footnotesize \textit{Notes:} Low-debt countries pay more per unit of CP ($0.350^{***}$), reflecting heavier use of above-the-line instruments (grants). High-debt countries faced higher DI costs ($0.582^{*}$), consistent with the fiscal space hypothesis.} \\
+\end{tabular}
+\end{table}
+
+
+% =============================================================
+% O8 — Guarantee Take-Up Sensitivity
+% =============================================================
+\section{Guarantee Take-Up Sensitivity}
+\label{app:takeup}
+
+The effective fiscal cost of CP depends on the take-up rate of credit guarantees. I construct a combined variable $F_k^{CP,eff} = F_k^{CP,above} + F_k^{CP,loans} + F_k^{CP,guar} \times \tau$, where $\tau$ is the assumed take-up rate, and estimate the debt equation for $\tau \in \{0, 0.10, 0.25, 0.35, 0.50, 1.00\}$.
+
+\begin{table}[htbp]
+\centering
+\caption{Debt Equation: $\hat{\kappa}_F^{CP}$ Across Guarantee Take-Up Scenarios}
+\label{tab:takeup}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Take-up rate $\tau$ & 0\% & 10\% & 25\% & \textbf{35\%} & 50\% & 100\% \\
+\midrule
+$\hat{\kappa}_F^{CP,eff}$
+  & $0.385^{***}$ & $0.377^{***}$ & $0.352^{**}$ & $\mathbf{0.329^{**}}$ & $0.292^{**}$ & $0.190^{**}$ \\
+SE
+  & (0.108) & (0.109) & (0.106) & \textbf{(0.103)} & (0.094) & (0.067) \\
+$t$-statistic
+  & 3.58 & 3.48 & 3.30 & \textbf{3.21} & 3.10 & 2.84 \\
+Mean $F^{CP,eff}$
+  & 0.805 & 0.870 & 0.968 & \textbf{1.033} & 1.131 & 1.457 \\
+Debt effect$^a$
+  & 0.310 & 0.328 & 0.341 & \textbf{0.340} & 0.331 & 0.277 \\
+\bottomrule
+\multicolumn{7}{p{13cm}}{\footnotesize $^a$Debt effect $= \hat{\kappa} \times \overline{F^{CP,eff}}$, the average quarterly debt increase (pp of 2019 GDP). Bold: central scenario based on IMF (2023) estimated take-up rate. \textit{Key finding:} $\hat{\kappa}$ nearly doubles from the pooled estimate (0.19) to the guarantee-excluded estimate (0.39), but the total quarterly debt effect is remarkably stable (0.28--0.34) because $\hat{\kappa}$ and $\overline{F}$ move inversely. Over 8 pandemic quarters, CP created approximately 2.7~pp of debt at the central scenario vs.\ 2.2~pp under the naive pooled estimate.} \\
+\end{tabular}
+\end{table}
+
+
+% =============================================================
+% O9 — Crisis Comparison and Literature
+% =============================================================
+\section{Crisis Comparison and Structured Literature Review}
+\label{app:crisis}
+
+This section contains the structured comparison of modeling approaches (Table~\ref{tab:structured_comp_oa}) and the crisis-type diagnostic (Table~\ref{tab:crisis_diag_oa}) referenced in Sections~1 and~2 of the main text.
+
+\paragraph{Note on placement.} These tables document the theoretical contribution's positioning relative to existing work. They are moved to the Online Appendix to preserve space in the main text, which references them by number.
+
+%% [Insert the structured comparison table from main.tex Appendix here]
+%% [Insert the crisis diagnostic table from main.tex Appendix here]
+%% These are the tables currently at lines 1442-1617 of main.tex.
+%% When finalizing, copy them here and remove from the paper appendix.
+
+
+% =============================================================
+\vspace{2em}
+\hrule
+\vspace{1em}
+
+\noindent\textit{End of Online Appendix.}
+
+\end{document}

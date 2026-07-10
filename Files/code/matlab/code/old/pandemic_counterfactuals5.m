@@ -1,0 +1,698 @@
+%% ========================================================================
+%  PANDEMIC TRILEMMA — CALIBRATION & SOLVER VERIFICATION
+%
+%  Horizon: N = 10 quarters (Q1.2020 – Q2.2022)
+%    k = 1..K_act  (Q1.2020 – Q4.2021)  active pandemic, F available
+%    k = K_act+1..N (Q1.2022 – Q2.2022) post-trilemma tail, F = 0
+%      Debt compounds via (1+r)*b - gamma_y*y + c_H*theta.
+%      All eps_y are empirically estimated (Quarter FE cover all 10 Q).
+%
+%  Steps:
+%    1  Validation      Forward roll with observed controls
+%    2  CF-B Direct     fminsearch + penalty (optimize k=1:K_act)
+%    3  CF-B iLQR       Riccati backward over all N, controls k=1:K_act
+%    4  Verification    Compare both solutions
+%    5  Visualization   4 figures
+%
+%  State:   x = (y, b, z)',  z = F^DI_{k-1}
+%  Control: u = (F^CP, F^DI)'  for k <= K_act;  u = 0  for k > K_act
+% =========================================================================
+clear; clc; close all;
+fprintf('=== PANDEMIC TRILEMMA: Calibration & Verification ===\n');
+fprintf('  %s\n\n', datestr(now));
+
+
+%% ========================================================================
+%  PARAMETERS
+% =========================================================================
+
+% --- Output equation (Table 3, Column 3: Full) ---
+rho_y      = 0.227;      % lagged output persistence
+psi        = 0.372;      % S * y interaction
+alpha_S    = 0.028;      % direct output cost of S
+alpha_F_CP = 0.253;      % CP level effect
+eta_tilde  = -0.596;     % S * CP cushioning
+eta_p      = 0.026;      % CP * y structural persistence (fragile)
+alpha_F_DI = 0.244;      % DI effect at lag 2
+beta_fear  = -0.018;     % excess mortality -> output
+
+% --- Debt equation (Table 4, Column 1: Pooled CP) ---
+r_int      = 0.001;      % real quarterly interest rate
+gamma_y    = 0.219;      % automatic stabilizer
+kappa_F_CP = 0.167;      % realized debt cost of CP
+kappa_F_DI = 0.379;      % realized debt cost of DI
+c_H        = 0.02;       % health expenditure per unit theta
+
+% --- Quarter FE (all 10 estimated, fractions) ---
+eps_y_raw = [0, -1.844, -9.526, 0.149, -1.294, ...
+             -0.538, -0.137, -0.052, 0.534, -0.426] / 100;
+
+% --- Objective weights (only for solver verification, not calibration) ---
+beta_disc = 0.99;
+w_y  = 100;     % output gap penalty
+w_b  = 30;      % flow debt penalty (MCPF = 0.3, Dahlby 2008)
+W_b  = 150;     % terminal debt penalty (= w_b * 5)
+r_cp = 3;       % control cost CP
+r_di = 5;       % control cost DI
+
+% --- Dimensions ---
+N     = 10;     % total quarters (Q1.2020 – Q2.2022)
+K_act = 8;      % active fiscal quarters (Q1.2020 – Q4.2021)
+nx    = 3;      % state dimension
+nu    = 2;      % control dimension
+
+% --- Build eps_y vector (index k+1 corresponds to step k) ---
+eps_y_vec = zeros(1, N+1);
+for k = 1:N
+    if k+1 <= length(eps_y_raw)
+        eps_y_vec(k+1) = eps_y_raw(k+1);
+    end
+end
+
+% --- Control bounds ---
+u_lo = [0; 0];
+u_hi = [0.20; 0.10];
+
+% --- Pack all into struct ---
+P = struct( ...
+    'rho_y',rho_y, 'psi',psi, 'alpha_S',alpha_S, ...
+    'alpha_F_CP',alpha_F_CP, 'eta_tilde',eta_tilde, 'eta_p',eta_p, ...
+    'alpha_F_DI',alpha_F_DI, 'beta_fear',beta_fear, ...
+    'r_int',r_int, 'gamma_y',gamma_y, ...
+    'kappa_F_CP',kappa_F_CP, 'kappa_F_DI',kappa_F_DI, 'c_H',c_H, ...
+    'eps_y_vec',eps_y_vec, 'beta_disc',beta_disc, ...
+    'w_y',w_y, 'w_b',w_b, 'W_b',W_b, 'r_cp',r_cp, 'r_di',r_di, ...
+    'N',N, 'K_act',K_act, 'nx',nx, 'nu',nu, 'u_lo',u_lo, 'u_hi',u_hi);
+
+fprintf('  N = %d   K_act = %d   tail = %d quarters (F = 0)\n', N, K_act, N-K_act);
+fprintf('  gamma_y = %.3f   kappa_CP = %.3f   kappa_DI = %.3f   ratio = %.2f\n\n', ...
+    gamma_y, kappa_F_CP, kappa_F_DI, kappa_F_DI/kappa_F_CP);
+
+
+%% ========================================================================
+%  LOAD DATA
+% =========================================================================
+fprintf('--- Loading data ---\n');
+T = readtable('country_data_for_matlab.csv');
+
+qord = {'Q1.2020','Q2.2020','Q3.2020','Q4.2020', ...
+        'Q1.2021','Q2.2021','Q3.2021','Q4.2021', ...
+        'Q1.2022','Q2.2022'};
+qlbl = {'Q1.20','Q2.20','Q3.20','Q4.20', ...
+        'Q1.21','Q2.21','Q3.21','Q4.21', ...
+        'Q1.22','Q2.22'};
+
+countries = unique(T.Country, 'stable');
+n_c = length(countries);
+
+cdata = struct();
+for i = 1:n_c
+    iso = countries{i};
+    cdata(i).iso = iso;
+    cdata(i).S     = zeros(1, N);
+    cdata(i).FCP   = zeros(1, N);
+    cdata(i).FDI   = zeros(1, N);
+    cdata(i).y     = zeros(1, N);
+    cdata(i).theta = zeros(1, N);
+    cdata(i).b     = zeros(1, N);
+    cdata(i).d     = zeros(1, N);
+
+    for k = 1:N
+        if k > length(qord), break; end
+        row = T(strcmp(T.Country, iso) & strcmp(T.Quarter, qord{k}), :);
+        if isempty(row), continue; end
+
+        cdata(i).S(k)     = row.S_mean_tw / 100;
+        cdata(i).FCP(k)   = row.F_CP / 100;
+        cdata(i).FDI(k)   = row.F_DI / 100;
+        cdata(i).y(k)     = row.y_t_pct / 100;
+        cdata(i).theta(k) = row.theta_pct / 100;
+        if ~ismissing(row.debt_dR)
+            cdata(i).b(k) = row.debt_dR / 100;
+        end
+        if ismember('excess_mortality', T.Properties.VariableNames) ...
+                && ~ismissing(row.excess_mortality)
+            cdata(i).d(k) = row.excess_mortality / 100;
+        end
+    end
+end
+fprintf('  %d countries x %d quarters (K_act = %d)\n\n', n_c, N, K_act);
+
+
+%% ========================================================================
+%  STEP 1: VALIDATION
+% =========================================================================
+fprintf('========================================\n');
+fprintf('  STEP 1: Validation (N = %d)\n', N);
+fprintf('========================================\n');
+
+for i = 1:n_c
+    xs = forward_roll(cdata(i).FCP, cdata(i).FDI, ...
+                      cdata(i).S, cdata(i).theta, cdata(i).d, P);
+
+    cdata(i).sim_y     = xs(1, 2:end);
+    cdata(i).sim_b     = xs(2, 2:end);
+    cdata(i).obs_b_cum = cumsum(cdata(i).b);
+
+    cdata(i).rmse_y = sqrt(mean( ...
+        (cdata(i).sim_y(1:K_act) - cdata(i).y(1:K_act)).^2 )) * 100;
+    cdata(i).rmse_b = sqrt(mean( ...
+        (cdata(i).sim_b(1:K_act) - cdata(i).obs_b_cum(1:K_act)).^2 )) * 100;
+end
+
+fprintf('  Output RMSE (k=1:%d) — Median: %.2f pp   Mean: %.2f pp\n', ...
+    K_act, median([cdata.rmse_y]), mean([cdata.rmse_y]));
+fprintf('  Debt   RMSE (k=1:%d) — Median: %.2f pp   Mean: %.2f pp\n\n', ...
+    K_act, median([cdata.rmse_b]), mean([cdata.rmse_b]));
+
+
+%% ========================================================================
+%  STEP 2–3: CF-B — DIRECT SHOOTING vs iLQR
+%  Budget: sum_{k=1}^{K_act} (FCP + FDI) = sum (FCP_obs + FDI_obs)
+%  J evaluated over all N quarters (tail included)
+% =========================================================================
+fprintf('========================================\n');
+fprintf('  STEP 2-3: CF-B  (K_act = %d, N = %d)\n', K_act, N);
+fprintf('========================================\n\n');
+
+res = struct();
+for i = 1:n_c
+    iso     = cdata(i).iso;
+    S_i     = cdata(i).S;
+    th_i    = cdata(i).theta;
+    d_i     = cdata(i).d;
+    fcp_obs = cdata(i).FCP;
+    fdi_obs = cdata(i).FDI;
+
+    % iLQR first (provides warm start for Direct Shooting)
+    [us_il, J_il] = solve_ilqr_cfb(fcp_obs, fdi_obs, S_i, th_i, d_i, P);
+
+    % Direct Shooting with iLQR warm start
+    [us_ds, J_ds] = solve_direct_cfb(fcp_obs, fdi_obs, S_i, th_i, d_i, P, us_il);
+
+    % Full N-quarter forward roll for terminal debt
+    fcp_ds_f = [us_ds(1,:), zeros(1, N - K_act)];
+    fdi_ds_f = [us_ds(2,:), zeros(1, N - K_act)];
+    fcp_il_f = [us_il(1,:), zeros(1, N - K_act)];
+    fdi_il_f = [us_il(2,:), zeros(1, N - K_act)];
+
+    xs_ds = forward_roll(fcp_ds_f, fdi_ds_f, S_i, th_i, d_i, P);
+    xs_il = forward_roll(fcp_il_f, fdi_il_f, S_i, th_i, d_i, P);
+
+    % Store
+    res(i).iso    = iso;
+    res(i).J_ds   = J_ds;
+    res(i).J_il   = J_il;
+    res(i).dJ     = abs(J_ds - J_il);
+    res(i).b_ds   = xs_ds(2, N+1) * 100;
+    res(i).b_il   = xs_il(2, N+1) * 100;
+    res(i).db     = abs(xs_ds(2, N+1) - xs_il(2, N+1)) * 100;
+    res(i).du_max = max(abs(us_ds(:) - us_il(:))) * 100;
+    res(i).us_ds  = us_ds;
+    res(i).us_il  = us_il;
+    res(i).xs_ds  = xs_ds;
+    res(i).xs_il  = xs_il;
+
+    if res(i).dJ < 0.05 && res(i).db < 0.5
+        flag = 'OK';
+    else
+        flag = 'WARN';
+    end
+    fprintf('  [%2d/%d] %s  |dJ|=%.2e  |db|=%.4fpp  |du|=%.3f%%  b_N=%.1f/%.1f  %s\n', ...
+        i, n_c, iso, res(i).dJ, res(i).db, res(i).du_max, ...
+        res(i).b_ds, res(i).b_il, flag);
+end
+
+
+%% ========================================================================
+%  STEP 4: VERIFICATION SUMMARY
+% =========================================================================
+fprintf('\n========================================\n');
+fprintf('  STEP 4: Verification Summary\n');
+fprintf('========================================\n');
+
+dJs     = [res.dJ];
+dbs     = [res.db];
+du_maxs = [res.du_max];
+n_conv  = sum(dJs < 0.05 & dbs < 0.5);
+
+fprintf('\n  |dJ| — Mean: %.2e   Max: %.2e\n', mean(dJs), max(dJs));
+fprintf('  |db| — Mean: %.4f pp  Max: %.4f pp  (terminal at N = %d)\n', ...
+    mean(dbs), max(dbs), N);
+fprintf('  |du| — Mean: %.3f%%   Max: %.3f%%\n', mean(du_maxs), max(du_maxs));
+fprintf('  Converged: %d / %d\n', n_conv, n_c);
+
+Tout = table({res.iso}', [res.J_ds]', [res.J_il]', [res.dJ]', ...
+    [res.b_ds]', [res.b_il]', [res.db]', [res.du_max]', ...
+    'VariableNames', {'Country','J_direct','J_ilqr','abs_dJ', ...
+                      'b_direct_N','b_ilqr_N','abs_db_pp','abs_du_max_pct'});
+writetable(Tout, 'verification_results.csv');
+fprintf('\n  Saved: verification_results.csv\n');
+
+
+%% ========================================================================
+%  STEP 5: VISUALIZATION
+% =========================================================================
+
+% ---- Figure 1: Verification scatter ----
+figure('Name','Verification','Color','w','Position',[50 50 1100 450]);
+
+subplot(1,2,1);
+plot([res.J_ds], [res.J_il], 'ko', 'MarkerFaceColor', [.2 .5 .8], 'MarkerSize', 7);
+hold on;
+mn = min([res.J_ds])*0.95;  mx = max([res.J_ds])*1.05;
+plot([mn mx], [mn mx], 'r--', 'LineWidth', 1.5);
+xlabel('J — Direct Shooting');  ylabel('J — iLQR');
+title('Objective Function');  grid on;  axis equal;
+
+subplot(1,2,2);
+plot([res.b_ds], [res.b_il], 'ko', 'MarkerFaceColor', [.8 .3 .3], 'MarkerSize', 7);
+hold on;
+mn = min([res.b_ds])*0.95;  mx = max([res.b_ds])*1.05;
+plot([mn mx], [mn mx], 'r--', 'LineWidth', 1.5);
+xlabel('b_N — Direct Shooting');  ylabel('b_N — iLQR');
+title(sprintf('Terminal Debt (N = %d)', N));  grid on;  axis equal;
+
+sgtitle('Solver Verification: Direct Shooting vs iLQR', 'FontWeight', 'bold');
+
+% ---- Figure 2: Convergence bars ----
+figure('Name','Convergence','Color','w','Position',[50 50 1200 400]);
+
+subplot(1,2,1);
+[~, si] = sort(dJs, 'descend');
+bar(dJs(si), 'FaceColor', [.2 .5 .8]);  hold on;
+yline(0.05, 'r--', 'LineWidth', 1.5);
+set(gca, 'XTick', 1:n_c, 'XTickLabel', {res(si).iso}, ...
+    'XTickLabelRotation', 55, 'FontSize', 6);
+ylabel('|dJ|');  title('Objective Difference');  grid on;
+
+subplot(1,2,2);
+[~, si2] = sort(dbs, 'descend');
+bar(dbs(si2), 'FaceColor', [.8 .3 .3]);  hold on;
+yline(0.5, 'r--', 'LineWidth', 1.5);
+set(gca, 'XTick', 1:n_c, 'XTickLabel', {res(si2).iso}, ...
+    'XTickLabelRotation', 55, 'FontSize', 6);
+ylabel('|db| (pp GDP)');  title('Terminal Debt Difference');  grid on;
+
+sgtitle('Convergence Diagnostics', 'FontWeight', 'bold');
+
+% ---- Figure 3: Selected countries — trajectories ----
+selected = {'USA','DEU','ITA','GBR','JPN','CHL'};
+n_sel = length(selected);
+
+figure('Name','Trajectories','Color','w','Position',[30 30 1500 800]);
+for s = 1:n_sel
+    iso = selected{s};
+    idx = find(strcmp({cdata.iso}, iso));
+
+    xs_obs = forward_roll(cdata(idx).FCP, cdata(idx).FDI, ...
+                          cdata(idx).S, cdata(idx).theta, cdata(idx).d, P);
+
+    t_obs = (cdata(idx).FCP(1:K_act) + cdata(idx).FDI(1:K_act)) * 100;
+    t_ds  = (res(idx).us_ds(1,:) + res(idx).us_ds(2,:)) * 100;
+    t_il  = (res(idx).us_il(1,:) + res(idx).us_il(2,:)) * 100;
+
+    % Col 1: Total fiscal (active period)
+    subplot(n_sel, 3, (s-1)*3 + 1);  hold on;
+    bh = bar(1:K_act, [t_obs; t_ds; t_il]', 'grouped');
+    bh(1).FaceColor = [.5 .5 .5];
+    bh(2).FaceColor = [.2 .5 .8];
+    bh(3).FaceColor = [.8 .3 .3];
+    set(gca, 'XTick', 1:K_act, 'XTickLabel', qlbl(1:K_act), 'FontSize', 6);
+    ylabel('% GDP');  grid on;
+    if s == 1
+        title('Total Fiscal');
+        legend('Obs','Direct','iLQR', 'FontSize', 5, 'Location', 'NE');
+    end
+    text(0.02, 0.95, iso, 'Units', 'normalized', 'FontSize', 10, ...
+         'FontWeight', 'bold', 'VerticalAlignment', 'top');
+
+    % Col 2: CP share (active period)
+    subplot(n_sel, 3, (s-1)*3 + 2);  hold on;
+    for kk = 1:K_act
+        if t_obs(kk) > 0.01
+            cp = cdata(idx).FCP(kk) / (cdata(idx).FCP(kk) + cdata(idx).FDI(kk) + 1e-10) * 100;
+            plot(kk, cp, 'ks', 'MarkerSize', 7, 'MarkerFaceColor', [.5 .5 .5]);
+        end
+        if t_ds(kk) > 0.01
+            cp = res(idx).us_ds(1,kk) / (res(idx).us_ds(1,kk) + res(idx).us_ds(2,kk) + 1e-10) * 100;
+            plot(kk, cp, 'bo', 'MarkerSize', 6, 'MarkerFaceColor', [.2 .5 .8]);
+        end
+        if t_il(kk) > 0.01
+            cp = res(idx).us_il(1,kk) / (res(idx).us_il(1,kk) + res(idx).us_il(2,kk) + 1e-10) * 100;
+            plot(kk, cp, 'r^', 'MarkerSize', 6, 'MarkerFaceColor', [.8 .3 .3]);
+        end
+    end
+    ylim([0 105]);
+    set(gca, 'XTick', 1:K_act, 'XTickLabel', qlbl(1:K_act), 'FontSize', 6);
+    ylabel('CP share (%)');  grid on;
+    if s == 1, title('CP Share'); end
+
+    % Col 3: Output gap + cumulative debt (full N, showing tail)
+    subplot(n_sel, 3, (s-1)*3 + 3);  hold on;
+    yyaxis left;
+    plot(1:N, xs_obs(1, 2:end)*100, 'k--', 'LineWidth', 1.5);
+    plot(1:N, res(idx).xs_ds(1, 2:end)*100, 'b-', 'LineWidth', 1.5);
+    xline(K_act + 0.5, ':', 'Color', [.5 .5 .5], 'LineWidth', 1);
+    ylabel('Output gap (pp)');
+    yyaxis right;
+    plot(1:N, xs_obs(2, 2:end)*100, 'k--s', 'LineWidth', 1, 'MarkerSize', 2);
+    plot(1:N, res(idx).xs_ds(2, 2:end)*100, 'b-o', 'LineWidth', 1, 'MarkerSize', 2);
+    ylabel('Cum. debt (pp)');
+    set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'FontSize', 5);
+    grid on;
+    if s == 1
+        title('Outcomes (full N)');
+        legend('Obs','Optimal', 'Location', 'SE', 'FontSize', 5);
+    end
+end
+sgtitle(sprintf('CF-B: Observed vs Optimal  (N = %d, K_{act} = %d)', N, K_act), ...
+    'FontWeight', 'bold');
+
+% ---- Figure 4: Validation — OECD IQR ----
+sim_y_all = reshape([cdata.sim_y], N, n_c)' * 100;
+obs_y_all = reshape([cdata.y],    N, n_c)' * 100;
+sim_b_all = reshape([cdata.sim_b], N, n_c)' * 100;
+obs_b_all = zeros(n_c, N);
+for i = 1:n_c, obs_b_all(i,:) = cdata(i).obs_b_cum * 100; end
+obs_S_all = reshape([cdata.S], N, n_c)' * 100;
+
+figure('Name','Validation','Color','w','Position',[50 50 1400 400]);
+
+subplot(1,3,1);  hold on;
+fill_iqr(1:N, sim_y_all, [0 0.4 0.8], 0.15);
+fill_iqr(1:N, obs_y_all, [.5 .5 .5], 0.12);
+plot(1:N, median(sim_y_all), 'b-o', 'LineWidth', 2, 'MarkerSize', 4);
+plot(1:N, median(obs_y_all), 'k--s', 'LineWidth', 2, 'MarkerSize', 4);
+xline(K_act + 0.5, ':', 'Color', [.5 .5 .5]);
+yline(0, ':', 'Color', [.5 .5 .5]);  grid on;
+set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'FontSize', 6, 'XTickLabelRotation', 45);
+ylabel('pp');  title('Output Gap');
+legend('','','Simulated','Observed', 'Location', 'SE', 'FontSize', 7);
+
+subplot(1,3,2);  hold on;
+fill_iqr(1:N, sim_b_all, [0 0.4 0.8], 0.15);
+fill_iqr(1:N, obs_b_all, [.5 .5 .5], 0.12);
+plot(1:N, median(sim_b_all), 'b-o', 'LineWidth', 2, 'MarkerSize', 4);
+plot(1:N, median(obs_b_all), 'k--s', 'LineWidth', 2, 'MarkerSize', 4);
+xline(K_act + 0.5, ':', 'Color', [.5 .5 .5]);  grid on;
+set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'FontSize', 6, 'XTickLabelRotation', 45);
+ylabel('pp GDP');  title('Cumulative Debt');
+legend('','','Simulated','Observed', 'Location', 'SE', 'FontSize', 7);
+
+subplot(1,3,3);  hold on;
+fill_iqr(1:N, obs_S_all, [.3 .3 .3], 0.15);
+plot(1:N, median(obs_S_all), 'k-o', 'LineWidth', 2, 'MarkerSize', 4);
+xline(K_act + 0.5, ':', 'Color', [.5 .5 .5]);  grid on;
+set(gca, 'XTick', 1:N, 'XTickLabel', qlbl, 'FontSize', 6, 'XTickLabelRotation', 45);
+ylabel('Index (0–100)');  title('Containment Stringency');
+
+sgtitle(sprintf('Validation: Simulated vs Observed  (N = %d, Median \\pm IQR)', N), ...
+    'FontWeight', 'bold');
+
+fprintf('\n=== COMPLETE ===\n');
+
+
+%% ########################################################################
+%  FUNCTIONS
+%  ########################################################################
+
+% ---- Forward roll (full N quarters) ------------------------------------
+function xs = forward_roll(fcp, fdi, S, theta, d, P)
+    N_ = P.N;
+    xs = zeros(P.nx, N_+1);
+
+    for k = 1:N_
+        y = xs(1,k);  b = xs(2,k);  z = xs(3,k);
+
+        % Safe indexing: zero if beyond vector length
+        fk  = 0;  gk  = 0;
+        Sk  = 0;  thk = 0;  dk = 0;  ey = 0;
+        if k <= length(fcp),   fk  = fcp(k);   end
+        if k <= length(fdi),   gk  = fdi(k);   end
+        if k <= length(S),     Sk  = S(k);     end
+        if k <= length(theta), thk = theta(k); end
+        if k <= length(d),     dk  = d(k);     end
+        if k+1 <= length(P.eps_y_vec), ey = P.eps_y_vec(k+1); end
+
+        xs(1,k+1) = P.rho_y*y + P.psi*Sk*y - P.alpha_S*Sk ...
+            + (P.alpha_F_CP + P.eta_tilde*Sk - P.eta_p*y)*fk ...
+            + P.alpha_F_DI*z + P.beta_fear*dk + ey;
+        xs(2,k+1) = (1+P.r_int)*b - P.gamma_y*y ...
+            + P.kappa_F_CP*fk + P.kappa_F_DI*gk + P.c_H*thk;
+        xs(3,k+1) = gk;
+    end
+end
+
+% ---- Objective (J over full N; controls padded with zeros) -------------
+function J = eval_J(fcp, fdi, S, theta, d, P)
+    fcp_f = [fcp, zeros(1, P.N - length(fcp))];
+    fdi_f = [fdi, zeros(1, P.N - length(fdi))];
+    xs    = forward_roll(fcp_f, fdi_f, S, theta, d, P);
+    N_    = P.N;
+    J     = 0;
+
+    for k = 1:N_
+        bd = P.beta_disc^(k-1);
+        J  = J + bd * 0.5 * (P.w_y*xs(1,k+1)^2 + P.w_b*xs(2,k+1)^2);
+        fk = 0;  gk = 0;
+        if k <= length(fcp), fk = fcp(k); gk = fdi(k); end
+        J  = J + bd * 0.5 * (P.r_cp*fk^2 + P.r_di*gk^2);
+    end
+    J = J + P.beta_disc^N_ * 0.5 * P.W_b * xs(2, N_+1)^2;
+end
+
+% ---- Jacobians ---------------------------------------------------------
+function [A, B] = get_jacobians(x, u, k, S, P)
+    y   = x(1);
+    fcp = u(1);
+    Sk  = 0;  if k <= length(S), Sk = S(k); end
+
+    A = [P.rho_y + P.psi*Sk - P.eta_p*fcp,  0,          P.alpha_F_DI;
+         -P.gamma_y,                          1+P.r_int,  0;
+         0,                                   0,          0];
+
+    B = [P.alpha_F_CP + P.eta_tilde*Sk - P.eta_p*y,  0;
+         P.kappa_F_CP,                                 P.kappa_F_DI;
+         0,                                            1];
+end
+
+% ---- Single dynamics step (for iLQR forward pass) ----------------------
+function xn = dynamics_step(x, u, k, S, theta, d, P)
+    y = x(1);  b = x(2);  z = x(3);
+    fcp = u(1);  fdi = u(2);
+
+    Sk = 0;  thk = 0;  dk = 0;  ey = 0;
+    if k <= length(S),     Sk  = S(k);     end
+    if k <= length(theta), thk = theta(k); end
+    if k <= length(d),     dk  = d(k);     end
+    if k+1 <= length(P.eps_y_vec), ey = P.eps_y_vec(k+1); end
+
+    xn = [P.rho_y*y + P.psi*Sk*y - P.alpha_S*Sk ...
+              + (P.alpha_F_CP + P.eta_tilde*Sk - P.eta_p*y)*fcp ...
+              + P.alpha_F_DI*z + P.beta_fear*dk + ey;
+          (1+P.r_int)*b - P.gamma_y*y ...
+              + P.kappa_F_CP*fcp + P.kappa_F_DI*fdi + P.c_H*thk;
+          fdi];
+end
+
+
+%% ========================================================================
+%  DIRECT SHOOTING  (fminsearch + penalty, optimizes k = 1:K_act)
+% =========================================================================
+function [us_opt, J_opt] = solve_direct_cfb(fcp_obs, fdi_obs, S, theta, d, P, us_ilqr)
+    Ka  = P.K_act;
+    tot = sum(fcp_obs(1:Ka)) + sum(fdi_obs(1:Ka));
+    pen = 1e4;
+
+    obj = @(x) eval_J(max(0, x(1:Ka)), max(0, x(Ka+1:2*Ka)), S, theta, d, P) ...
+        + pen * (sum(max(0, x(1:Ka))) + sum(max(0, x(Ka+1:2*Ka))) - tot)^2 ...
+        + pen * sum(max(0, x(1:Ka)    - P.u_hi(1)).^2) ...
+        + pen * sum(max(0, x(Ka+1:2*Ka) - P.u_hi(2)).^2) ...
+        + pen * sum(max(0, -x).^2);
+
+    opts = optimset('MaxIter', 15000, 'MaxFunEvals', 300000, ...
+                    'TolFun', 1e-13, 'TolX', 1e-12, 'Display', 'off');
+
+    % Build initializations
+    inits = {[fcp_obs(1:Ka), fdi_obs(1:Ka)], ...
+             ones(1, 2*Ka) * tot / (2*Ka)};
+    wb = exp(0.3*(0:Ka-1));  wb = wb/sum(wb);
+    inits{end+1} = [wb*tot*0.9, wb*tot*0.1];
+    wf = exp(-0.3*(0:Ka-1)); wf = wf/sum(wf);
+    inits{end+1} = [wf*tot*0.9, wf*tot*0.1];
+    ws = zeros(1,Ka);  ws(Ka-1) = 0.3;  ws(Ka) = 0.7;
+    inits{end+1} = [ws*tot, zeros(1,Ka)];
+    if nargin >= 7 && ~isempty(us_ilqr)
+        inits{end+1} = [us_ilqr(1,:), us_ilqr(2,:)];
+    end
+
+    best_J = Inf;  best_x = zeros(1, 2*Ka);
+    for t = 1:length(inits)
+        x0 = max(0.0001, inits{t});
+        sc = tot / sum(x0);  x0 = x0 * sc;
+        [xo, Jo] = fminsearch(obj, x0, opts);
+        if Jo < best_J, best_J = Jo; best_x = xo; end
+    end
+
+    % Project and renormalize
+    xp = max(0, best_x);
+    xp(1:Ka)       = min(P.u_hi(1), xp(1:Ka));
+    xp(Ka+1:2*Ka)  = min(P.u_hi(2), xp(Ka+1:2*Ka));
+    sc = tot / max(sum(xp), 1e-12);
+    xp = xp * sc;
+
+    us_opt = [xp(1:Ka); xp(Ka+1:2*Ka)];    % [2 x K_act]
+    J_opt  = eval_J(us_opt(1,:), us_opt(2,:), S, theta, d, P);
+end
+
+
+%% ========================================================================
+%  iLQR  (Riccati backward over all N, controls for k = 1:K_act only)
+% =========================================================================
+function [us_opt, J_opt] = solve_ilqr_cfb(fcp_obs, fdi_obs, S, theta, d, P)
+    N_  = P.N;
+    Ka  = P.K_act;
+    nx_ = P.nx;
+    nu_ = P.nu;
+    tot = sum(fcp_obs(1:Ka)) + sum(fdi_obs(1:Ka));
+    gc  = [1; 1];                               % gradient of sum constraint
+
+    Qm = diag([P.w_y, P.w_b, 0]);              % running state cost
+    Rm = diag([P.r_cp, P.r_di]);               % control cost
+    Qf = diag([0, P.W_b, 0]);                  % terminal cost
+
+    % Initialize controls: active from data, tail = 0
+    us_f = zeros(nu_, N_);
+    us_f(:, 1:Ka) = [max(0.001, min(0.19, fcp_obs(1:Ka)));
+                     max(0.001, min(0.09, fdi_obs(1:Ka)))];
+
+    % Initial forward roll
+    xs = zeros(nx_, N_+1);
+    for k = 1:N_
+        xs(:, k+1) = dynamics_step(xs(:,k), us_f(:,k), k, S, theta, d, P);
+    end
+
+    lam_sum   = 0;
+    mu_sum    = 50;
+    max_outer = 30;
+    max_inner = 100;
+    reg       = 1e-6;
+
+    for outer = 1:max_outer
+        for inner = 1:max_inner
+            sv = sum(us_f(1, 1:Ka)) + sum(us_f(2, 1:Ka)) - tot;
+
+            % ---- Backward pass ----
+            Vxx = P.beta_disc^(N_-1) * Qm + P.beta_disc^N_ * Qf;
+            Vx  = Vxx * xs(:, N_+1);
+            Ks  = zeros(nu_, nx_, N_);
+            ds  = zeros(nu_, N_);
+            bw_ok = true;
+
+            for k = N_:-1:1
+                bk = P.beta_disc^(k-1);
+                [Ak, Bk] = get_jacobians(xs(:,k), us_f(:,k), k, S, P);
+                Qxx_k = Ak' * Vxx * Ak;
+                qx_k  = Ak' * Vx;
+
+                if k <= Ka
+                    % Active quarter: full Riccati
+                    Quu_k = bk*Rm + Bk'*Vxx*Bk + mu_sum*(gc*gc') + reg*eye(nu_);
+                    Qux_k = Bk' * Vxx * Ak;
+                    qu_k  = bk*Rm*us_f(:,k) + Bk'*Vx + (lam_sum + mu_sum*sv)*gc;
+
+                    [~, pd] = chol(Quu_k);
+                    if pd > 0, bw_ok = false; break; end
+
+                    Ki = Quu_k \ Qux_k;
+                    di = -Quu_k \ qu_k;
+                    Ks(:,:,k) = Ki;
+                    ds(:,k)   = di;
+
+                    Vn = Qxx_k - Ki' * Quu_k * Ki;
+                    vn = qx_k  - Ki' * Quu_k * di;
+                else
+                    % Tail: no control, propagate value only
+                    Vn = Qxx_k;
+                    vn = qx_k;
+                end
+
+                if k > 1
+                    Vxx = P.beta_disc^(k-2) * Qm + Vn;
+                    Vx  = P.beta_disc^(k-2) * Qm * xs(:,k) + vn;
+                else
+                    Vxx = Vn;
+                    Vx  = vn;
+                end
+            end
+
+            if ~bw_ok
+                reg = reg * 10;
+                if reg > 1e8, break; end
+                continue;
+            end
+
+            % ---- Forward pass (line search) ----
+            J_old = eval_J(us_f(1,1:Ka), us_f(2,1:Ka), S, theta, d, P) ...
+                  + lam_sum*sv + 0.5*mu_sum*sv^2;
+
+            al  = 1.0;
+            acc = false;
+            while al > 1e-10
+                xn = zeros(nx_, N_+1);
+                un = zeros(nu_, N_);
+                for k = 1:N_
+                    if k <= Ka
+                        dx = xn(:,k) - xs(:,k);
+                        un(:,k) = us_f(:,k) + al*ds(:,k) - Ks(:,:,k)*dx;
+                        un(:,k) = max(P.u_lo, min(P.u_hi, un(:,k)));
+                    end
+                    xn(:, k+1) = dynamics_step(xn(:,k), un(:,k), k, S, theta, d, P);
+                end
+                svn = sum(un(1,1:Ka)) + sum(un(2,1:Ka)) - tot;
+                Jn  = eval_J(un(1,1:Ka), un(2,1:Ka), S, theta, d, P) ...
+                    + lam_sum*svn + 0.5*mu_sum*svn^2;
+                if Jn < J_old - 1e-12, acc = true; break; end
+                al = al * 0.5;
+            end
+
+            if ~acc
+                reg = reg * 10;
+                if reg > 1e8, break; end
+                continue;
+            end
+
+            dn = norm(un(:,1:Ka) - us_f(:,1:Ka), 'fro');
+            xs = xn;  us_f = un;
+            reg = max(reg*0.5, 1e-8);
+            if dn < 1e-9, break; end
+        end
+
+        % ---- Outer: update Lagrange multiplier ----
+        sv = sum(us_f(1,1:Ka)) + sum(us_f(2,1:Ka)) - tot;
+        lam_sum = lam_sum + mu_sum * sv;
+        mu_sum  = mu_sum * 2;
+        if abs(sv) < 1e-8, break; end
+    end
+
+    % Enforce constraint exactly
+    act = us_f(:, 1:Ka);
+    sc  = tot / max(sum(act(:)), 1e-12);
+    act = act * sc;
+    act = max(P.u_lo, min(P.u_hi, act));
+
+    us_opt = act;                                   % [2 x K_act]
+    J_opt  = eval_J(us_opt(1,:), us_opt(2,:), S, theta, d, P);
+end
+
+
+% ---- IQR fill helper ---------------------------------------------------
+function fill_iqr(x, data, col, alpha)
+    sd  = sort(data);
+    n   = size(sd, 1);
+    p25 = sd(max(1, round(0.25*n)), :);
+    p75 = sd(max(1, round(0.75*n)), :);
+    fill([x, fliplr(x)], [p25, fliplr(p75)], col, ...
+         'FaceAlpha', alpha, 'EdgeColor', 'none');
+end

@@ -1,0 +1,48 @@
+\begin{table}[H]
+\centering
+\caption{Debt Transition Estimates}
+\label{tab:debt_transition}
+\scriptsize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{} l c c c c @{}}
+\toprule
+ & (1) & (2) & (3) & (4) \\
+ & Coarse & Headline & Conservative & Preferred \\
+ & categories & commitments & take-up & take-up \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Predetermined output state:}} \\[2pt]
+$y_{i,k-1}$ \,($-\gamma_y$) & $-0.120***$ & $-0.117***$ & $-0.117***$ & $-0.117***$ \\
+ & (0.039) & (0.039) & (0.039) & (0.039) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Above-the-line capacity preservation:}} \\[2pt]
+$F^{CP,\,\text{above}}_{ik}$ \,[$\kappa_{\text{above}}$] & $0.639***$ & $0.664***$ & $0.664***$ & $0.664***$ \\
+ & (0.202) & (0.203) & (0.203) & (0.203) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Below-the-line liquidity support:}} \\[2pt]
+$F^{CP,\,\text{below}}_{ik}$ \, (aggregate flow) & $0.584***$ &  &  &  \\
+ & (0.114) &  &  &  \\[4pt]
+$F^{CP,\,\text{loans}}_{ik}$ \, (headline) &  & $0.501***$ &  &  \\
+ &  & (0.096) &  &  \\[4pt]
+$F^{CP,\,\text{guar}}_{ik}$ \, (headline) &  & $0.134*$ &  &  \\
+ &  & (0.071) &  &  \\[4pt]
+$F^{CP,\,\text{loans}}_{ik}$ \, (low take-up) &  &  & $1.254***$ &  \\
+ &  &  & (0.240) &  \\[4pt]
+$F^{CP,\,\text{guar}}_{ik}$ \, (low take-up) &  &  & $0.536*$ & $0.536*$ \\
+ &  &  & (0.284) & (0.284) \\[4pt]
+$F^{CP,\,\text{loans}}_{ik}$ \, (mid take-up) &  &  &  & $0.836***$ \\
+ &  &  &  & (0.160) \\[4pt]
+$F^{CP,\,\text{guar}}_{ik}$ \, (preferred take-up) &  &  & $0.536*$ & $0.536*$ \\
+ &  &  & (0.284) & (0.284) \\[4pt]
+\multicolumn{5}{@{}l}{\textit{Demand injection and exogenous health spending:}} \\[2pt]
+$F^{DI}_{ik}$ \,[$\kappa_{DI}$] & $0.540*$ & $0.526*$ & $0.526*$ & $0.526*$ \\
+ & (0.296) & (0.297) & (0.297) & (0.297) \\[4pt]
+$F^{H}_{i,k-1}$ \,[$\kappa_H$] & $0.893**$ & $0.908**$ & $0.908**$ & $0.908**$ \\
+ & (0.377) & (0.378) & (0.378) & (0.378) \\[4pt]
+\midrule
+Country FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Observations & 494 & 494 & 494 & 494 \\
+$R^2$ (adj.) & 0.185 & 0.188 & 0.188 & 0.188 \\
+Within $R^2$ & 0.232 & 0.236 & 0.236 & 0.236 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\parbox{\textwidth}{\scriptsize\textit{Notes:} Dependent variable: adjusted quarterly change in the pandemic debt-gap state, $\Delta \tilde b_{ik}=\Delta b_{ik}-r_t b_{i,k-1}$, measured in percentage points of 2019 GDP. Sample: 38 OECD countries over the pandemic debt-estimation window $t \in [4,16]$. All specifications include country fixed effects. Standard errors clustered at the country level with small-sample correction are reported in parentheses. Column~(1) uses broad fiscal categories. Column~(2) uses headline commitments for loans and guarantees. Column~(3) applies conservative take-up adjustments. Column~(4) is the preferred specification, using a 50\% take-up rate for loans and a 25\% take-up rate for guarantees. Health-related spending is included as an exogenous control with a one-quarter lag and is not part of the optimized fiscal instrument set. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.}
+\end{table}

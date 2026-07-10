@@ -1,6 +1,0 @@
-
-# 11. Sample split by social safety net (high vs low):
-#     Re-estimate V15 separately on high- and low-welfare-state country groups
-#     (same groupings as the output-gap robustness section).
-#     This checks whether the debt pass-through of each fiscal channel differs
-#     by welfare-state strength.

@@ -1,0 +1,61 @@
+# =====================
+# R
+# =====================
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rcheck/
+*.Rproj
+
+# R package/build artifacts
+src/*.o
+src/*.so
+src/*.dll
+
+# =====================
+# MATLAB
+# =====================
+*.asv
+*.m~
+*.mex*
+*.mlappinstall
+*.mltbx
+slprj/
+sccprj/
+codegen/
+*.autosave
+
+# =====================
+# Cursor / VS Code
+# =====================
+.cursor/
+.vscode/
+*.code-workspace
+
+# =====================
+# System Files
+# =====================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =====================
+# Misc
+# =====================
+# Environment / API Keys
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+~$*

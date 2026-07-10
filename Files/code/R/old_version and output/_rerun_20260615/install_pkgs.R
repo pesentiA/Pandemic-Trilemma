@@ -1,0 +1,5 @@
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+install.packages(c("fwildclusterboot", "summclust"))
+cat("\n--- post-install check ---\n")
+for (p in c("fwildclusterboot", "summclust", "dqrng"))
+  cat(sprintf("%-18s %s\n", p, requireNamespace(p, quietly = TRUE)))
