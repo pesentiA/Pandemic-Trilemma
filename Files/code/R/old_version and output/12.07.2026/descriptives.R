@@ -1,46 +1,23 @@
-# ==============================================================================
-#  descriptives.R — "The Pandemic Trilemma": Descriptive Statistics & Validation
-# ==============================================================================
-#  PURPOSE
-#    Produces all descriptive statistics, validity checks, and descriptive
-#    figures/tables for the paper. Covers the three policy/outcome blocks:
-#      (1) Fiscal measures F (transmission channels CP / DI / H),
-#      (2) Stringency S (Oxford OxCGRT-based index),
-#      (3) Outcomes: excess deaths d, infections/theta, and the quarterly
-#          state variables y_k (output gap) and b_k (debt).
-#
-#  REQUIRED INPUT
-#    datafordescriptives.RData (created by the qcode/dataprep script), loaded
-#    from `safedata` below. It provides the datasets: qdata (main quarterly
-#    panel), excess_w, p_values_oecd_w, economist_w (weekly excess deaths),
-#    fm_d (daily fiscal measures), oxd_spatial_d (Oxford data, all countries),
-#    google_mobility_d, hosp_d (auxiliary daily data).
-#
-#  OUTPUT LOCATIONS
-#    Plots  (.pdf/.png): `safeplots` directory
-#    Tables (.tex):      `safetable` directory
-#    Console: descriptive summaries, validation diagnostics, LaTeX snippets.
-#
-#  RUN REQUIREMENTS
-#    R >= 4.6.1; key packages: tidyverse (dplyr/tidyr/ggplot2), data.table,
-#    fixest, kableExtra, xtable, patchwork, sf, rnaturalearth, lubridate,
-#    zoo, conflicted. The script must be run TOP-TO-BOTTOM in a clean R
-#    session (it calls rm(list = ls()) and later sections reuse objects
-#    created earlier).
-# ==============================================================================
-
-## Install packages and load data ----
+##BESCHREIBUNG HINZUFÜGEN
+##Install Packages and load Data ----
+#.rs.restartR()
 
 rm(list=ls())
 
-packages_vector <- c("did2s", "haven", "dplyr", "sandwich", "jtools", "data.table",
-                     "fBasics", "gtools", "rnaturalearth", "rnaturalearthdata", "foreign", "gt", "Synth", "gridExtra", "fixest", "huxtable",
-                     "xtable", "stargazer", "AER", "causalweight", "tidyr", "expss", "stringr", "pscore", "ggplot2", "lubridate", "knitr",
-                     "kableExtra", "psych", "pastecs", "purrr", "magrittr", "did", "remote", "patchwork", "readxl", "plm", "scales", "mFilter",
-                     "countrycode", "tidyverse", "corrplot", "ggExtra", "sf", "RColorBrewer", "UpSetR")
+packages_vector <- c( "did2s","haven", "dplyr",  "sandwich",  "jtools", "data.table",
+                      "fBasics","gtools","rnaturalearth", "rnaturalearthdata", "foreign","gt", "Synth","gridExtra", "fixest","huxtable", 
+                      "xtable", "foreign", "stargazer", "AER", "causalweight", "tidyr","expss","stringr","pscore","AER","ggplot2","haven","lubridate" ,"knitr",
+                      "kableExtra", "psych", "pastecs","purrr","magrittr","did","remote", "did2s", "patchwork", "readxl", "did2s", "plm", "scales", "mFilter", 
+                      "countrycode","kableExtra", "tidyverse", "corrplot", "rnaturalearthdata", "ggExtra", "gt", "sf", "RColorBrewer","UpSetR")
 
-# install.packages(packages_vector)  # run once on a fresh machine
-lapply(packages_vector, require, character.only = TRUE)
+
+
+#install.packages(packages_vector)
+lapply(packages_vector, require, character.only = TRUE) 
+
+
+# List loaded packages 
+(.packages())
 
 # Set options
 options(max.print = 9999, scipen = 999, na.print = "")
@@ -63,32 +40,45 @@ conflicted::conflicts_prefer(lubridate::year)
 conflicted::conflicts_prefer(lubridate::wday)
 conflicted::conflicts_prefer(dplyr::last)
 conflicted::conflicts_prefer(data.table::isoweek)
-# isoyear preference added 2026-07-12: `isoyear()` (excess-mortality and
-# hospitalisation sections) is exported by both lubridate and data.table with
-# identical ISO-8601 semantics; without an explicit preference, `conflicted`
-# stops a clean top-to-bottom run. data.table chosen for consistency with
-# isoweek/month.
-conflicted::conflicts_prefer(data.table::isoyear)
 conflicted::conflicts_prefer(data.table::month)
 conflicted::conflicts_prefer(dplyr::lead)
 
 
-## Load data produced by the qcode (data preparation) script
+library(kableExtra)
+##Data from qcode Skript laden
 
 safedata <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/Database/Analyse"
 load(file.path(safedata, "datafordescriptives.RData"))
 
-# Output locations for plots and tables
+#Output Location Plots und Table
 safeplots <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/output r/Plots"
 safetable <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/output r/Table Descriptives"
 
-## Datasets available after the load() above:
-#  qdata            - main quarterly dataset with all outcomes
-#  excess_w, p_values_oecd_w, economist_w - weekly excess deaths (incl. Oxford
-#                     and own indices for S)
-#  fm_d             - fiscal measures, daily
-#  oxd_spatial_d    - full Oxford (OxCGRT) data for all countries
-#  google_mobility_d, hosp_d - auxiliary datasets
+##we now have the folowing datasets to work with
+
+#Main Quarterly Dataset with all Outcomes
+colnames(qdata)
+
+#Excess Deaths weekly
+colnames(excess_w)
+colnames(p_values_oecd_w)
+colnames(economist_w)
+
+#Fiscal Measures Daily
+colnames(fm_d)
+
+#Oxford und eigenen Indexe für S
+unique(excess_w$entity)
+unique(p_values_oecd_w$entity)
+colnames(p_values_oecd_w)
+#Alle Oxoford Daten für alle Länder
+colnames(oxd_spatial_d)
+
+#Hilfsdatensets
+colnames(google_mobility_d)
+colnames(hosp_d)
+
+#RRate?-> Descriptives durch und löschen->Ideen herausschrieben
 
 
 ################################################################################
@@ -194,11 +184,11 @@ overall_by_channel <- fm %>%
 cat("\n--- 2a. Summary by Transmission Channel ---\n")
 print(as.data.frame(overall_by_channel))
 
-# 1. Prepare data: round values and assign publication-ready column names
+# 1. Daten vorbereiten: Runden und publikationsreife Spaltennamen vergeben
 tabelle_aer <- as.data.frame(overall_by_channel) %>%
-  # Round all numeric values to 2 decimal places (AER standard)
-  mutate(across(where(is.numeric), ~ round(., 2))) %>%
-  # Format column names for the paper
+  # Alle numerischen Werte auf 2 Nachkommastellen runden (AER Standard)
+  mutate(across(where(is.numeric), ~ round(., 2))) %>% 
+  # Spaltennamen für das Paper schön formatieren
   rename(
     `Channel` = transmission_channel,
     `Measures` = n_measures,
@@ -218,23 +208,23 @@ tabelle_aer <- as.data.frame(overall_by_channel) %>%
     `\\% Volume` = pct_of_volume
   )
 
-# 2. Generate AER-style LaTeX code
+# 2. LaTeX-Code im AER-Style generieren
 latex_table <- kable(
-  tabelle_aer,
-  format = "latex",
-  booktabs = TRUE, # Key for AER style: toprule, midrule, bottomrule
-  linesep = "",    # Suppress unwanted automatic blank lines
-  escape = FALSE,  # Needed so % characters are interpreted as LaTeX commands
+  tabelle_aer, 
+  format = "latex", 
+  booktabs = TRUE, # Das Wichtigste für den AER-Style: toprule, midrule, bottomrule
+  linesep = "",    # Verhindert ungewollte automatische Leerzeilen
+  escape = FALSE,  # Wichtig, damit die %-Zeichen korrekt als LaTeX-Befehl erkannt werden
   caption = "Summary Statistics by Transmission Channel",
-  align = c("l", rep("c", ncol(tabelle_aer) - 1)) # First column left-aligned, rest centered
+  align = c("l", rep("c", ncol(tabelle_aer) - 1)) # Erste Spalte linksbündig, der Rest zentriert
 ) %>%
-  # Scale table to page width (16 columns are very wide)
+  # Tabelle automatisch an die Seitenbreite anpassen (da 16 Spalten sehr breit sind)
   kable_styling(latex_options = c("hold_position", "scale_down")) %>%
-  # Classic "Notes" row at the bottom of the table
-  footnote(general = "Notes: CP = ..., DI = ..., H = ...",
+  # Optional: Die klassische "Notes"-Zeile am Ende der Tabelle hinzufügen
+  footnote(general = "Notes: CP = ..., DI = ..., H = ...", 
            threeparttable = TRUE)
 
-# 3. Print the finished LaTeX code to the console
+# 3. Den fertigen LaTeX-Code in der Konsole ausgeben ...
 cat(latex_table)
 
 
@@ -272,6 +262,9 @@ by_channel_country <- fm %>%
 cat("\n--- 2b. Summary by Transmission Channel and Country ---\n")
 print(as.data.frame(by_channel_country))
 
+
+library(dplyr)
+library(tidyr)
 
 by_country_channels <- fm %>%
   filter(transmission_channel %in% c("CP", "DI", "H")) %>%
@@ -417,7 +410,7 @@ p_overall <- p1 / p2 +
 print(p_overall)
 
 
-# Save the combined composition plot to the plots folder
+# Einen zweiten Plot im selben Ordner speichern
 ggsave(
   filename = file.path(safeplots, "composition_fiscal.pdf"), 
   plot = p_overall,
@@ -537,11 +530,10 @@ by_channel_imf <- fm %>%
 cat("\n--- 2c. Channel x IMF Category ---\n")
 print(as.data.frame(by_channel_imf))
 
-# These are the 5 entries of code 42 (Preferential loans to households)
-# — Chile, Slovakia, USA, Denmark, Japan. This is by design: household loans
-# are below-the-line under IMF convention (the government acquires a financial
-# asset), but the transmission channel is DI because the liquidity flows to
-# households and operates through consumption spending.
+#Das sind die 5 Einträge von Code 42 (Preferential loans to households)
+#— Chile, Slowakei, USA, Dänemark, Japan. Das ist by design: Haushaltskredite 
+#sind below-the-line nach IMF-Konvention (weil der Staat ein Finanzaktivum erwirbt), 
+#aber der Transmissionskanal ist DI, weil die Liquidität an Haushalte fliesst und über Konsumausgaben wirkt.
 
 
 # --- 2d. Robustness sub-categories within CP ---------------------------------
@@ -812,7 +804,7 @@ cat("\n--- 3e. Year-Level Summary ---\n")
 print(as.data.frame(temporal_year))
 
 
-## Finding: most fiscal volume was deployed in 2020.
+##Most of it was deployed in 2020-> Fertig interpretieren
 
 # --- 3f. Measure count per quarter (activation intensity) ---------------------
 # Captures the policy response intensity independent of fiscal volume.
@@ -831,10 +823,7 @@ temporal_count <- fm %>%
 cat("\n--- 3f. Measure Activation Intensity ---\n")
 print(as.data.frame(temporal_count))
 
-## Finding: shows exactly the pattern the model predicts — CP first, then DI,
-## but not uniformly across countries. Open dimensions: intensity, CP/DI mix,
-## and timing of CP vs. DI.
-
+##Zeigt mir genau das Muster das ich mit meinem Modell prognostizieren würde!! CP zuerst dann DI aber nicht alle gleich, FRAGE: Intensität, Mix CP und DI, Zeitpunkt CP und DI
 # ==============================================================================
 #  4. COUNTRY-LEVEL HETEROGENEITY
 # ==============================================================================
@@ -877,6 +866,9 @@ print(
   ),
   row.names = FALSE
 )
+
+##AUSGABE NOCH SCHREIBEN JE NACHDEM->APPENIDX
+
 
 # ==============================================================================
 #  4a. COUNTRY-LEVEL INTENSITY BY CHANNEL (3 Panels)
@@ -1029,7 +1021,7 @@ country_pies <- country_pies %>%
   )
 
 
-## Motivating question: why do countries choose different strategies?
+##Warum werden Strategien gewählt?
 
 # ==============================================================================
 #  STRATEGY SCATTER: CP Share vs DI Share
@@ -1149,21 +1141,22 @@ country_stats <- country_channel %>%
 cat("\n--- 4b. Cross-Country Distribution of Fiscal Totals ---\n")
 print(t(country_stats))
 
-## Notable result: across the OECD every country spent at least 2% of its own
-## GDP, up to a maximum of 41%. Of that, the CP share ranges from 44.6% to
-## 98.2% (some countries almost exclusively CP) — strong cross-country
-## differences in the CP strategy mix.
-#
-# Possible explanations:
-#  - Institutional infrastructure (strongest argument)
-#  - Labor market rigidity and matching costs
-#  - Firm structure and SME share
-#  - Welfare state architecture as a substitute
-#  - Monetary/fiscal policy coordination and guarantee infrastructure
-#  - Political economy: visibility vs. effectiveness
+##Spannende Ausgabe: über die OECD hat jedes Land mindestens 2% des eigenen GDP ausgegeben bis max 41%
+#Davon ein mind Anteil von CP von 44.6% bis zu 98.2%-> Fast nur CP-> Starke Unterschiede bezüglich der Strategie Mix CP
+
+#Mögliche Gründe:
+  
+#**Institutionelle Infrastruktur (stärkstes Argument).
+#**Arbeitsmarktrigidität und Matching-Kosten 
+#**Firmenstruktur und KMU-Anteil.
+#**Sozialstaatsarchitektur als Substitut.
+#**Koordination Geld-/Fiskalpolitik und Garantie-Infrastruktur.
+#**Politische Ökonomie: Sichtbarkeit vs. Effektivität.
+#**Was du daraus machen kannst.
 
 # --- 4c. Country-level CP sub-decomposition -----------------------------------
 # For each country: how much of CP was direct vs. loans/guarantees vs. deferrals?
+#Frag enach der Aufteilung von CP nach Country
 
 country_cp_sub <- fm %>%
   filter(transmission_channel == "CP") %>%
@@ -1266,10 +1259,11 @@ income_channel <- fm %>%
 cat("\n--- 5b. Fiscal Totals by Income Group ---\n")
 print(as.data.frame(income_channel))
 
-# Finding: average per-country fiscal effort (% of own GDP):
-#   Advanced economies (AE): 19.48%
-#   Emerging markets (EM):   12.42%
-# Open question: why less in EM — less need, or fewer fiscal possibilities?
+#Per Country share GDP 
+#AE:19.48%
+#EM: 12.42%
+
+#Warum weniger? Weniger need oder weniger Mölcihckeiten??
 
 # --- 5c. Mean country-level totals by region ----------------------------------
 # Average country fiscal effort within each region (treats each country equally).
@@ -1698,40 +1692,14 @@ p_dist <- p_lorenz / (p_cumtop | p_zipf) +
 print(p_dist)
 
 
-# Interpretation of the three panels:
-#
-# Lorenz curve (A) shows the inequality directly. The further the curve is
-# from the diagonal, the more concentrated the volume. CP has the largest
-# distance — the bottom half of CP measures contributes 3.5% of volume,
-# more extreme than the US income distribution. A Gini of 0.78 means: drawing
-# two random CP measures, their sizes differ in expectation by 78% of the mean.
-#
-# Cumulative top-down (B) answers the operational question: how many measures
-# must be correctly identified and classified for the analysis to be robust?
-# For CP the largest ~15% of measures suffice for 80% of volume. Conversely,
-# 85% of measures are nearly irrelevant for the aggregate picture. For the
-# estimation this means classification errors in small measures are tolerable —
-# but a single error in a large guarantee program can shift country totals
-# substantially.
-#
-# Rank-size / Zipf (C) tests whether the distribution follows a power law.
-# An approximately linear log-log plot would imply a Pareto power law, where
-# the variance can be infinite — fundamentally undermining OLS inference.
-# The plot instead shows downward (concave) curvature: the largest measures
-# fall off faster than a power law would predict. This is consistent with a
-# LOG-NORMAL distribution, not a power law. Intuition: fiscal measures face
-# a natural upper bound (no single program can exceed GDP; political and
-# administrative constraints cap program size), so the 5-10 largest measures
-# are smaller than a power law would extrapolate.
-#
-# Econometric implication: the distribution is strongly right-skewed and
-# concentrated (Gini 0.78), but the VARIANCE IS FINITE. Standard errors
-# converge; OLS with robust standard errors is not fundamentally broken.
-# The Zipf plot can still be shown (it documents concentration visually),
-# but the text interpretation should read: heavy-tailed with log-normal
-# structure, not power law. (Note: the panel-C subtitle "approximately linear
-# relationship indicates power-law tail behavior" should arguably read
-# "concavity indicates bounded (log-normal) rather than power-law tail".)
+#Lorenz-Kurve (A) zeigt die Ungleichheit direkt. Je weiter die Kurve von der Diagonale entfernt, desto konzentrierter. CP hat den grössten Abstand — die untere Hälfte der CP-Massnahmen trägt 3.5% zum Volumen bei. Das ist extremer als die US-Einkommensverteilung. Der Gini von 0.78 sagt: würdest du zwei zufällige CP-Massnahmen ziehen, unterscheidet sich ihre Grösse im Erwartungswert um 78% des Mittelwerts.
+#Kumulativer Top-Down (B) beantwortet die operative Frage: wie viele Massnahmen muss man korrekt identifizieren und klassifizieren, damit die Analyse robust ist? Bei CP reichen die grössten ~15% der Massnahmen für 80% des Volumens. Das heisst umgekehrt: 85% der Massnahmen sind für das aggregierte Bild fast irrelevant. Für deine Schätzung bedeutet das, dass Klassifikationsfehler bei kleinen Massnahmen tolerierbar sind — aber ein einzelner Fehler bei einem grossen Garantieprogramm kann die Ländertotals substantiell verschieben.
+#Rank-Size / Zipf (C) testet, ob die Verteilung einem Potenzgesetz folgt. Wenn der Log-Log-Plot annähernd linear ist, folgt die Grössenverteilung einem Power Law — das ist typisch für Systeme wo "Skalenfreiheit" herrscht. Für dich relevant: in einer Power-Law-Verteilung ist der Mittelwert kein guter Lageparameter, und Varianz kann unendlich sein. Das hat Implikationen für die Standardfehler in deiner Panel-Schätzung.
+
+#Zum Zipf (c) Test:
+#Genau, und das ist eigentlich eine gute Nachricht. Ein linearer Zipf-Plot würde ein Pareto-Potenzgesetz implizieren — dort kann die Varianz unendlich sein, was OLS-Inferenz fundamental untergräbt. Dein Plot zeigt stattdessen eine konvexe Krümmung nach unten: die grössten Massnahmen fallen schneller ab als ein Potenzgesetz vorhersagen würde.
+#Das ist konsistent mit einer **Log-Normalverteilung**, nicht mit einem Power Law. Die Intuition: bei einem Potenzgesetz gibt es keinen natürlichen Skalierungsmechanismus — die nächstgrössere Massnahme kann beliebig viel grösser sein. Bei fiskalischen Massnahmen existiert aber eine natürliche Obergrenze: kein einzelnes Programm kann grösser als das BIP sein, und politische sowie administrative Constraints begrenzen die Programmgrösse. Die Kurve knickt oben ab, weil die 5–10 grössten Massnahmen kleiner sind als ein Potenzgesetz extrapolieren würde.
+#Für die Ökonometrie bedeutet das: die Verteilung ist stark rechtsschief und konzentriert (Gini 0.78 bleibt), aber die **Varianz ist endlich**. Standardfehler konvergieren, OLS mit robusten Standardfehlern ist nicht fundamental gebrochen. Du kannst den Zipf-Plot im Paper trotzdem zeigen — er dokumentiert die Konzentration visuell — aber die Interpretation im Text sollte lauten: heavy-tailed mit log-normaler Struktur, nicht Power Law. Streich die Zeile "approximately linear relationship indicates power-law tail behavior" aus dem Subtitle und ersetze sie durch etwas wie "concavity indicates bounded (log-normal) rather than power-law tail."
 
 
 
@@ -2085,12 +2053,10 @@ print(p_cq)
 
 
 
-# Interpretation: Panel B shows the composition dynamics within countries. The
-# median starts at ~90% CP share and declines over time. Crucially, the IQR
-# band widens over time. In Q1.2020 nearly all countries were at 80-100% CP —
-# a homogeneous first response. From Q3.2020 strategies diverge: some remain
-# above 90% CP (France, Italy), others drop below 50% (USA, Chile, Australia).
-# This is exactly the heterogeneity the model can evaluate as optimal or not.
+#zeigt die Kompositionsdynamik innerhalb der Länder. Der Median startet bei ~90% CP-Anteil und fällt im Verlauf. Entscheidend ist aber das 
+#IQR-Band: es wird über die Zeit breiter. In Q1.2020 lagen fast alle Länder bei 80–100% CP — homogene Erstreaktion. Ab Q3.2020 divergieren die 
+#Strategien: einige bleiben bei >90% CP (Frankreich, Italien), andere kippen unter 50% (USA, Chile, Australien). Das ist exakt die Heterogenität, 
+#die dein Modell als suboptimal oder optimal bewerten kann.
 
 
 # ==============================================================================
@@ -2313,29 +2279,25 @@ p_matlab <- ggplot() +
 
 print(p_matlab)
 
-## See Notion (Fiscal Measures) for the full interpretation.
+##See Notion (Fiscal Measures) for full Interpretation
 #...............................................................................
 ###########################STRINGENCY###########################################
 #...............................................................................
 
-# ==============================================================================
-#  DESCRIPTIVE ANALYSIS: STRINGENCY (S)
+
+#  Primärvariable: StringencyIndex_PopWeighted (Oxford CGRT, C1–C8)
+#  Analyseperiode: März 2020 – Dezember 2021 (= Planungshorizont des Modells)
+#  Tägliche Daten (oxd_d), Aggregation auf Quartal für Panel (qdata)
 #
-#  Primary variable: StringencyIndex_PopWeighted (Oxford CGRT, C1-C8)
-#  Analysis period:  March 2020 - December 2021 (= model planning horizon)
-#  Daily data (oxd_d), aggregated to quarters for the panel (qdata)
-#
-#  Structure:
-#   1. Data preparation & period definition
-#   2. Overall distribution & time structure
-#   3. Aggregate OECD trajectory
-#   4. Country heterogeneity
-#   5. Component decomposition (C1-C8)
-#   6. Quarterly aggregation for the panel
-#   7. Descriptive correlation with outcomes
-#   8. Timing coincidence with fiscal measures
-#
-#  Outputs: console diagnostics + figures (printed; key ones saved to safeplots)
+#  Gliederung:
+#   1. Datenvorbereitung & Periodenabgrenzung
+#   2. Gesamtverteilung & Zeitstruktur
+#   3. Aggregierte OECD-Trajektorie
+#   4. Länderheterogenität
+#   5. Komponentenzerlegung (C1–C8)
+#   6. Quartalsaggregation für das Panel
+#   7. Deskriptive Korrelation mit Outcomes
+#   8. Timing-Koinzidenz mit Fiskalmassnahmen
 # ==============================================================================
 
 
@@ -2355,35 +2317,34 @@ theme_aer <- theme_classic(base_size = 10) +
 
 
 # ==============================================================================
-#  1. DATA PREPARATION & PERIOD DEFINITION
-#  Input: oxd_d (daily Oxford data). Output: oxd_panel (used throughout below).
+#  1. DATENVORBEREITUNG & PERIODENABGRENZUNG
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 1: Datenvorbereitung\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- Primary variable: StringencyIndex_PopWeighted ---
-# Construction: simple average of indicators C1-C8 (each 0-100), weighted by
-# population share NV/V once differentiated (vaccinated/unvaccinated) policy
-# is introduced.
-# Covers: school closures (C1), workplace closures (C2), event cancellations
-# (C3), gathering restrictions (C4), public transport restrictions (C5),
-# stay-at-home (C6), domestic movement (C7), international travel (C8).
-# NOT included: health measures (H1-H8), economic policy (E1-E4).
+# --- Primärvariable: StringencyIndex_PopWeighted ---
+# Konstruktion: Einfacher Durchschnitt der Indikatoren C1–C8 (je 0–100),
+# gewichtet nach Bevölkerungsanteil NV/V ab Einführung differenzierter Politik.
+# Erfasst: Schulschliessungen (C1), Arbeitsplatzschliessungen (C2),
+# Veranstaltungsverbote (C3), Versammlungsbeschränkungen (C4),
+# ÖV-Einschränkungen (C5), Stay-at-home (C6), Inlandsbewegung (C7),
+# Internationale Reisen (C8).
+# NICHT enthalten: Gesundheitsmassnahmen (H1–H8), Wirtschaftspolitik (E1–E4).
 
 primary_var <- "StringencyIndex_PopWeighted"
 
-# --- Analysis period: 1 March 2020 - 31 December 2021 ---
-# Rationale: before March 2020 all values are ~0 (no pandemic).
-# From 2022 values converge to 0 (Omicron -> "living with COVID").
-# The analysis window covers the planning horizon of the iLQR model.
+# --- Analyseperiode: 1. März 2020 – 31. Dezember 2021 ---
+# Begründung: Vor März 2020 sind alle Werte ≈ 0 (keine Pandemie).
+# Ab 2022 konvergieren die Werte gegen 0 (Omicron → "living with COVID").
+# Der Analysezeitraum deckt den Planungshorizont des iLQR ab.
 
 oxd_panel <- oxd_d %>%
   filter(Date >= as.Date("2020-03-01"), Date <= as.Date("2021-12-31")) %>%
   mutate(
-    S_raw  = .data[[primary_var]],        # 0-100 scale
-    S      = S_raw / 100,                 # Normalized to [0,1] for the model
+    S_raw  = .data[[primary_var]],        # 0–100 Skala
+    S      = S_raw / 100,                 # Normalisiert auf [0,1] für Modell
     YQ     = paste0("Q", Quarter_Num, ".", Year),
     YQ_ord = factor(YQ, levels = c("Q1.2020","Q2.2020","Q3.2020","Q4.2020",
                                    "Q1.2021","Q2.2021","Q3.2021","Q4.2021"))
@@ -2406,18 +2367,17 @@ cat(sprintf("  Anteil Tage mit S = 0:  %.1f%%\n\n",
 
 
 # ==============================================================================
-#  2. OVERALL DISTRIBUTION & TIME STRUCTURE
-#  Input: oxd_panel. Output: console tables + Figure p_section2 (printed).
+#  2. GESAMTVERTEILUNG & ZEITSTRUKTUR
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
 cat("  SECTION 2: Gesamtverteilung\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 2a. Distribution by year -------------------------------------------------
-# Interpretation: 2020 is right-skewed (mass at 40-70), 2021 is bimodal
-# (strict and relaxed regimes coexist). The leftward shift reflects
-# vaccination progress and adaptation.
+# --- 2a. Verteilung nach Jahr -------------------------------------------------
+# Interpretation: 2020 ist rechtsschief (Masse bei 40–70), 2021 ist bimodal
+# (Koexistenz strenger und lockerer Regime). Die Verschiebung nach links
+# reflektiert Impffortschritt und Anpassung.
 
 year_stats <- oxd_panel %>%
   group_by(Year) %>%
@@ -2450,10 +2410,10 @@ p_dist_year <- ggplot(oxd_panel, aes(x = S_raw, fill = factor(Year))) +
     x = "Stringency Index (0–100)", y = "Density"
   ) + theme_aer
 
-# --- 2b. Distribution by quarter ------------------------------------------------
-# Interpretation: the distribution shifts systematically to the left. Q2.2020
-# has the tightest concentration (all countries in hard lockdown at once).
-# From Q3.2020 variance grows — countries diverge in their exit strategies.
+# --- 2b. Verteilung nach Quartal -----------------------------------------------
+# Interpretation: Die Verteilung wandert systematisch nach links. Q2.2020 hat
+# die engste Konzentration (alle Länder im harten Lockdown gleichzeitig).
+# Ab Q3.2020 wächst die Varianz — Länder divergieren in ihrer Exit-Strategie.
 
 q_stats <- oxd_panel %>%
   group_by(YQ_ord) %>%
@@ -2468,7 +2428,7 @@ q_stats <- oxd_panel %>%
 cat("\n--- 2b. Verteilung nach Quartal ---\n")
 print(kable(q_stats, digits = 1))
 
-# Interpretation: CV increases over time -> growing heterogeneity
+# Interpretation: CV steigt über die Zeit → zunehmende Heterogenität
 cat(sprintf("\n  CV-Trend: Q1.2020 = %.2f → Q4.2021 = %.2f (Heterogenität steigt)\n",
             q_stats$CV[1], q_stats$CV[nrow(q_stats)]))
 
@@ -2494,15 +2454,14 @@ print(p_section2)
 
 
 # ==============================================================================
-#  3. AGGREGATE OECD TRAJECTORY
-#  Input: oxd_panel. Output: console phase diagnostics + trajectory figure.
+#  3. AGGREGIERTE OECD-TRAJEKTORIE
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 3: Aggregierte OECD-Trajektorie\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 3a. Daily OECD aggregate (mean + dispersion band) ------------------------
+# --- 3a. Tägliches OECD-Aggregat (Mean + Streuband) --------------------------
 daily_agg <- oxd_panel %>%
   group_by(Date) %>%
   summarise(
@@ -2516,11 +2475,11 @@ daily_agg <- oxd_panel %>%
     .groups = "drop"
   )
 
-# Interpretation: three phases are visible:
-# (1) March-May 2020: synchronous rise to ~70-80 (universal lockdown)
-# (2) June 2020-March 2021: oscillation 35-55 (lockdown-relaxation cycles)
-# (3) April-Dec 2021: steady decline to ~30 (vaccination -> exit)
-# The IQR band (P25-P75) is narrow in phase 1, wide in phases 2-3.
+# Interpretation: Drei Phasen sind erkennbar:
+# (1) März–Mai 2020: synchroner Anstieg auf ~70–80 (universeller Lockdown)
+# (2) Juni 2020–März 2021: Oszillation 35–55 (Lockdown-Lockerung-Zyklen)
+# (3) April–Dez 2021: stetiger Rückgang auf ~30 (Impfung → Exit)
+# Das IQR-Band (P25–P75) ist in Phase 1 eng, in Phase 2–3 breit.
 
 cat("  Phase 1 (März–Mai 2020): Peak Mean = ", 
     round(max(daily_agg$Mean[daily_agg$Date <= "2020-05-31"]), 1), "\n")
@@ -2540,7 +2499,7 @@ wave_dates <- data.frame(
 )
 
 p_trajectory <- ggplot(daily_agg, aes(x = Date)) +
-  # Dispersion bands: P10-P90 (light) and P25-P75 (dark)
+  # Streuband: P10–P90 (hell) und P25–P75 (dunkel)
   geom_ribbon(aes(ymin = P10, ymax = P90), fill = "grey85", alpha = 0.6) +
   geom_ribbon(aes(ymin = P25, ymax = P75), fill = "grey65", alpha = 0.6) +
   geom_line(aes(y = Mean), color = "black", linewidth = 0.8) +
@@ -2566,11 +2525,11 @@ p_trajectory <- ggplot(daily_agg, aes(x = Date)) +
 print(p_trajectory)
 
 
-# --- 3b. OECD dispersion measure over time ------------------------------------
-# CV = SD/Mean: rises monotonically -> countries diverge over the pandemic
+# --- 3b. OECD-Dispersionsmaß über die Zeit -----------------------------------
+# CV = SD/Mean: steigt monoton → Länder divergieren über die Pandemie hinweg
 
 daily_agg <- daily_agg %>%
-  mutate(CV = SD / pmax(Mean, 1))  # pmax avoids division by ~0
+  mutate(CV = SD / pmax(Mean, 1))  # pmax um Division durch ≈0 zu vermeiden
 
 cat("--- 3b. Dispersion (CV) über die Zeit ---\n")
 cat(sprintf("  CV in April 2020: %.2f\n",
@@ -2581,15 +2540,14 @@ cat(sprintf("  CV in Dez 2021:   %.2f\n\n",
 
 
 # ==============================================================================
-#  4. COUNTRY HETEROGENEITY
-#  Input: oxd_panel. Output: console ranking, bar chart, small-multiples figure.
+#  4. LÄNDERHETEROGENITÄT
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
 cat("  SECTION 4: Länderheterogenität\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 4a. Descriptive statistics by country ------------------------------------
+# --- 4a. Deskriptive Statistiken nach Land ------------------------------------
 country_stats <- oxd_panel %>%
   group_by(Country) %>%
   summarise(
@@ -2602,13 +2560,13 @@ country_stats <- oxd_panel %>%
     P75     = quantile(S_raw, 0.75),
     IQR     = IQR(S_raw),
     CV      = sd(S_raw) / mean(S_raw),
-    # Days in hard lockdown (S > 60)
+    # Tage im harten Lockdown (S > 60)
     Days_gt60    = sum(S_raw > 60),
     Pct_gt60     = mean(S_raw > 60) * 100,
-    # Days with very low stringency (S < 20)
+    # Tage mit sehr geringer Stringency (S < 20)
     Days_lt20    = sum(S_raw < 20),
     Pct_lt20     = mean(S_raw < 20) * 100,
-    # Peak date
+    # Peak-Datum
     Peak_Date    = Date[which.max(S_raw)],
     Peak_Value   = max(S_raw),
     .groups = "drop"
@@ -2683,7 +2641,7 @@ p_small_mult <- oxd_panel %>%
                           pull(l))) %>%
   ggplot(aes(x = Date, y = S_raw)) +
   geom_line(color = "grey30", linewidth = 0.35) +
-  # OECD mean as reference
+  # OECD mean als Referenz
   geom_line(data = daily_agg %>% rename(S_raw = Mean),
             aes(x = Date, y = S_raw),
             color = "#C0392B", linewidth = 0.3, alpha = 0.5) +
@@ -2710,9 +2668,7 @@ print(p_small_mult)
 
 
 # ==============================================================================
-#  5. COMPONENT DECOMPOSITION (C1-C8)
-#  Input: oxd_panel component indicators. Output: console table, line figure,
-#  phase heatmap (printed).
+#  5. KOMPONENTENZERLEGUNG (C1–C8)
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
@@ -2731,7 +2687,7 @@ component_labels <- c("C1: Schools","C2: Workplaces","C3: Public Events",
                       "C6: Stay-at-Home","C7: Internal Movement",
                       "C8: Intl. Travel")
 
-# --- 5a. Mean by component over time ---
+# --- 5a. Mean nach Komponente über die Zeit ---
 comp_daily <- oxd_panel %>%
   select(Date, all_of(component_vars)) %>%
   group_by(Date) %>%
@@ -2781,8 +2737,8 @@ p_components <- ggplot(comp_daily, aes(x = Date, y = Value, color = Label)) +
 
 print(p_components)
 
-# --- 5b. Component structure by phase ------------------------------------------
-# Which instruments dominate in which pandemic phase?
+# --- 5b. Komponentenstruktur nach Phase ----------------------------------------
+# Welche Instrumente dominieren in welcher Pandemiephase?
 
 comp_phase <- oxd_panel %>%
   mutate(Phase = case_when(
@@ -2821,24 +2777,22 @@ print(p_comp_heatmap)
 
 
 # ==============================================================================
-#  6. QUARTERLY AGGREGATION FOR THE PANEL
-#  Input: oxd_panel. Output: q_stringency (country x quarter S, reused in
-#  Section 7/8) + console diagnostics.
+#  6. QUARTALSAGGREGATION FÜR DAS PANEL
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 6: Quartalsaggregation\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 6a. Aggregation: mean per country x quarter ------------------------------
-# The quarterly mean is the correct aggregation for the iLQR:
-# S_k represents the average intensity in quarter k.
+# --- 6a. Aggregation: Mean pro Country × Quarter -----------------------------
+# Der Quartalsdurchschnitt ist die korrekte Aggregation für den iLQR:
+# S_k repräsentiert die durchschnittliche Intensität im Quartal k.
 
 q_stringency <- oxd_panel %>%
   group_by(Country, YQ_ord) %>%
   summarise(
-    S_mean   = mean(S, na.rm = TRUE),         # Model scale [0,1]
-    S_raw    = mean(S_raw, na.rm = TRUE),      # Original scale [0,100]
+    S_mean   = mean(S, na.rm = TRUE),         # Modell-Skala [0,1]
+    S_raw    = mean(S_raw, na.rm = TRUE),      # Originalskala [0,100]
     S_max    = max(S_raw, na.rm = TRUE),
     S_min    = min(S_raw, na.rm = TRUE),
     S_sd     = sd(S_raw, na.rm = TRUE),
@@ -2880,8 +2834,8 @@ cat(sprintf("  • Mean S fällt von %.1f (Q2.2020) auf %.1f (Q4.2021) = −%.0f
                q_cross$Mean[q_cross$YQ_ord == "Q2.2020"]) * 100))
 
 # --- 6b. Within-quarter variation (S_range per country) -----------------------
-# How much does S vary within a quarter? High intra-quarter variation means
-# the quarterly mean loses information.
+# Wie stark variiert S innerhalb eines Quartals? Hohe Intra-Quartal-Variation
+# bedeutet, dass der Quartalsdurchschnitt Information verliert.
 
 cat("\n--- 6b. Within-Quarter Variation (S_range = max − min within country×quarter) ---\n")
 wq_stats <- q_stringency %>%
@@ -2897,7 +2851,7 @@ cat(sprintf("  → Durchschnittliche Intra-Quartal-Range: %.1f Punkte\n",
 cat("  → Quartalsdurchschnitt glättet erheblich. Für Robustness: S_max verwenden.\n")
 
 
-# --- 6c. Panel mapping: quarterly S on model scale [0,1] ----------------------
+# --- 6c. Panel-Mapping: S-Quartale auf Modellskala ---------------------------
 
 cat("\n--- 6c. S auf Modellskala [0,1] ---\n")
 s_panel_stats <- q_stringency %>%
@@ -2918,9 +2872,7 @@ cat("  → Im Modell: α_S × S ≈ 12 × 0.42 = 5.0pp GDP-Verlust (OECD-Durchsc
 
 
 # ==============================================================================
-#  7. DESCRIPTIVE CORRELATION WITH OUTCOMES (not causal)
-#  Input: qdata outcomes + q_stringency. Output: outcome_panel object,
-#  console correlations, scatter figures.
+#  7. DESKRIPTIVE KORRELATION MIT OUTCOMES
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
@@ -3011,9 +2963,7 @@ print(p_scatter_all)
 
 
 # ==============================================================================
-#  8. TIMING COINCIDENCE WITH FISCAL MEASURES
-#  Input: fm_d (fiscal) + q_stringency. Output: sf_panel object, console
-#  correlations, dual-panel timing figure.
+#  8. TIMING-KOINZIDENZ MIT FISKALMASSNAHMEN
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
@@ -3038,7 +2988,7 @@ sf_panel <- q_stringency %>%
   replace_na(list(CP = 0, DI = 0, H = 0)) %>%
   mutate(Total_Fiscal = CP + DI + H)
 
-# --- 8a. Correlation S vs. fiscal volume ---------------------------------------
+# --- 8a. Korrelation S vs. Fiskalvolumen --------------------------------------
 cat("--- 8a. Korrelation S vs. Fiskalvolumen (country-quarter level) ---\n")
 cat(sprintf("  corr(S, Total) = %.3f\n",
             cor(sf_panel$S_raw, sf_panel$Total_Fiscal, use = "complete.obs")))
@@ -3069,7 +3019,7 @@ sf_agg <- sf_panel %>%
                           levels = c("Q1.2020","Q2.2020","Q3.2020","Q4.2020",
                                      "Q1.2021","Q2.2021","Q3.2021","Q4.2021")))
 
-# Dual panel: S on top, fiscal below (no dual axis; patchwork instead)
+# Dual panel: S oben, Fiscal unten (kein dual-axis, stattdessen patchwork)
 p_timing_s <- ggplot(sf_agg, aes(x = Quarter, y = S_mean, group = 1)) +
   geom_line(linewidth = 0.8, color = "black") +
   geom_point(size = 2.5, color = "black") +
@@ -3134,12 +3084,14 @@ cat("  6. Contemporane Korrelationen sind endogen und nicht kausal\n")
 cat("     interpretierbar. Strukturelle Identifikation erfordert den iLQR.\n\n")
 
 
-## Full interpretation: see Notion (Stringency)
+##Full Interpretation see Notion (Stringency)
 
 
-# Clean up intermediate objects from the Fiscal Measures and Stringency
-# sections (no longer needed downstream; frees memory).
-rm(adoption, blw_non_cp, by_channel_imf, category_summary, channel_stats,
+
+
+# Listet die Namen aller Dataframes im Global Environment auf
+Filter(function(x) is.data.frame(get(x)), ls())
+rm(adoption, blw_non_cp, by_channel_imf, category_summary, channel_stats, 
    comp_daily, comp_phase, comp_summary, cors, count_long, country_channel, 
    country_cp_sub, country_cv, country_pies, country_plot, country_quarter, 
    country_stats, country_totals, cp_decomp, cp_share_labels, cqc, cqc_wide, 
@@ -3163,28 +3115,23 @@ rm(adoption, blw_non_cp, by_channel_imf, category_summary, channel_stats,
 ################################EXCESS DEATHS###################################
 #...............................................................................
 
-# ==============================================================================
-#  DESCRIPTIVE ANALYSIS: EXCESS DEATHS (d)
+#  Primärvariable: p_proj_all_ages (P-score mit projizierter Baseline)
+#  Robustness:     excess_per_million_proj_all_ages (Excess Deaths per Million)
+#  Quelle:         Our World in Data — Excess Mortality (Karlinsky & Kobak, 2021)
+#  Analyseperiode: März 2020 – Dezember 2021
+#  Wochendaten (p_values_oecd_w), Aggregation auf Quartal
 #
-#  Primary variable: p_proj_all_ages (P-score with projected baseline)
-#  Robustness:       excess_per_million_proj_all_ages (excess deaths per million)
-#  Source:           Our World in Data — Excess Mortality (Karlinsky & Kobak, 2021)
-#  Analysis period:  March 2020 - December 2021
-#  Weekly data (p_values_oecd_w), aggregated to quarters
-#
-#  Structure:
-#   1. Data preparation & variable choice
-#   2. Overall distribution
-#   3. Aggregate OECD trajectory (wave structure)
-#   4. Country heterogeneity (between variation)
-#   5. Within-country variation
-#   6. Between vs. within: ANOVA decomposition
-#   7. Wave analysis (asynchronicity & correlation structure)
-#   8. Lag structure S -> theta -> d (endogeneity diagnostics)
-#   9. Age decomposition
-#  10. Quarterly aggregation & model mapping
-#
-#  Outputs: console diagnostics + figures (printed; key ones saved to safeplots)
+#  Gliederung:
+#   1. Datenvorbereitung & Variablenwahl
+#   2. Gesamtverteilung
+#   3. Aggregierte OECD-Trajektorie (Wellenstruktur)
+#   4. Länderheterogenität (Between-Variation)
+#   5. Within-Country-Variation
+#   6. Between vs. Within: ANOVA-Zerlegung
+#   7. Wellenanalyse (Asynchronität & Korrelationsstruktur)
+#   8. Lag-Struktur S → θ → d (Endogenitätsdiagnostik)
+#   9. Altersdekomposition
+#  10. Quartalsaggregation & Modell-Mapping
 # ==============================================================================
 
 # --- AER Theme ----------------------------------------------------------------
@@ -3201,34 +3148,33 @@ theme_aer <- theme_classic(base_size = 10) +
     strip.text         = element_text(face = "bold", size = 8)
   )
 
-# --- Color palette for waves ----------------------------------------------------
+# --- Farbpalette für Wellen ---------------------------------------------------
 wave_colors <- c(
-  "W1: Original"  = "#D62728",  # red
-  "Trough 1"      = "#7F7F7F",  # grey
-  "W2: Alpha"      = "#FF7F0E",  # orange
+  "W1: Original"  = "#D62728",  # Rot
+  
+  "Trough 1"      = "#7F7F7F",  # Grau
+  "W2: Alpha"      = "#FF7F0E",  # Orange
   "Trough 2"      = "#7F7F7F",
-  "W3: Delta"      = "#2CA02C",  # green
-  "W4: Omicron"    = "#1F77B4"   # blue
+  "W3: Delta"      = "#2CA02C",  # Grün
+  "W4: Omicron"    = "#1F77B4"   # Blau
 )
 
 
 # ==============================================================================
-#  1. DATA PREPARATION & VARIABLE CHOICE
-#  Input: p_values_oecd_w. Output: mort_panel (used throughout this block).
+#  1. DATENVORBEREITUNG & VARIABLENWAHL
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 1: Datenvorbereitung & Variablenwahl\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- Variable choice: p_proj_all_ages -------------------------------------------
-# The P-score compares observed deaths against a *projected* baseline that
-# extrapolates demographic trends (aging) beyond 2020. The alternative
-# p_avg_all_ages uses the 2015-2019 average, which systematically overstates
-# excess mortality in aging societies (upward bias ~3.2 pp on average).
-# The robustness variable excess_per_million_proj_all_ages gives the absolute
-# rate per million per week — directly interpretable and maps to
-# delta_theta * theta_k in the model.
+# --- Variablenwahl: p_proj_all_ages -------------------------------------------
+# Der P-score vergleicht beobachtete Todesfälle mit einer *projizierten* Baseline,
+# die demografische Trends (Alterung) seit 2020 fortschreibt. Die Alternative
+# p_avg_all_ages nutzt den Durchschnitt 2015–2019, was in alternden Gesellschaften
+# systematisch überschätzt (upward bias ≈ 3.2 Prozentpunkte im Mittel).
+# Die Robustness-Variable excess_per_million_proj_all_ages gibt die absolute Rate
+# pro Million und Woche — direkt interpretierbar und mappt auf δ_θ · θ_k im Modell.
 
 mort_panel <- p_values_oecd_w %>%
   filter(
@@ -3252,7 +3198,7 @@ mort_panel <- p_values_oecd_w %>%
     YQ_ord = factor(YQ, levels = c("2020Q1","2020Q2","2020Q3","2020Q4",
                                    "2021Q1","2021Q2","2021Q3","2021Q4",
                                    "2022Q1", "2022Q2","2022Q3","2022Q4")),
-    # Wave assignment (OECD consensus timing)
+    # Wellenzuordnung (OECD-Konsensus-Timing)
     Wave = case_when(
       date <= as.Date("2020-06-30") ~ "W1: Original",
       date <= as.Date("2020-09-30") ~ "Trough 1",
@@ -3290,18 +3236,17 @@ cat(sprintf("    corr(d_flow, d_flow_avg) = %.3f\n\n",
 
 
 # ==============================================================================
-#  2. OVERALL DISTRIBUTION
-#  Input: mort_panel. Output: console tables + distribution figure (printed).
+#  2. GESAMTVERTEILUNG
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
 cat("  SECTION 2: Gesamtverteilung\n")
 cat(strrep("=", 70), "\n\n")
 
-# Interpretation: strongly right-skewed — most country-weeks are near the
-# baseline; the fat right tail comes from pandemic peaks. 26.7% of weeks
-# BELOW baseline reflects reduced non-COVID mortality (fewer traffic
-# accidents, postponed procedures, lockdown effects).
+# Interpretation: Stark rechtsschief — die meisten Country-Weeks sind nahe der
+# Baseline, der fette rechte Tail stammt von Pandemie-Peaks. 26.7% der Wochen
+# UNTER Baseline reflektiert reduzierte Non-COVID-Mortalität (weniger Verkehrs-
+# unfälle, aufgeschobene Eingriffe, Lockdown-Effekte).
 
 overall_stats <- mort_panel %>%
   summarise(
@@ -3322,7 +3267,7 @@ overall_stats <- mort_panel %>%
 cat("  Verteilung d_flow (P-score, projizierte Baseline):\n")
 print(kable(overall_stats, digits = 2))
 
-# --- 2a. Density by year -------------------------------------------------------
+# --- 2a. Dichte nach Jahr ----------------------------------------------------
 
 year_stats <- mort_panel %>%
   group_by(Year) %>%
@@ -3345,10 +3290,10 @@ p_dist_year <- ggplot(mort_panel, aes(x = d_flow, fill = factor(Year))) +
     x = "P-score (% excess above projected baseline)", y = "Density"
   ) + theme_aer
 
-# --- 2b. Distribution by quarter -------------------------------------------------
-# Interpretation: wave structure clearly visible. Q4.2020 and Q4.2021 have the
-# highest means (Alpha and Omicron peaks). The distribution is narrow and
-# symmetric in wave troughs, wide and right-skewed at peaks.
+# --- 2b. Verteilung nach Quartal ----------------------------------------------
+# Interpretation: Wellenstruktur klar sichtbar. Q4.2020 und Q4.2021 haben die
+# höchsten Mittelwerte (Alpha- bzw. Omicron-Peak). Die Verteilung wird in
+# Wellentälern eng und symmetrisch, in Peaks breit und rechtsschief.
 
 q_stats <- mort_panel %>%
   group_by(YQ_ord) %>%
@@ -3387,16 +3332,14 @@ print(p_section2)
 
 
 # ==============================================================================
-#  3. AGGREGATE OECD TRAJECTORY (WAVE STRUCTURE)
-#  Input: mort_panel. Output: weekly_agg (reused below), peak/trough console
-#  diagnostics, trajectory figure.
+#  3. AGGREGIERTE OECD-TRAJEKTORIE (WELLENSTRUKTUR)
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 3: Aggregierte OECD-Trajektorie\n")
 cat(strrep("=", 70), "\n\n")
 
-# Compute weekly aggregates across all 35 countries
+# Berechne wöchentliche Aggregate über alle 35 Länder
 weekly_agg <- mort_panel %>%
   group_by(date) %>%
   summarise(
@@ -3412,7 +3355,7 @@ weekly_agg <- mort_panel %>%
     .groups = "drop"
   )
 
-# --- Identify wave peaks --------------------------------------------------------
+# --- Wellenpeaks identifizieren -----------------------------------------------
 wave_windows <- list(
   W1 = c("2020-03-01", "2020-06-30"),
   W2 = c("2020-10-01", "2021-03-31"),
@@ -3442,12 +3385,12 @@ for (tn in names(trough_windows)) {
   cat(sprintf("    %s: %.1f%% (Woche %s)\n", tn, trough_row$Mean, trough_row$date))
 }
 
-# --- Main plot: OECD trajectory with uncertainty bands -------------------------
-# Interpretation: four clearly separated waves. The bands (P10-P90) show massive
-# heterogeneity during peaks: some countries double their mortality, others
-# remain near baseline. In troughs everyone converges.
+# --- Hauptplot: OECD-Trajektorie mit Unsicherheitsbändern --------------------
+# Interpretation: Vier klar getrennte Wellen. Die Bänder (P10–P90) zeigen massive
+# Heterogenität während der Peaks: einige Länder verdoppeln ihre Mortalität,
+# andere bleiben nahe der Baseline. In Troughs konvergieren alle.
 
-# Prepare wave annotations
+# Annotationen für Wellen vorbereiten
 wave_labels <- tibble(
   date  = as.Date(c("2020-04-15","2020-12-15","2021-08-01","2021-11-15")),
   y     = c(27, 32, 19, 29),
@@ -3455,15 +3398,15 @@ wave_labels <- tibble(
 )
 
 p_trajectory <- ggplot(weekly_agg, aes(x = date)) +
-  # Bands
+  # Bänder
   geom_ribbon(aes(ymin = P10, ymax = P90), fill = "#D62728", alpha = 0.12) +
   geom_ribbon(aes(ymin = P25, ymax = P75), fill = "#D62728", alpha = 0.25) +
-  # Lines
+  # Linien
   geom_line(aes(y = Mean), color = "#D62728", linewidth = 0.9) +
   geom_line(aes(y = Median), color = "black", linewidth = 0.5, linetype = "dashed") +
   # Baseline
   geom_hline(yintercept = 0, color = "black", linewidth = 0.4) +
-  # Wave labels
+  # Wellenlabels
   geom_text(data = wave_labels, aes(x = date, y = y, label = label),
             size = 2.8, fontface = "italic", family = "serif", color = "grey30") +
   scale_x_date(date_breaks = "3 months", date_labels = "%b %Y",
@@ -3476,7 +3419,7 @@ p_trajectory <- ggplot(weekly_agg, aes(x = date)) +
   ) + theme_aer
 print(p_trajectory)
 
-# --- Supplementary: share of countries with positive excess per week -----------
+# --- Ergänzend: Anteil Länder mit positivem Excess pro Woche ------------------
 p_share_pos <- ggplot(weekly_agg, aes(x = date, y = N_pos / (N_pos + N_neg) * 100)) +
   geom_area(fill = "#D62728", alpha = 0.3) +
   geom_line(color = "#D62728", linewidth = 0.5) +
@@ -3492,8 +3435,7 @@ print(p_share_pos)
 
 
 # ==============================================================================
-#  4. COUNTRY HETEROGENEITY (BETWEEN VARIATION)
-#  Input: mort_panel. Output: country_stats, console ranking, two figures.
+#  4. LÄNDERHETEROGENITÄT (BETWEEN-VARIATION)
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
@@ -3526,7 +3468,7 @@ cat(sprintf("    Range of means: [%.1f, %.1f]\n", min(country_stats$Mean), max(c
 cat(sprintf("    SD of means: %.1f\n", sd(country_stats$Mean)))
 cat(sprintf("    CV of means: %.2f\n", sd(country_stats$Mean) / mean(country_stats$Mean)))
 
-# --- Cumulative excess deaths per million (end 2021) ---------------------------
+# --- Kumulative Excess Deaths per Million (End 2021) --------------------------
 cat(sprintf("\n  Cumulative excess deaths/million (end Dec 2021):\n"))
 cs_cum <- country_stats %>% arrange(desc(Cum_end))
 cat(sprintf("    Top 5: %s\n", paste(sprintf("%s (%.0f)", head(cs_cum$Country, 5), head(cs_cum$Cum_end, 5)), collapse = ", ")))
@@ -3534,9 +3476,9 @@ cat(sprintf("    Bottom 5: %s\n", paste(sprintf("%s (%.0f)", tail(cs_cum$Country
 cat(sprintf("    OECD mean: %.0f, median: %.0f\n", mean(cs_cum$Cum_end), median(cs_cum$Cum_end)))
 
 # --- Plot: Cumulative Excess Deaths per Million, End 2021 ---------------------
-# Interpretation: massive heterogeneity. Factor >10 between the most and least
-# affected countries. NZL is NEGATIVE — fewer deaths than expected over the
-# entire period.
+# Interpretation: Massive Heterogenität. Faktor >10 zwischen den am stärksten
+# und am schwächsten betroffenen Ländern. NZL ist NEGATIV — weniger Todesfälle
+# als erwartet über den gesamten Zeitraum.
 
 p_cum <- country_stats %>%
   mutate(Country = fct_reorder(Country, Cum_end)) %>%
@@ -3556,7 +3498,7 @@ p_cum <- country_stats %>%
 print(p_cum)
 
 # --- Plot: Mean P-score vs. Cumulative per Million ----------------------------
-# Cross-check: are the two measures consistent?
+# Cross-check: sind die beiden Masse konsistent?
 p_mean_vs_cum <- ggplot(country_stats, aes(x = Mean, y = Cum_end)) +
   geom_point(color = "#D62728", size = 2) +
   geom_text(aes(label = Country), size = 2.2, nudge_y = 150, family = "serif") +
@@ -3571,18 +3513,16 @@ print(p_mean_vs_cum)
 
 
 # ==============================================================================
-#  5. WITHIN-COUNTRY VARIATION
-#  Input: mort_panel. Output: within_stats, spike/sustained classification,
-#  spaghetti + archetype figures.
+#  5. WITHIN-COUNTRY-VARIATION
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 5: Within-Country-Variation\n")
 cat(strrep("=", 70), "\n\n")
 
-# Interpretation: some countries (MEX, COL) are PERMANENTLY above baseline.
-# Others (GBR, ITA, BEL) have sharp peaks with long normal periods.
-# The temporal concentration of excess mortality varies dramatically.
+# Interpretation: Einige Länder (MEX, COL) sind DAUERHAFT über der Baseline.
+# Andere (GBR, ITA, BEL) haben scharfe Peaks mit langen Normalperioden.
+# Die temporale Konzentration der Excess Mortality variiert dramatisch.
 
 within_stats <- mort_panel %>%
   group_by(Country) %>%
@@ -3603,7 +3543,7 @@ print(kable(within_stats %>% select(Country, Mean, SD, Range, CV, Pct_gt20, Pct_
             digits = 1,
             col.names = c("Country","Mean","SD","Range","CV","%>20","%neg")))
 
-# --- Temporal concentration: spike vs. sustained pattern -----------------------
+# --- Temporale Konzentration: Spike vs. Sustained Pattern ---------------------
 cat("\n  Temporale Konzentration der Excess Mortality:\n")
 cat("  (Anteil des totalen Excess aus Wochen mit d_flow > 20%)\n\n")
 conc_stats <- mort_panel %>%
@@ -3636,13 +3576,13 @@ for (i in 1:nrow(conc_stats)) {
 cat(sprintf("\n  Pattern distribution: %s\n",
             paste(names(table(conc_stats$pattern)), table(conc_stats$pattern), sep = ": ", collapse = ", ")))
 
-# --- Plot: spaghetti of all countries with wave structure ----------------------
-# Shows the asynchronous wave structure: not all waves hit all countries at
-# the same time or with the same intensity.
+# --- Plot: Spaghetti aller Länder mit Wellenstruktur -------------------------
+# Zeigt die asynchrone Wellenstruktur: nicht alle Wellen treffen alle Länder
+# gleichzeitig oder mit gleicher Intensität.
 
 p_spaghetti <- ggplot(mort_panel, aes(x = date, y = d_flow, group = Country)) +
   geom_line(alpha = 0.2, linewidth = 0.3, color = "grey40") +
-  # Highlight the OECD aggregate
+  # OECD-Aggregat hervorheben
   geom_line(data = weekly_agg, aes(x = date, y = Mean, group = 1),
             color = "#D62728", linewidth = 1, inherit.aes = FALSE) +
   geom_hline(yintercept = 0, linewidth = 0.4) +
@@ -3656,7 +3596,7 @@ p_spaghetti <- ggplot(mort_panel, aes(x = date, y = d_flow, group = Country)) +
   ) + theme_aer
 print(p_spaghetti)
 
-# --- Spotlight: selected archetype countries ------------------------------------
+# --- Spotlight: Ausgewählte Archetypes ----------------------------------------
 archetypes <- c("USA", "GBR", "DEU", "ITA", "MEX", "AUS", "KOR", "NZL")
 
 p_archetypes <- mort_panel %>%
@@ -3679,19 +3619,17 @@ print(p_archetypes)
 
 
 # ==============================================================================
-#  6. BETWEEN VS. WITHIN: ANOVA DECOMPOSITION
-#  Input: mort_panel. Output: console variance decomposition (validation of
-#  which variation the model identification relies on).
+#  6. BETWEEN VS. WITHIN: ANOVA-ZERLEGUNG
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 6: ANOVA-Zerlegung (Between vs. Within)\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- Classical ANOVA decomposition ---------------------------------------------
-# Total variation = between (country means) + within (deviations from country mean)
-# For identification: within identifies delta_theta and S -> theta -> d;
-#                     between identifies country-specific exposure and response.
+# --- Klassische ANOVA-Zerlegung -----------------------------------------------
+# Total Variation = Between (Ländermittelwerte) + Within (Abweichungen vom Ländermittel)
+# Für Identification: Within identifiziert δ_θ und S → θ → d;
+#                     Between identifiziert länderspezifische Exposition und Reaktion.
 
 grand_mean <- mean(mort_panel$d_flow)
 country_means <- mort_panel %>% group_by(Country) %>%
@@ -3718,10 +3656,10 @@ cat(sprintf("  ANOVA — d_rate (excess deaths per million/week):\n"))
 cat(sprintf("    SS_between: %.1f%%,  SS_within: %.1f%%\n\n",
             SS_b_rate / SS_t_rate * 100, (1 - SS_b_rate / SS_t_rate) * 100))
 
-# --- Time-varying ANOVA: between share by quarter ------------------------------
-# Interpretation: in wave troughs WITHIN variation is high (all countries near
-# zero but fluctuating individually). At peaks the BETWEEN share rises because
-# the waves hit different countries differently.
+# --- Zeitvariante ANOVA: Between-Anteil nach Quartal --------------------------
+# Interpretation: In Wellentälern ist WITHIN-Variation hoch (alle Länder nahe null,
+# aber individuell fluktuierend). In Peaks steigt der BETWEEN-Anteil, weil die
+# Wellen verschiedene Länder unterschiedlich treffen.
 
 cat("  Between-Anteil nach Quartal:\n")
 q_anova <- mort_panel %>%
@@ -3748,16 +3686,14 @@ cat("    fixe Ländermerkmale.\n\n")
 
 
 # ==============================================================================
-#  7. WAVE ANALYSIS (ASYNCHRONICITY & CORRELATION STRUCTURE)
-#  Input: mort_panel. Output: wave statistics, pairwise/regional correlations,
-#  correlation heatmap figure.
+#  7. WELLENANALYSE (ASYNCHRONITÄT & KORRELATIONSSTRUKTUR)
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
 cat("  SECTION 7: Wellenanalyse\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 7a. Wave statistics (OECD) -------------------------------------------------
+# --- 7a. Wellenstatistiken (OECD) ---------------------------------------------
 
 wave_stats <- mort_panel %>%
   group_by(Wave) %>%
@@ -3776,9 +3712,9 @@ wave_stats <- mort_panel %>%
 cat("--- 7a. Wellenstatistiken (OECD) ---\n")
 print(kable(wave_stats, digits = 1))
 
-# --- 7b. Country-specific wave means ---------------------------------------------
-# Who was hit WHEN? Crucial for identification: variation in the temporal
-# sequencing of waves across countries.
+# --- 7b. Länderspezifische Wellenmittelwerte ----------------------------------
+# Wer wurde WANN getroffen? Entscheidend für Identifikation: Variation in der
+# zeitlichen Abfolge der Wellen zwischen Ländern.
 
 wave_country <- mort_panel %>%
   group_by(Country, Wave) %>%
@@ -3789,11 +3725,11 @@ cat("\n--- 7b. Länderspezifische Wellenmittelwerte ---\n")
 print(kable(wave_country %>% arrange(desc(`W1: Original`)),
             digits = 1))
 
-# --- 7c. Pairwise correlations ----------------------------------------------------
-# Interpretation: low mean pairwise correlation (r ~ 0.2) shows the wave
-# structure is ASYNCHRONOUS — mortality peaks hit countries at different
-# times. This matters for identification: it provides within variation that
-# is not absorbed by a common time effect.
+# --- 7c. Paarweise Korrelationen ----------------------------------------------
+# Interpretation: Geringe mittlere paarweise Korrelation (r ≈ 0.2) zeigt, dass
+# die Wellenstruktur ASYNCHRON ist — die Mortalitätspeaks treffen Länder zu
+# verschiedenen Zeitpunkten. Dies ist identifikationsrelevant: es liefert
+# Within-Variation, die nicht durch einen gemeinsamen Zeiteffekt absorbiert wird.
 
 wide_mort <- mort_panel %>%
   select(Country, date, d_flow) %>%
@@ -3807,7 +3743,7 @@ cat(sprintf("    Mean: %.3f, Median: %.3f, SD: %.3f\n", mean(upper_tri), median(
 cat(sprintf("    Range: [%.3f, %.3f]\n", min(upper_tri), max(upper_tri)))
 cat(sprintf("    %% negativ: %.1f%%\n\n", mean(upper_tri < 0) * 100))
 
-# Regional correlations
+# Regionale Korrelationen
 regions <- list(
   Europe = c("AUT","BEL","CZE","DEU","DNK","ESP","EST","FIN","FRA","GBR",
              "GRC","HUN","IRL","ISL","ITA","LTU","LUX","LVA","NLD","NOR",
@@ -3828,8 +3764,8 @@ for (reg_name in names(regions)) {
   }
 }
 
-# --- Plot: correlation matrix (heatmap) ------------------------------------------
-# Sorted by regional groups for visual cluster detection
+# --- Plot: Korrelationsmatrix (Heatmap) ---------------------------------------
+# Sortiert nach Regionengruppen für visuelle Cluster-Erkennung
 
 region_order <- c(regions$NorthAm, regions$AsiaPac, regions$LatAm, regions$Europe)
 region_order <- intersect(region_order, colnames(corr_matrix))
@@ -3858,18 +3794,16 @@ print(p_corr_heat)
 
 
 # ==============================================================================
-#  8. LAG STRUCTURE S -> theta -> d (ENDOGENEITY DIAGNOSTICS)
-#  Input: mort_panel + oxd_d. Output: merged_sd, lag_corrs, cross-correlogram
-#  and lag-distribution figures + console diagnostics.
+#  8. LAG-STRUKTUR S → θ → d (ENDOGENITÄTSDIAGNOSTIK)
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 8: Lag-Struktur S → θ → d\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- Compute weekly S (Oxford stringency -> week ending Sunday) ----------------
-# The excess mortality data are structured by week (Sunday). We aggregate the
-# daily stringency values onto the same weekly structure.
+# --- Wöchentliche S berechnen (Oxford Stringency → Wochenende Sonntag) --------
+# Die Excess-Mortality-Daten sind nach Woche (Sonntag) strukturiert.
+# Wir aggregieren die täglichen Stringency-Werte auf dieselbe Wochenstruktur.
 
 s_weekly <- oxd_d %>%
   filter(Date >= as.Date("2020-02-01"), Date <= as.Date("2021-12-31")) %>%
@@ -3886,16 +3820,44 @@ merged_sd <- mort_panel %>%
 
 cat(sprintf("  Merged panel: %d obs (%d Länder)\n\n", nrow(merged_sd), n_distinct(merged_sd$Country)))
 
-# --- 8a. Aggregate cross-correlation S(t) vs d(t+lag) ---------------------------
-# Interpretation: the POSITIVE correlation at lag=0 is the endogeneity
-# signature: governments relax when mortality falls and tighten when it rises.
-# The NEGATIVE sign at lag ~5-7 weeks reflects the causal channel
-# S -> theta -> d: lockdown suppresses infections, which lower mortality
-# 3-4 weeks later.
+# --- 8a. Aggregierte Cross-Korrelation S(t) vs d(t+lag) ----------------------
+# Interpretation: Die POSITIVE Korrelation bei lag=0 ist die Endogenitätssignatur:
+# Regierungen lockern bei fallender Mortalität und verschärfen bei steigender.
+# Das NEGATIVE Vorzeichen bei lag ≈ 5–7 Wochen reflektiert den kausalen Kanal
+# S → θ → d: Lockdown unterdrückt Infektionen, die 3–4 Wochen später die
+# Mortalität senken.
 
-# NOTE: a superseded ccf()-based cross-correlation block was moved to
-# descriptives_superseded.R on 2026-07-12 (it referenced agg_sd before its
-# definition and was replaced by the manual lag_corrs computation below).
+# Berechnet alle Lags von -10 bis +10 automatisch (plot = FALSE unterdrückt den direkten Plot)
+cross_corr <- ccf(agg_sd$S, agg_sd$d, lag.max = 10, na.action = na.pass, plot = FALSE)
+
+# Falls du es als Tibble brauchst, kannst du es direkt umwandeln:
+lag_corrs_ccf <- tibble(
+  lag = as.vector(cross_corr$lag),
+  r   = as.vector(cross_corr$acf)
+) %>%
+  filter(lag >= -8) # Filtert es auf deine gewünschte Range (-8 bis 10)
+
+# ggplot initialisieren
+ggplot(lag_corrs_ccf, aes(x = lag, y = r)) +
+  # Vertikale Linien von 0 bis zum Korrelationswert (r)
+  geom_segment(aes(xend = lag, yend = 0), color = "steelblue", linewidth = 1) +
+  # Punkte an der Spitze der Linien
+  geom_point(color = "steelblue", size = 3) +
+  # Horizontale Nulllinie zur besseren Orientierung
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+  # Das Aussehen etwas aufgeräumter machen
+  theme_minimal() +
+  # Beschriftungen hinzufügen
+  labs(
+    title = "Kreuzkorrelation zwischen S und d",
+    subtitle = "Lags von -8 bis +10",
+    x = "Lag",
+    y = "Korrelation (r)"
+  ) +
+  # Die x-Achse so einstellen, dass jeder Lag-Schritt angezeigt wird
+  scale_x_continuous(breaks = -8:10)
+
+
 
 agg_sd <- merged_sd %>%
   group_by(date) %>%
@@ -3906,7 +3868,7 @@ lag_range <- -8:10
 lag_corrs <- tibble(
   lag = lag_range,
   r   = sapply(lag_range, function(l) {
-    # Shift direction depends on the sign of the lag
+    # Bedingung für die Richtung der Verschiebung
     if (l > 0) {
       shifted_d <- lead(agg_sd$d, l)
     } else if (l < 0) {
@@ -3914,11 +3876,13 @@ lag_corrs <- tibble(
     } else {
       shifted_d <- agg_sd$d
     }
-
-    # Compute correlation
+    
+    # Korrelation berechnen
     cor(agg_sd$S, shifted_d, use = "complete.obs")
   })
 )
+
+print(lag_corrs)
 
 cat("  Cross-Korrelationen: corr(S_t, d_{t+lag}), OECD-Aggregat:\n")
 cat(sprintf("  %12s %14s %20s\n", "Lag (Wochen)", "Korrelation", ""))
@@ -3932,7 +3896,7 @@ for (i in 1:nrow(lag_corrs)) {
   cat(sprintf("  %12d %14.3f  %s\n", l, r, note))
 }
 
-# --- Plot: cross-correlogram ----------------------------------------------------
+# --- Plot: Cross-Korrelogramm ------------------------------------------------
 p_ccf <- ggplot(lag_corrs, aes(x = lag, y = r)) +
   geom_col(aes(fill = r > 0), width = 0.7, show.legend = FALSE) +
   scale_fill_manual(values = c("TRUE" = "#D62728", "FALSE" = "#1F77B4")) +
@@ -3950,7 +3914,7 @@ p_ccf <- ggplot(lag_corrs, aes(x = lag, y = r)) +
   ) + theme_aer
 print(p_ccf)
 
-# --- 8b. Country-specific optimal lags -------------------------------------------
+# --- 8b. Länderspezifische optimale Lags --------------------------------------
 
 opt_lags <- merged_sd %>%
   group_by(Country) %>%
@@ -3972,7 +3936,7 @@ cat(sprintf("    Vorzeichen: %d positiv (S↑ ↔ d↑), %d negativ (S↑ ↔ d�
             sum(opt_lags$sign == "+"), sum(opt_lags$sign == "−")))
 cat(sprintf("    Mean |r|: %.3f\n\n", mean(abs(opt_lags$max_r))))
 
-# --- Plot: distribution of optimal lags ------------------------------------------
+# --- Plot: Verteilung der optimalen Lags --------------------------------------
 p_lag_dist <- ggplot(opt_lags, aes(x = opt_lag, fill = sign)) +
   geom_bar(width = 0.7) +
   scale_fill_manual(values = c("+" = "#D62728", "−" = "#1F77B4"),
@@ -3994,25 +3958,23 @@ cat("  der S → θ Kanal über φ_S in der θ-Gleichung.\n\n")
 
 
 # ==============================================================================
-#  9. AGE DECOMPOSITION
-#  Input: p_values_oecd_w age-specific P-scores. Output: console tables +
-#  age-gradient trajectory figure.
+#  9. ALTERSDEKOMPOSITION
 # ==============================================================================
 
 cat(strrep("=", 70), "\n")
 cat("  SECTION 9: Altersdekomposition\n")
 cat(strrep("=", 70), "\n\n")
 
-# Interpretation: the steep age gradient confirms that delta_theta is
-# effectively an age-weighted parameter. The FLATTENING of the gradient across
-# waves (vaccination protects the elderly disproportionately; Delta hits
-# younger groups) has implications for the time variation of delta_theta: it
-# declines faster in countries with high vaccination rates among the elderly.
+# Interpretation: Der steile Altersgradient bestätigt, dass δ_θ effektiv ein
+# altersgewichteter Parameter ist. Die ABFLACHUNG des Gradienten über die Wellen
+# (Impfung schützt Ältere überproportional, Delta trifft Jüngere) hat Implikationen
+# für die Zeitvarianz von δ_θ: es sinkt schneller bei Ländern mit hoher Impfquote
+# bei Älteren.
 
 age_vars <- c("p_proj_0_14", "p_proj_15_64", "p_proj_65_74", "p_proj_75_84", "p_proj_85p")
 age_labels <- c("0–14", "15–64", "65–74", "75–84", "85+")
 
-# Only countries with an available age breakdown
+# Nur Länder mit verfügbarer Altersaufschlüsselung
 age_data <- p_values_oecd_w %>%
   filter(
     time_unit == "weekly",
@@ -4026,7 +3988,7 @@ age_data <- p_values_oecd_w %>%
 cat(sprintf("  Datenverfügbarkeit: %d obs (%d Länder mit Altersaufschlüsselung)\n\n",
             nrow(age_data), n_distinct(age_data$Country)))
 
-# Overall statistics
+# Gesamtstatistik
 cat("  Altersgruppen-Statistiken (projizierte Baseline):\n")
 age_summary <- map_dfr(seq_along(age_vars), function(i) {
   s <- age_data[[age_vars[i]]]
@@ -4042,7 +4004,7 @@ age_summary <- map_dfr(seq_along(age_vars), function(i) {
 })
 print(kable(age_summary, digits = 1))
 
-# --- Age gradient by wave ---------------------------------------------------------
+# --- Altersgradient nach Welle -------------------------------------------------
 age_data_long <- age_data %>%
   pivot_longer(cols = all_of(age_vars), names_to = "age_var", values_to = "p_score") %>%
   mutate(
@@ -4061,9 +4023,9 @@ age_data_long <- age_data %>%
     Wave = factor(Wave, levels = names(wave_colors))
   )
 
-# Table
+# Tabelle
 age_wave_tab <- age_data_long %>%
-  filter(Age_Group != "0–14") %>%  # too noisy
+  filter(Age_Group != "0–14") %>%  # Zu verrauscht
   group_by(Wave, Age_Group) %>%
   summarise(Mean = mean(p_score), .groups = "drop") %>%
   pivot_wider(names_from = Age_Group, values_from = Mean)
@@ -4085,7 +4047,7 @@ for (i in 1:nrow(age_ratio)) {
               age_ratio$Wave[i], age_ratio$`85+`[i], age_ratio$`15–64`[i], age_ratio$Ratio[i]))
 }
 
-# --- Plot: age gradient over time -------------------------------------------------
+# --- Plot: Altersgradient über die Zeit ---------------------------------------
 age_weekly_agg <- age_data_long %>%
   filter(Age_Group != "0–14") %>%
   group_by(date, Age_Group) %>%
@@ -4110,16 +4072,14 @@ print(p_age_traj)
 
 
 # ==============================================================================
-#  10. QUARTERLY AGGREGATION & MODEL MAPPING
-#  Input: mort_panel. Output: q_mort (country x quarter mortality), console
-#  diagnostics, quarterly boxplot + cumulative divergence figure.
+#  10. QUARTALSAGGREGATION & MODELL-MAPPING
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
 cat("  SECTION 10: Quartalsaggregation & Modell-Mapping\n")
 cat(strrep("=", 70), "\n\n")
 
-# --- 10a. Quarterly panel from weekly data ---------------------------------------
+# --- 10a. Quartalspanel aus Wochendaten ---------------------------------------
 q_mort <- mort_panel %>%
   group_by(Country, YQ, YQ_ord) %>%
   summarise(
@@ -4159,7 +4119,7 @@ print(kable(wq_stats, digits = 1))
 cat(sprintf("\n  Gesamt-Mean Within-Quarter SD: %.1f\n", mean(q_mort$d_flow_sd, na.rm = T)))
 cat("  → Substanzielle Intra-Quartal-Variation.\n\n")
 
-# --- ANOVA at the quarterly level -------------------------------------------------
+# --- ANOVA auf Quartalsebene -------------------------------------------------
 q_gm <- mean(q_mort$d_flow_mean)
 q_cm <- q_mort %>% group_by(Country) %>%
   summarise(mu = mean(d_flow_mean), n = n(), .groups = "drop")
@@ -4171,10 +4131,10 @@ cat(sprintf("    Between: %.1f%%,  Within: %.1f%%\n",
             q_ss_b / q_ss_t * 100, (1 - q_ss_b / q_ss_t) * 100))
 cat("  → Aggregation erhöht Between-Anteil (Within-Wochen-Fluktuation mittelt sich aus).\n\n")
 
-# --- Cumulative trajectory ----------------------------------------------------------
-# Model-relevant: the stock d_cum accumulates over time. The iLQR penalizes
-# the flow (d_{k+1} = delta_theta * theta_k), but the welfare cost is
-# proportional to the cumulative loss of life.
+# --- Kumulative Trajektorie ---------------------------------------------------
+# Modellrelevant: der Stock d_cum akkumuliert über die Zeit. Das iLQR penalisiert
+# den Flow (d_k+1 = δ_θ · θ_k), aber die Wohlfahrtskosten sind proportional zum
+# kumulierten Verlust an Menschenleben.
 
 q_cum <- q_mort %>%
   group_by(YQ_ord) %>%
@@ -4200,8 +4160,8 @@ p_q_box <- ggplot(q_mort, aes(x = YQ_ord, y = d_flow_mean)) +
     x = NULL, y = "Quarterly mean P-score (%)"
   ) + theme_aer
 
-# --- Plot: cumulative divergence -----------------------------------------------
-# Selected countries: shows how cumulative paths separate over time.
+# --- Plot: Kumulative Divergenz -----------------------------------------------
+# Ausgewählte Länder: zeigt, wie sich die kumulativen Pfade über die Zeit trennen.
 sel_countries <- c("MEX","USA","GBR","ITA","DEU","FRA","KOR","AUS","NZL","CZE","SWE")
 
 p_cum_traj <- mort_panel %>%
@@ -4343,6 +4303,11 @@ theme_aer <- theme_classic(base_size = 10) +
 #            projected_deaths_since_2020_all_ages (expected deaths)
 # Missing: CRI, JPN, TUR (monthly only)
 
+
+p_values_oecd_w %>%
+  filter(entity %in% c("CRI","JPN","TUR")) %>%
+  select(entity, date, p_proj_all_ages)   # Spaltenname anpassen
+
 mort_w <- p_values_oecd_w %>%
   filter(time_unit == "weekly") %>%
   mutate(
@@ -4368,7 +4333,7 @@ cat(sprintf("  Excess mortality: %d obs, %d countries, %s to %s\n",
             nrow(mort_w), n_distinct(mort_w$Country),
             min(mort_w$date), max(mort_w$date)))
 
-## Weekly excess mortality loaded (without CRI, JPN, TUR) -> see further below
+##Excess Mortality Weekly geladen (ohne CRI, JPN, TUR)-> siehe weiter unten
 
 
 # --- 1c. Weekly stringency from daily oxd_d -----------------------------------
@@ -4392,8 +4357,8 @@ s_weekly <- oxd_d %>%
 
 
 
-## Adjusted (pop-weighted) index loaded for all 38 OECD countries
-## S_mean at weekly frequency is correct
+##Angepasster Index geladen für alle 38 OECD Länder
+##S_mean-> Weekly passt
 
 # Mortality data weeks: need to match. OWID "time" = ISO week number.
 # Align via ISO year-week
@@ -4403,7 +4368,7 @@ mort_w <- mort_w %>%
     isowk = isoweek(date)
   )
 
-panel_w <- s_weekly %>%                          # 38 countries as the base
+panel_w <- s_weekly %>%                          # 38 Länder als Basis
   left_join(mort_w, by = c("Country", "isoyr", "isowk"))
 
 cat(sprintf("  Weekly panel: %d obs after S merge (%.1f%% with S data)\n",
@@ -4462,10 +4427,12 @@ panel_w <- panel_w %>%
 cat(sprintf("  Population merged: %d countries with pop data\n",
             sum(!is.na(mort_w$pop)) / nrow(filter(mort_w, Country == "USA")) ))
 
-## Population data loaded for all 38 countries
+##Population Data geladen für alle 38 Länder
 
-## Dataset ready; only theta is missing for CRI, TUR, JPN -> see further below
-## Potential problem: negative excess deaths — how many are there?
+
+
+##Datenset bereit, nur Theta fehlt für die Länder CRI, TUR, JPN-> Siehe weiter unten
+##problem with the negative excess deaths, how many?
 
 # --- Diagnostic: negative excess mortality frequency --------------------------
 
@@ -4478,21 +4445,17 @@ cat(sprintf("  Negative excess:  %d (%.1f%%)\n",
 cat(sprintf("  theta_hat = 0:    %d (%.1f%%)\n",
             sum(panel_w$theta_hat == 0, na.rm = TRUE),
             mean(panel_w$theta_hat == 0, na.rm = TRUE) * 100))
-## High share, but see the quarterly data.
+##High but look at the quarterly data
 
-# NOTE: theta_hat is only created further below, so the theta_hat line above
-# reports on a not-yet-existing column at this point (kept as in original).
-# Findings: exactly as expected. 6 true zeros (2.1%) are unproblematic —
-# these are Q1 2020 and countries like New Zealand or Australia before the
-# first outbreak; those are correctly zero. But 28% are below 0.1% ->
-# mid-pandemic the fear channel is low, which is correct -> be careful when
-# taking logs. At the quarterly level this is not a problem.
+#has to define the dataset before or move down-> it's genau wie erwartet. 6 echte Nullen (2.1%) sind unproblematisch — das sind Q1 2020 und Länder wie Neuseeland oder Australien vor dem ersten Ausbruch. Die sind korrekt null.
+#but 28% are below 0.1%-> midpandemic, fear canal is low but this is correct-> Aufpassen mit Log
+# Quarterly-> nicht ein Problem
 
 
 
 library(ISOweek)
 
-# Reconstruct date from isoyr + isowk for CRI/JPN/TUR
+# date aus isoyr + isowk rekonstruieren für CRI/JPN/TUR
 panel_w <- panel_w %>%
   mutate(
     date = if_else(
@@ -4521,7 +4484,7 @@ cat(sprintf("\n  Final weekly panel: %d obs, %d countries, %s to %s\n",
 cat(sprintf("  Weeks per country: %.0f (median)\n\n",
             median(table(panel_w$Country))))
 
-# Note: values before this window are simply set to 0.
+#Werte vorher einfach au 0 setzen!!
 
 # ==============================================================================
 #  2. CALIBRATED EPIDEMIOLOGICAL PARAMETERS
@@ -5068,6 +5031,7 @@ mort_m <- mort_m %>%
     qn      = quarter(date),
     Quarter = paste0("Q", qn, ".", yr)
   )
+unique(mort_m$theta_hat)
 
 weeks_per_month <- 365.25 / 12 / 7
 
@@ -5078,13 +5042,16 @@ mort_m <- mort_m %>%
     theta_hat_l2 = theta_hat_l2 / weeks_per_month
   )
 
-# Quarterly aggregation (after rescaling to weekly units above):
+# danach die Quartals-Aggregation nochmal:
 theta_quarterly_CJT <- mort_m %>%
   group_by(Country, Quarter) %>%
   summarise(theta_hat = mean(theta_hat, na.rm = TRUE), .groups = "drop")
 
-# Saved output: quarterly theta for CRI/JPN/TUR (working directory = output r)
 write.csv(theta_quarterly_CJT, "theta_quarterly_CRI_JPN_TUR_frommonthly.csv", row.names = FALSE)
+
+theta_quarterly_CJT <- mort_m %>%
+  group_by(Country, Quarter) %>%
+  summarise(theta_hat = mean(theta_hat, na.rm = TRUE), .groups = "drop")
 
 cat(sprintf("\n  Quarterly theta_hat (from monthly imputation), CRI/JPN/TUR:\n"))
 print(theta_quarterly_CJT, n = 40)
@@ -5110,18 +5077,17 @@ cat(sprintf("\n  Saved: %s\n", file.path(matlab_dir, "theta_quarterly_CRI_JPN_TU
 #   group_by(Country, Quarter) %>%
 #   summarise(d_pmw_excess = mean(d_pmw_excess, na.rm = TRUE), .groups = "drop")
 
-# Spot check 1: show the 15 highest theta_hat rows with all intermediate values
-# (verifies the imputation chain excess -> d_pc -> d_lead1 -> /ifr -> theta_hat).
+# 1. Zeig mir die 10 höchsten theta_hat-Zeilen mit allen Zwischenwerten
 mort_m %>%
   select(Country, date, wave, excess, pop, d_pc, d_lead1, ifr, theta_hat) %>%
   filter(!is.na(theta_hat)) %>%
   arrange(desc(theta_hat)) %>%
   head(15)
 
-# Spot check 2: population per country (JPN ~126M, CRI ~5M, TUR ~83M expected)
+# 2. pop sauber pro Land geprüft (JPN sollte ~126 Mio, CRI ~5 Mio, TUR ~83 Mio sein)
 mort_m %>% distinct(Country, pop)
 
-# Spot check 3: quarterly-aggregated output that actually feeds into MATLAB
+# 3. Was kommt NACH der Quartals-Aggregation raus? Das ist, was tatsächlich nach MATLAB geht
 print(theta_quarterly_CJT, n = 40)
 
 
@@ -5215,7 +5181,7 @@ p_theta_traj <- ggplot(theta_agg, aes(x = date)) +
 
 print(p_theta_traj)
 
-## Next: how did S behave?
+##Wie hat sich S verhalten?
 
 # ==============================================================================
 #  p_theta_traj — Imputed θ̂, Excess Mortality, and Stringency
@@ -5357,17 +5323,14 @@ p_theta_traj <- ggplot(theta_agg, aes(x = date)) +
 
 print(p_theta_traj)
 
-# Interpretation: looks great -> shows how governments lost interest over time.
-# -> Supports the argument that the death rate is decisive, but the social
-#    planner reacts to cases -> simultaneity of theta and S is important.
-# -> Shows the transition to treating COVID like a normal flu.
-# -> Mismatch between deaths and cases -> the death rate / IFR (precise
-#    estimation) is the problem.
-# -> Before the spikes there was fear.
-# Bottom line: the model horizon works; S_k and cases are also a good
-# measurement in the model; the social planner reacts to cases.
+##Looks great-> zeigt wie die Regierungen kein Interesse mehr hatten-> 
+#->Stützt meine Argumentation das Death Rate das entscheidende ist aber der SP auf die Cases reagiert-> simultanität von Theta und S-> Wichtig
+#-> Ziegt den Übergang zu einer normalen Grippe
+#-> Mismatch zwischen deaths und cases-> Death Rate IFR (genaue Schätzung) ist das Problem
+#vor den spikes hatte man Angst
+#FAZIT: Modellhorizont funktioniert, S_k und Cases ist auch eine gute Messung im Modell, SP reagiert auf Cases
 
-## Paper version below (adjusted code)
+##Für Paper, Code anpassen->siehe nachfolgend
 # ==============================================================================
 #  p_theta_traj — Imputed θ̂, Excess Mortality, and Stringency
 #  Three series: θ̂ (left axis), excess deaths/million (right axis),
@@ -5512,30 +5475,21 @@ p_theta_traj <- ggplot(theta_agg, aes(x = date)) +
 
 print(p_theta_traj)
 
-# Use this as the planning horizon.
+#Das zeigen als Planungshorizont
 
-# Interpretation of the gap between excess deaths (EXD) and S:
-# The widening gap between theta_hat and S in later waves reflects the binding
-# fiscal and political constraints (fiscal exhaustion) at the heart of the
-# pandemic trilemma: as debt accumulated and public compliance eroded
-# (political exhaustion), governments faced a trilemma in which further
-# suppression was neither fiscally sustainable nor politically viable, even as
-# infection prevalence reached historically high levels. -> Paradigm shift and
-# better information (ICU capacity) become important -> more individual
-# responsibility -> "get vaccinated or take the risk" -> no more general
-# lockdowns.
-# Bottom line: planning horizon 2020-2021 -> after that, vaccination resolves
-# the trilemma -> opting out (self-determination).
+#Interpretation Gap EXD und S
+#The widening gap between θ̂ and S in later waves reflects the binding fiscal and political constraind (fiskalische erschöpfung)
+#at the heart of the pandemic trilemma: as debt accumulated and public compliance eroded (politische erschöpfung), governments faced a trilemma in which further suppression was neither fiscally sustainable nor politically viable, 
+#even as infection prevalence reached historically high levels.-> Paradigmawechseln und bessere Informationen ICU Kapazität wichtig-> Mehr Eigenverantwortung-> Impfe dich oder gehe das Risiko ein-> keine generellen lockdowns
+#FAZIT: Planungshorizont 2020-2021-> Danach löst die Impfung das Trilemma-> Option out (Selbstbestimmung)
 
 
 
-## How good is the measure relative to confirmed cases?
+##wie gut ist die messung zu confirmed cases?
+
 
 # ==============================================================================
 #  4. CROSS-CHECK: θ̂ VS. CONFIRMED CASES
-#  Input: theta_stats (panel_w) + confirmed cases + hosp_d. Output: ascertainment
-#  ratios, cor(indicator, S) tables, scatter figure — validates that θ̂ is
-#  exogenous to policy S.
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
@@ -5590,10 +5544,9 @@ cat("  • W4_omicron: Ratio may increase — massive infection surge\n")
 cat("    overwhelmed testing capacity again\n")
 cat("  • Ratio < 1 would indicate IFR calibration is too LOW → too many θ̂\n\n")
 
-# Finding: the median ratio makes complete sense and is low at the end; the
-# intervals show the massive differences depending on testing capacity. This
-# matches the Omicron picture (nobody went to get tested anymore). A good,
-# undistorted measure -> build the economic storyline around it.
+##Ratio (Median) macht auch total Sinn und ist auch tief am Schluss, die Intervalle ziegen die massiven Unterschieden-> je nach Kapazitäten (Testen)
+#Stimmt auch mit dem Bild zu Omicron überein, niemand mehr testen gegangen
+##Gutes Mass, unverfäscht-> Ökonomische Storyline dazu erzählen
 
 # --- 4b. Scatter: θ̂ vs confirmed cases (log-log) ----------------------------
 
@@ -5644,20 +5597,18 @@ p_crosscheck <- cross_check %>%
 
 print(p_crosscheck)
 
-# For a linear regression line, add: geom_smooth(method = "lm", se = TRUE,
-#   color = "black", fill = "grey80", linewidth = 0.6, alpha = 0.3, formula = y ~ x)
-# Finding: works well; shows that the estimate lies above the diagonal, which
-# makes more sense. Next: link to S?
+#Für Liinear Regression Line:   geom_smooth(method    = "lm",se        = TRUE,color     = "black",fill      = "grey80",linewidth = 0.6,alpha     = 0.3,formula   = y ~ x) +
+##Funktioniert gut, zeigt das meine Schätzung oberhalb ist was mehr Sinn macht-> Link zu S?
 lag_range <- 0:3
 
 cor_comparison <- expand_grid(
-  wv    = unique(panel_w$wave_label),   # renamed to wv
+  wv    = unique(panel_w$wave_label),   # umbenannt zu wv
   lag_k = lag_range
 ) %>%
   pmap_dfr(function(wv, lag_k) {
-
+    
     sub <- panel_w %>%
-      filter(wave_label == wv) %>%       # wv instead of wave
+      filter(wave_label == wv) %>%       # wv statt wave
       mutate(cases_share = cases_w / pop) %>%
       arrange(Country, date) %>%
       group_by(Country) %>%
@@ -5698,12 +5649,11 @@ best_lag <- cor_comparison %>%
 
 print(kable(best_lag, digits = 3))
 
-# Finding: shows that the social planner sets S more in line with confirmed
-# cases. The adjustment to the true pandemic pressure falls off quickly -> is
-# the death rate the relevant thing? So it is good that the correct planning
-# dimension is theta_hat = more exogenous to S. Also shows that theta_hat adds
-# value -> a different channel.
-# "The near-zero correlation between θ̂ and S, in contrast to the significantly positive correlation between confirmed cases and S, is consistent with confirmed case counts being contaminated by testing-capacity endogeneity. θ̂, derived from excess mortality, is mechanically independent of surveillance intensity and therefore the appropriate state variable for the planner's problem."
+#Zeigt das der SP S eher gemäss den ConfirmedCases macht.
+#Die Anpassung an den wirklichen Pandemiedruck fällt schnell-> ist die Todesrate relevant?
+#Somit ist aber gut das die richtige Planungsdimension Theta_hat ist = exogener von S
+#Zeigt auch das Theta_hat einen Mehrwert bringt->Anderer Kanal
+#"The near-zero correlation between θ̂ and S, in contrast to the significantly positive correlation between confirmed cases and S, is consistent with confirmed case counts being contaminated by testing-capacity endogeneity. θ̂, derived from excess mortality, is mechanically independent of surveillance intensity and therefore the appropriate state variable for the planner's problem."
 
 cor_excess <- expand_grid(
   wv    = unique(panel_w$wave_label),
@@ -5729,7 +5679,7 @@ cor_excess <- expand_grid(
     )
   })
 
-# All three series combined
+# Alle drei Serien zusammen
 cor_all <- cor_comparison %>%
   select(wave_label, lag, cor_theta_S, cor_cases_S, delta_cor) %>%
   left_join(cor_excess, by = c("wave_label", "lag"))
@@ -5738,10 +5688,15 @@ print(kable(cor_all, digits = 3,
             col.names = c("Wave", "Lag", "cor(θ̂,S)", "cor(cases,S)",
                           "Δ(θ̂−cases)", "cor(deaths,S)", "N")))
 
-## Finding: correlation with deaths slightly higher, especially in hard waves;
-## it converges over time -> paradigm shift towards vaccination by end 2021.
+##Cor zu deaths leicht höher, vor allem in harten Wellen, gleicht sich an-> Paradigmawechsel zu Impfen gegen Ende 2021-> Mein Modell
 
-# --- Hospitalization: aggregate daily -> weekly ---
+unique(hosp_d$Country)
+head(hosp_d)
+summary(hosp_d$date)
+
+colnames(hosp_d)
+
+# --- Hospitalisierung: täglich → wöchentlich aggregieren ---
 hosp_w <- hosp_d %>%
   mutate(date = as.Date(date)) %>%
   mutate(
@@ -5755,14 +5710,14 @@ hosp_w <- hosp_d %>%
     .groups = "drop"
   )
 
-# --- Merge with panel_w (only countries with hospitalization data) ---
+# --- Merge mit panel_w (nur Länder mit Hosp-Daten) ---
 hosp_countries <- unique(hosp_d$Country)
 
 panel_hosp <- panel_w %>%
   filter(Country %in% hosp_countries) %>%
   left_join(hosp_w, by = c("Country", "isoyr", "isowk"))
 
-# --- Correlation cor(hosp, S) and cor(icu, S) by wave and lag ---
+# --- Korrelation cor(hosp, S) und cor(icu, S) nach Welle und Lag ---
 cor_hosp <- expand_grid(
   wv    = unique(panel_hosp$wave_label),
   lag_k = 0:3
@@ -5796,7 +5751,7 @@ cor_hosp <- expand_grid(
     )
   })
 
-# --- All series combined ---
+# --- Alle Serien zusammen ---
 cor_all <- cor_all %>%
   left_join(
     cor_hosp %>% select(wave_label, lag, cor_hosp_S, cor_icu_S, N_hosp, N_icu),
@@ -5808,7 +5763,10 @@ print(kable(cor_all, digits = 3,
                           "Δ(θ̂−cases)", "cor(deaths,S)", "N",
                           "cor(hosp,S)", "cor(icu,S)", "N_hosp", "N_icu")))
 
-# Rebuild cor_all without duplicated columns
+ncol(cor_all)
+colnames(cor_all)
+
+# cor_all neu zusammenbauen ohne Duplikate
 cor_all <- cor_comparison %>%
   select(wave_label, lag, cor_theta_S, cor_cases_S, delta_cor) %>%
   left_join(cor_excess %>% select(wave_label, lag, cor_excess_S, N),
@@ -5823,45 +5781,40 @@ print(kable(cor_all, digits = 3,
 
 
 # ==============================================================================
-#  CONCLUSION: Policy-response analysis — cor(indicator, S) by wave
+#  FAZIT: Policy-Response-Analyse — cor(Indikator, S) nach Welle
 # ==============================================================================
 #
-#  Central findings:
+#  Zentrale Befunde:
 #
-#  (1) RESPONSE PATTERN ACROSS WAVES:
-#      W1 (Original):    deaths & ICU dominate (cor ~ 0.49) — reactive policy
-#                        to visible system failure (Bergamo effect).
-#      W2a/W2b (WT/Alpha): ICU is the strongest trigger (cor ~ 0.58), cases as
-#                        a complement — transition to anticipatory policy.
-#      W3 (Delta):       hospitalization the only relevant trigger (cor ~ 0.30),
-#                        all other indicators collapse — explicit policy shift
-#                        to hospitalization incidence.
-#      W4 (Omicron):     ICU dominates (cor ~ 0.60), deaths irrelevant (cor ~ 0.01)
-#                        — full decoupling from mortality as IFR collapses.
+#  (1) REAKTIONSMUSTER ÜBER WELLEN:
+#      W1 (Original):    Tode & ICU dominieren (cor ≈ 0.49) — reaktive Politik
+#                        auf sichtbares Systemversagen (Bergamo-Effekt).
+#      W2a/W2b (WT/Alpha): ICU stärkster Trigger (cor ≈ 0.58), Fälle als
+#                        Ergänzung — Übergang zu antizipatorischer Politik.
+#      W3 (Delta):       Hospitalisierung einziger relevanter Trigger (cor ≈ 0.30),
+#                        alle anderen Indikatoren kollabieren — expliziter
+#                        Politikwechsel auf Hospitalisierungsinzidenz.
+#      W4 (Omicron):     ICU dominiert (cor ≈ 0.60), Tode irrelevant (cor ≈ 0.01)
+#                        — vollständige Entkopplung von Mortalität bei kollabierter IFR.
 #
-#  (2) EXOGENEITY OF θ̂:
-#      cor(θ̂, S) ~ 0 across all waves and all lags (0-3 weeks).
-#      Governments never reacted to the true infection pressure — only to
-#      observable proxies (ICU, hospitalizations, cases, deaths).
-#      -> θ̂ is not contaminated by the policy channel.
-#      -> θ̂ is a valid exogenous state variable for the iLQR problem.
+#  (2) EXOGENITÄT VON θ̂:
+#      cor(θ̂, S) ≈ 0 über alle Wellen und alle Lags (0–3 Wochen).
+#      Regierungen haben nie auf den wahren Infektionsdruck reagiert —
+#      ausschliesslich auf beobachtbare Proxies (ICU, Hosp, Fälle, Tode).
+#      → θ̂ ist nicht durch den Policy-Kanal kontaminiert.
+#      → θ̂ ist eine valide exogene Zustandsvariable für das iLQR-Problem.
 #
-#  (3) IMPLICATION FOR THE ENDOGENEITY CONCERN:
-#      The concern that testing capacity correlates with S and thus makes
-#      confirmed cases endogenous to S is supported by the finding:
-#      cor(cases, S) ~ 0.43-0.49 in W1-W2b, while cor(θ̂, S) ~ 0.20.
-#      θ̂ from excess mortality avoids this surveillance bias much better ->
-#      valid exogenous state variable for the planner -> important proxy for
-#      the state dependency. Some correlation exists, but it is unbiased with
-#      respect to capacities etc. -> not an instrument; it captures a different
-#      channel -> pandemic pressure.
+#  (3) IMPLIKATION FÜR ENDOGENITÄTSSORGE:
+#      Die Sorge, dass Testkapazität mit S korreliert und confirmed cases
+#      dadurch endogen gegenüber S sind, wird durch den Befund gestützt:
+#      cor(cases, S) ≈ 0.43–0.49 in W1–W2b, während cor(θ̂, S) ≈ 0.20.
+#      θ̂ aus Excess Mortality umgeht diesen Surveillance-Bias deutlich besser->valide exogene Zustandsvariable für den Planer-> wichtiger Proxy für die State Dependencie
+#cor vorhanden aber unbiased mit Kapazitäten usw.-> nicht ein Instrument, fängt einen andere Kanal ein-> Pandemic Pressure
 #
 # ==============================================================================
 
 # ==============================================================================
 #  5. VALIDATION: θ-EQUATION CONSISTENCY
-#  Input: panel_w with calibrated (rho_w, phi_S). Output: fit statistics
-#  (R^2/RMSE by wave) checking that calibrated dynamics reproduce imputed θ̂.
 # ==============================================================================
 
 cat("\n", strrep("=", 70), "\n")
@@ -5940,13 +5893,10 @@ print(kable(val_wave %>% select(wave_label, N, R2, RMSE, bias),
             digits = c(0, 0, 3, 6, 6),
             col.names = c("Wave","N","R²","RMSE","Bias")))
 
-# TODO: report bias and values.
-# Interpretation: makes complete sense. Early on, everyone with symptoms went
-# straight to get tested (fear); in summer values were low with mild courses;
-# and Omicron has a lot of built-up immunity, self-tests, and opting out —
-# i.e. people no longer registered because they were vaccinated or it sufficed.
-# But this is also less interesting because excess deaths clearly declined and
-# there was much more noise.
+##BIAS und WERTE ANGEBEN
+##Macht aber absolut Sinn, am Anfang alle die etwas hatten sin ddirekt zum Test (Angst), im Sommer tief und midle Verläufe, 
+#und Omicron hat viel Resistenzen drinn, selbsttests, option out d.h., die Leute haben sich nicht mehr registriert da sie 
+#geimpft waren oder es ausgereicht hatte-> aber auch nicht so interessant da man sieht das die excess deaths deutlich gesunken sind und es ein viel grösseres Rauschen gab
 
 cat("\n  Interpretation:\n")
 cat("  • R² near 1: calibrated (ρ_θ, φ_S) replicate infection dynamics well\n")
@@ -5979,10 +5929,9 @@ p_validation <- val_log %>%
 
 print(p_validation)
 
-# Finding: how well does the model fit? Shows clearly that after 2021 the model
-# fit deteriorated, but that was no longer the social planner's objective either
-# -> this is the model horizon -> the trilemma is lifted by vaccination.
-# "The pandemic trilemma was binding from March 2020 through approximately December 2021, during which governments faced an inescapable trade-off between suppression, economic stability, and fiscal sustainability. The widespread availability of vaccines resolved the trilemma exogenously by collapsing the IFR to a level at which the health objective became achievable without active suppression. The post-2021 dominant strategy — vaccination as individual risk management with minimal NPIs — represents not a policy solution to the trilemma but a technological escape from it. Accordingly, the structural estimation in Stage 2 is confined to the trilemma period 2020 Q1 through 2021 Q4."
+##wie gut stimmt mein Modell
+#Zeigt perfekt das nach 2021 mein Modell nciht mehr so gut war aber das war auch gar nich tmehr das Ziel vom SP-> Mein Modellhorizont-> Trilemma wird durch Impfung aufgehoben
+#"The pandemic trilemma was binding from March 2020 through approximately December 2021, during which governments faced an inescapable trade-off between suppression, economic stability, and fiscal sustainability. The widespread availability of vaccines resolved the trilemma exogenously by collapsing the IFR to a level at which the health objective became achievable without active suppression. The post-2021 dominant strategy — vaccination as individual risk management with minimal NPIs — represents not a policy solution to the trilemma but a technological escape from it. Accordingly, the structural estimation in Stage 2 is confined to the trilemma period 2020 Q1 through 2021 Q4."
 
 
 # ==============================================================================
@@ -6460,7 +6409,7 @@ cat("      specifications. The trilemma result is therefore robust to\n")
 cat("      calibration uncertainty within literature-based bounds.\n\n")
 
 
-## Provides three scenarios per parameter; all three must be tried.
+##Gibt mir drei verschiedenen Szenarien pro Parameter wobei ich alle drei Versuchen muss
 
 # ==============================================================================
 #  04b_quarterly_aggregation_and_monthly_imputation.R
@@ -6769,7 +6718,7 @@ theta_quarterly_monthly <- mort_monthly %>%
     freq_source = "monthly"
   )
 
-# Note: lags 2 and 4 both fall within a single month -> not separable with monthly data.
+##Achtung lag 2 & 4 liegen beide innerhalb von einem Monat-> Schwierig bei Monatsdaten
 
 cat(sprintf("--- 7e. Monthly → Quarterly ---\n"))
 cat(sprintf("  %d obs (%d countries x up to %d quarters)\n",
@@ -6901,14 +6850,13 @@ cat(strrep("=", 70), "\n")
 
 
 
-# TODO: go through each variable by hand; define the final dataset and drop the rest.
-# TODO: possibly restrict descriptives to <=2021 (cases high because IFR low,
-#       which distorts everything except mortality — plot alongside).
+##Jede Variable von Hand durchgehen
+#Finaler Datensatz definieren und rest löschen
+
+##MAYBE ALLES NOCH 2021 RAUSNEHMEN FÜR DECRIPTIVES-> FÄLLE HOCH DA IFR TIEF-< VERZERRT ALLES AUSSER MORTALITY MITPLOTTEN
 
 # ==============================================================================
 #  8. SUMMARY DIAGNOSTICS & EXPORT
-#  Input: theta_quarterly_full, panel_w. Output: saved .rds files + key-findings
-#  console summary.
 # ==============================================================================
 
 # --- 8b. Export theta_quarterly for Stage 2 -----------------------------------
@@ -6923,7 +6871,7 @@ cat("\n  Exporting theta_quarterly for Stage 2 panel merge...\n")
 #   theta_mean_lo  — robustness (IFR high bound → fewer infections)
 #   theta_mean_hi  — robustness (IFR low bound → more infections)
 #   S_mean         — weekly-averaged S for this quarter (cross-check)
-#   S_max          - max values for robustness (aggregation problem)
+#   S_max          - max values for robustness-> Aggregationsproblem
 
 # Save as RDS for clean import
 saveRDS(theta_quarterly_full, "theta_quarterly_stage1.rds")
@@ -6990,7 +6938,7 @@ rm(
   SS_total, SS_between, SS_within, SS_t_rate, SS_b_rate,
   q_anova, wave_stats, wave_country,
   wide_mort, corr_matrix, upper_tri, corr_long, regions,
-  merged_sd, lag_corrs,
+  merged_sd, lag_corrs, lag_corrs_ccf, cross_corr,
   opt_lags, lag_range,
   
   # --- θ-imputation intermediates ---
@@ -7016,24 +6964,33 @@ rm(
   cor_all, best_lag, rho_theta_weekly, label_row
 )
 
-# 1. Define the target folder
+# 1. Deinen Zielordner definieren
 safedata <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/Database/Analyse"
 
-# 2. Build the file path for the RData file
+# 2. Dateipfad für die RData-Datei erstellen
 pathdata<- file.path(safedata, "datasets_c.RData")
 
-# 3. Save all datasets into this single file
+# 3. Alle Datensätze in diese eine Datei speichern
 save(qdata, theta_quarterly_full, panel_w, fm,
      file = pathdata)
+
+##Welche Variablen
+##Welche Checks
 
 # ==============================================================================
 #  STAGE 2 — SECTION 1: DESCRIPTIVE STATISTICS FOR STATE VARIABLES y_k AND b_k
 #  Output gap (y_t_pct) and debt gap (d_t_pct) for 38 OECD countries
 #  Pandemic period: Q1.2020 – Q4.2021 (trilemma horizon)
 #  Pre-COVID baseline: Q1.2015 – Q4.2019
-#  Inputs: qdata. Outputs: console tables + descriptive figures (printed).
-#  (Required packages already attached at the top of the script.)
 # ==============================================================================
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(stringr)
+library(lubridate)
+library(knitr)
 
 # --- Panel definition ---------------------------------------------------------
 pandemic_qs <- c("Q1.2020", "Q2.2020", "Q3.2020", "Q4.2020",
@@ -7141,7 +7098,7 @@ cat(sprintf("  b_k max accumulation:   %.2f pp  (%s)\n\n",
             max(panel_covid$d_t_pct, na.rm = TRUE),
             panel_covid$Quarter[which.max(panel_covid$d_t_pct)]))
 
-# Finding: the differences between the pre-COVID and COVID periods are clear.
+##Die Unterschiede zwischen Pre-Covid und COVID sind klar ersichtlich-> Plot?
 # --- Plot 1a: y_k and b_k trajectory with 95% CI across countries ------------
 
 ci_data <- panel_full %>%
@@ -7231,8 +7188,7 @@ p_ci_combined <- (p_yk_ci / p_bk_ci) +
 
 print(p_ci_combined)
 
-# Nice plot; possibly also produce it for the robustness specifications.
-
+##NIcer Plot, evlt noch für die RObustness Spezifikationen
 # ==============================================================================
 #  1b. WITHIN vs. BETWEEN VARIANCE DECOMPOSITION
 # ==============================================================================
@@ -7287,21 +7243,13 @@ cat("  ICC > 0.5 → cross-country heterogeneity dominates → country FE essent
 cat("  ICC < 0.5 → within-country dynamics dominate → time variation is the\n")
 cat("  primary source of identification for the structural parameters.\n\n")
 
-# Findings:
-# - Output gap: within dominates. Interesting, because most identification comes
-#   from within-country differences over time -> composition.
-# - Debt gap: between dominates -> RE or pooled OLS -> a cross-country phenomenon.
-#
-# Three questions: 1) suboptimal F composition? or missing institutional
-# capacity? or pre-pandemic debt position? -> there is very high cross-country
-# heterogeneity, which the model predicts.
-#
-# -> Within variation in y suggests that different strategies within the same
-#    country work differently at different times -> the CP, DI and
-#    state-dependency argument.
-# -> Between variation in d suggests that the consequences of F can differ based
-#    on a country's conditions (see above) -> between variation shows that the
-#    trilemma is more binding for some countries than others.
+##Für Output Gap-> Within dominiert, das ist spannend da die meiste IDentifikation aus Unterschiede in den Ländern kommt-> KOmposition
+##Für Debt Gap-> Between dominiert-> RE oder Pooled OLS-> Cross COuntry Phänomen
+
+#Drei Fragen: 1) Supoptimale F-Komposition? oder fehlende institutionelle Kapazität oder pre-pandemic Schuldenpsoition?-> Ich habe eine sehr hohe heterogenität zwischen Länder-> sag tmein Modell voraus
+
+#-> Within bei Y deutet an das unterschiedlich Strategien in einem gleichen Land unterschiedlich wirken zu unterschiedlichen Zeiten-> Mein CP, DI und state dependencies Argument
+#-> Between bei D deutet an das die KOnsequenzen von F unterchiedliche sein können absierend auf den Gegebenheiten eines Landes (siehe oben) ->  Between-Variation zeigt, dass das Trilemma für verschiedene Länder unterschiedlich stark bindend ist
 
 # ==============================================================================
 #  1c. BY-WAVE DESCRIPTIVES (cross-sectional mean ± SD per quarter)
@@ -7330,23 +7278,24 @@ tbl_byq <- panel_covid %>%
 print(kable(tbl_byq, digits = 2,
             caption = "Table: Cross-Country Mean and Dispersion by Quarter"))
 
-# Findings: variation in y becomes clearer later -> on average converges toward
-# recovery. Debt accumulation is monotonically increasing -> a dynamic, matching
-# what the earlier graph shows.
+##Variationin Y wird später deutlicher-> konvergiert on average zur Erholung
+##Schuldenakkumulation ist monton steigend-> Dynamik 
+#-> Das was imGraph von vorher sichtbar ist
 
-# --- Test: did countries that closed the output gap faster accumulate more debt?
+# --- Test: Länder die Output-Gap schneller geschlossen haben →
+#           höhere Schuldenakkumulation?
 
 recovery_debt <- panel_covid %>%
   group_by(Country) %>%
   summarise(
-    # Output-gap recovery: Q4.2021 minus Q2.2020 (trough to end)
+    # Output-Gap Erholung: Differenz Q4.2021 minus Q2.2020 (trough to end)
     y_trough     = y_t_pct[Quarter == "Q2.2020"],
     y_end        = y_t_pct[Quarter == "Q4.2021"],
-    y_recovery   = y_end - y_trough,          # >0 = recovery
-    # Peak debt accumulation
+    y_recovery   = y_end - y_trough,          # >0 = Erholung
+    # Peak-Schuldenakkumulation
     b_peak       = max(d_t_pct, na.rm = TRUE),
     b_end        = d_t_pct[Quarter == "Q4.2021"],
-    # (Total fiscal deployment could be added if the fiscal panel is available)
+    # Fiskaleinsatz gesamt (falls fiscal panel verfügbar)
     .groups = "drop"
   ) %>%
   filter(!is.na(y_trough), !is.na(y_end), !is.na(b_peak))
@@ -7358,8 +7307,8 @@ cor_rec_debt <- cor(recovery_debt$y_recovery, recovery_debt$b_peak,
 cat(sprintf("  cor(y_recovery, b_peak): %.3f\n", cor_rec_debt))
 cat(sprintf("  N countries: %d\n\n", nrow(recovery_debt)))
 cat("  Interpretation:\n")
-cat("  Negative → countries with stronger recovery accumulated more debt.\n")
-cat("  Positive → debt accumulation did NOT buy recovery (trilemma binding).\n\n")
+cat("  Negative → Länder mit stärkerer Erholung haben mehr Schulden akkumuliert.\n")
+cat("  Positive → Schuldenakkumulation hat Erholung NICHT erkauft (Trilemma bindend).\n\n")
 
 # Scatter Plot
 p_recovery_debt <- ggplot(recovery_debt,
@@ -7389,13 +7338,8 @@ p_recovery_debt <- ggplot(recovery_debt,
 
 print(p_recovery_debt)
 
-# Findings: faster recovery -> more debt -> it was "bought" (the trilemma
-# holds), but not fully achievable -> spending was necessary but not sufficient
-# -> the best strategy matters (just spending a lot was not optimal). The
-# cross-country variation is shown in the following table.
-# The size of F is a poor predictor of outcomes because it answers the wrong
-# question. The right question is: which instrument (F^DI vs. F^CP), in which
-# state (theta_k, y_k), under which containment intensity (S_k)?
+#Schnellere Erholung-> Mehr Debt-> Erkauft (Trilemma besteht)-> aber nicht komplett möglich-> necessary aber nid sufficient gewesen-> BESTE STRATEGIE (einfach reinhauen war nicht optimal)-> Die Variation zweischen enzelnen Ländern zeigt die nachfolgende Tabelle
+#Die Höhe von F ist ein schlechter Prädiktor für Outcomes weil sie die falsche Frage beantwortet. Die richtige Frage ist: welches Instrument (F^DI vs. F^CP), in welchem Zustand (θ_k, y_k), unter welcher Containment-Intensität (S_k)? 
 
 #"The moderate negative correlation (r = −0.33) between output recovery and peak debt accumulation indicates that fiscal spending was a necessary but not sufficient condition for recovery. The incomplete trade-off is consistent with state-dependent transmission: countries facing deeper recessions and higher infection pressure required disproportionately larger fiscal outlays per unit of output stabilization, reflecting the structural constraints formalized in the pandemic trilemma."
 #"The moderate correlation between fiscal volume and output recovery (r = −0.33) confirms that the composition, timing, and state-contingency of fiscal interventions — not their aggregate size — determine pandemic economic outcomes. This finding motivates the structural approach: a dynamic optimization framework in which the planner's instrument choice is explicitly conditioned on the evolving state vector (θ_k, y_k, b_k, S_k)."
@@ -7426,7 +7370,7 @@ print(kable(tbl_cty, digits = 2,
 cat("\n  Cross-country SD of mean y_k:", round(sd(tbl_cty$y_mean, na.rm = TRUE), 2), "pp\n")
 cat("  Cross-country SD of mean b_k:", round(sd(tbl_cty$b_mean, na.rm = TRUE), 2), "pp\n\n")
 
-# Interpretation: see above.
+#Interpretation-> siehe oben
 
 # ==============================================================================
 #  1e. PRE-COVID vs. PANDEMIC MEANS TEST
@@ -7465,7 +7409,7 @@ cat(sprintf("       Δ = %.2f pp | t = %.2f | p = %.4f\n\n",
             mean(cov_means$b) - mean(pre_means_y$b),
             paired_b$statistic, paired_b$p.value))
 
-# Finding: a lot was paid per pp of output gap.
+#Viel bezahlt pro pp Output Gap
 #"Relative to the pre-pandemic trend, OECD economies experienced an average output gap of −4.94 percentage points and accumulated 13.50 percentage points of additional debt-to-GDP during the trilemma period (both significant at p < 0.001). The implied ratio of 2.7 percentage points of debt per percentage point of unrecovered output provides a first-order estimate of the fiscal cost of the trilemma under actual — and likely suboptimal — policy responses."
 
 # ==============================================================================
@@ -7606,7 +7550,7 @@ p_joint <- ggplot(oecd_q, aes(x = date)) +
 
 print(p_joint)
 
-# Good motivation plot.
+#Guter Motivationsplot
 
 # --- Plot 4: Cross-country scatter y_k vs b_k --------------------------------
 p_scatter_yb <- ggplot(panel_covid, aes(x = y_t_pct, y = d_t_pct)) +
@@ -7676,7 +7620,7 @@ box_data <- panel_full %>%
 
 p_boxplot <- ggplot(box_data, aes(x = period, y = value, fill = period)) +
   geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.4, linewidth = 0.4) +
-  # Label extreme debt outliers
+  # Nach dem geom_boxplot hinzufügen
   geom_text(
     data = box_data %>%
       filter(variable == "Debt Gap b_k (pp)", value > 50),
@@ -7699,8 +7643,7 @@ p_boxplot <- ggplot(box_data, aes(x = period, y = value, fill = period)) +
 
 print(p_boxplot)
 
-# Shows the trilemma without words -> possibly also show as an average rather
-# than quarterly.
+##Zeigt das Trilemma ohne ein Wort-> evtl noch als average darstellen-> nicht als Quarterly
 
 # ==============================================================================
 #  SUMMARY OUTPUT
@@ -7748,15 +7691,15 @@ rm(tbl_var, tbl_desc, tbl_cty, tbl_byq, recovery_debt, recovery_oecd, pre_means_
    box_data, ci_data, cor_vars, cov_means, covid_oecd, heatmap_data, oecd_aggregate, oecd_q, paired_b, paired_y, panel_covid, panel_full, oecd_reference)
 
 
-# 1. Define the target folder
+# 1. Deinen Zielordner definieren
 safedata <- "C:/Users/pesent0000/OneDrive/Studium/Wirtschaftswissenschaften/Doktorat/Master-Thesis/New/Working/Database/Analyse"
 
-# 2. Build the file path for the RData file
+# 2. Dateipfad für die RData-Datei erstellen
 pathdata<- file.path(safedata, "dataforanalysis.RData")
 
-# 3. Save all datasets into this single file (input for the analysis script)
+# 3. Alle Datensätze in diese eine Datei speichern
 save(qdata, theta_quarterly_full, panel_w, google_mobility_d, hosp_d, hosp_w, oxd_d, oxd_spatial_d, p_values_oecd_w, panel_hosp, pop, fm, theme_aer, theme_aer_bar,
-     oxd_d, oxd_spatial_d, google_mobility_d, hosp_d,
+     oxd_d, oxd_spatial_d, google_mobility_d, hosp_d, 
      file = pathdata)
 
 

@@ -97,7 +97,7 @@ phi_t       = 0;     %kein Zeittrend
 % --- Health block (descriptive; theta_obs / d_obs enter as inputs) ---
 % rho_theta is quarter-varying with a vaccination break
 rho_theta_pre  =  1.5;     % pre-vaccinatin-> siehe Appendix für Diskussion + Vergleich mit Schätzung
-rho_theta_post =  0.5;     % post-vaccination (de Gier et al. 2021 + coverage)
+rho_theta_post =  0.75;     % post-vaccination (de Gier et al. 2021 + coverage)
 q_vax          =  8;       % break quarter (Q3.2021)
 phi_S          =  0.8;     % S in [0,1]  (matches solver V17) # Central estimate (Brauner et al. 2021; Flaxman et al. 2020) and own calculation
 
