@@ -184,8 +184,8 @@ end
 C.eps_th = mean(eps_th,1);
 C.b0 = mean(b0_val); C.mu_y = 0; C.mu_b = 0;
 C.eps_y = zeros(1,N+1);
-C.eps_y(3) = 1 * mean(eps_v14); %%SHOCK HINEIN Q1.2020
-C.eps_y(4) = 1.8 * mean(eps_v14); %%SHOCK HINEIN Q2.2020
+C.eps_y(3) = 0 * mean(eps_v14); %%SHOCK HINEIN Q1.2020
+C.eps_y(4) = 1 * mean(eps_v14); %%SHOCK HINEIN Q2.2020
 
 dev  = b_lvl - b0_val';
 allF = [Fa(Fa>0); Fl(Fl>0); Fg(Fg>0); Fd(Fd>0)];
@@ -229,7 +229,6 @@ W.u_scale = ub_cap;
 W.u_scale(W.u_scale <= 0 | isnan(W.u_scale) | isinf(W.u_scale)) = 1;
 lb = zeros(P.m, P.N);
 ub = repmat(ub_cap, 1, P.N);
-ub(1,:) = 100;
 ub(:, 1:(P.q_start-1)) = 0;
 
 % ---- dS CONSTRAINT ------------------------------------------------------
@@ -810,8 +809,8 @@ end
 
 T_na = array2table(R_na, 'VariableNames', {'Col1','Col2','Col3'});
 T_na = addvars(T_na, ["Gain_base_vs_NA_vs_Diff"; "Trough_planner_NA_obs"; ...
-                      "Frontier_base_ABC"; "Frontier_NA_ABC"], ...
-               'Before', 1, 'NewVariableNames','Row');
+                  "Frontier_base_ABC"; "Frontier_NA_ABC"], ...
+                  'Before', 1, 'NewVariableNames', 'Metric');
 writetable(T_na, 'table_no_anticipation.csv');
 
 end % RUN.no_anticipation

@@ -44,7 +44,7 @@ RUN.baseline_figures = true;    % 6.1 Pfad-Figuren + Summary-Tabelle
 RUN.frontier         = true;    % 6.2 Frontier (fmincon, 3 Szenarien x 5 Starts) - LANGSAM
 RUN.frontier_figure  = true;    % 6.2 Vergleichsfigur (braucht RUN.frontier)
 RUN.weight_sweep     = true;    % 6.3 (tau_b, lam_d)-Sweep (7 Szenarien x 4 iLQR-Starts)
-RUN.chi_sweep        = false;   % Appendix: chi in {0, .25, .50} x Frontier - SEHR LANGSAM
+RUN.chi_sweep        = true;   % Appendix: chi in {0, .25, .50} x Frontier - SEHR LANGSAM
                                 % (fuer den finalen Lauf auf true setzen)
 
 %% ------------------------------------------------------------------------
