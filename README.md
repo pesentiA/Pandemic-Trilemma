@@ -19,7 +19,7 @@ The replication consists of two independent parts:
    cross-country frontier analysis.
 
 Part 2 can be run without Part 1: the MATLAB input files are shipped in the
-repository. <!-- CONFIRM: sind die drei CSVs im Repo enthalten? -->
+repository. 
 
 ---
 
@@ -30,7 +30,7 @@ Pandemic-Trilemma/
 ├── Files/
 │   ├── code/
 │   │   ├── R/
-│   │   │   ├── datapreparation.R      <!-- CONFIRM: Dateiname des qcode/Prep-Skripts -->
+│   │   │   ├── datapreparation.R      # data loading, cleaning, construction
 │   │   │   ├── descriptives.R         # daily descriptives, theta construction,
 │   │   │   │                          # aggregation to quarterly level
 │   │   │   └── Analysis.R             # estimation, robustness battery, tables
@@ -38,7 +38,7 @@ Pandemic-Trilemma/
 │   │       ├── calibration_v22.m      # forward-roll validation (38 countries + mean)
 │   │       ├── v23_average_results.m  # representative-economy planner + frontier
 │   │       └── v23_cross_country.m    # country-level frontier analysis
-│   ├── data/                          <!-- CONFIRM: Pfade -->
+│   ├── data/                          
 │   │   ├── country_data_for_matlab.csv
 │   │   ├── weekly_mortality_matlab.csv
 │   │   └── theta_quarterly_CRI_JPN_TUR_frommonthly.csv
@@ -53,17 +53,16 @@ Pandemic-Trilemma/
 
 ## Requirements
 
-**R** (>= 4.2) with packages:
+**R** (>= 4.2) with packages (see code):
 `dplyr`, `tidyr`, `ggplot2`, `lubridate`, `fixest`, `modelsummary`,
 `kableExtra`, `knitr`
-<!-- CONFIRM: fehlende Packages ergaenzen (readxl? haven? sandwich? boot fuer wild bootstrap?) -->
 
 **MATLAB** (R2021a or later) with the **Optimization Toolbox** (`fmincon` with
 the SQP algorithm is required for the frontier programs). The Parallel
 Computing Toolbox is optional: the country loop in `v23_cross_country.m` is
 embarrassingly parallel and can be switched from `for` to `parfor`.
 
-No further toolboxes are needed; the iLQR solver is self-contained.
+No further toolboxes are needed; the solver is self-contained.
 
 ---
 
@@ -72,15 +71,11 @@ No further toolboxes are needed; the iLQR solver is self-contained.
 The measure-level fiscal database (2,301 classified measures, 38 OECD
 economies, Q4.2019–Q4.2022) was hand-collected and classified by the author;
 the accompanying codebook documents every variable and the classification
-rules. <!-- CONFIRM: liegt die Datenbank im Repo, oder auf Anfrage? Quelle
-der Rohdaten (IMF Fiscal Monitor / nationale Quellen) hier nennen. -->
+rules. You can find the dataset in "data" and the documentation in "text"
 
 Public inputs: containment stringency from the Oxford COVID-19 Government
 Response Tracker; quarterly national accounts and public debt from OECD
-sources; weekly excess mortality from the World Mortality Dataset.
-<!-- CONFIRM: exakte Quellenliste gegen Data Appendix pruefen. -->
-
-Costa Rica, Japan, and Türkiye lack weekly excess-mortality coverage; their
+sources; weekly excess mortality from the World Mortality Dataset. Costa Rica, Japan, and Türkiye lack weekly excess-mortality coverage; their
 infection states are constructed from monthly data
 (`theta_quarterly_CRI_JPN_TUR_frommonthly.csv`).
 
@@ -93,7 +88,6 @@ script (`safedata`, `safeplots`, `safetable`) to your local directories.
 
 **Step 0 — `datapreparation.R`.** Builds the analysis dataset from the raw
 sources and saves `datafordescriptives.RData`.
-<!-- CONFIRM: Skriptname + ob Rohdaten dafuer im Repo liegen. -->
 
 **Step 1 — `descriptives.R`.** Daily descriptives on the two policy
 instruments (containment and fiscal support) and the health outcome,
@@ -111,7 +105,6 @@ Also runs the weekly health-side regressions of the Health Appendix.
 
 **Step 3 — solver inputs.** Exports `country_data_for_matlab.csv` and
 `weekly_mortality_matlab.csv` for Part 2.
-<!-- CONFIRM: welches Skript schreibt die MATLAB-CSVs — Analysis.R oder ein separates Export-Skript? -->
 
 Every robustness check reported in the paper is contained, described, and
 commented in `Analysis.R`.
@@ -143,8 +136,8 @@ the representative OECD economy. Key run flags at the top of the script:
 | `RUN.no_anticipation` | `false` | foresight-value variant (Q1.2020 controls fixed at observed) |
 
 Outputs: `trilemma_v22_results` tables and the planner/frontier figures of
-Section 7.1–7.2. Runtime: minutes for the planner, roughly [X] minutes for
-the full frontier set on a standard desktop. <!-- CONFIRM: Laufzeit -->
+Section 7.1–7.2. Runtime: minutes for the planner, roughly [5] minutes for
+the full frontier set on a standard desktop.
 
 **Step 3 — `v23_cross_country.m` (country analysis).** Repeats the frontier
 analysis for each of the 38 economies under the common policy menu, with
@@ -176,5 +169,4 @@ country loop parallelizes with `parfor`.
 ## Contact
 
 Aulis Pesenti — University of Basel, Faculty of Business and Economics.
-<!-- CONFIRM: E-Mail-Adresse und ggf. Lizenz (empfohlen: MIT fuer Code,
-CC-BY-4.0 fuer die Datenbank/das Codebook). -->
+aulis.pesenti@unibas.ch 
