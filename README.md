@@ -1,6 +1,6 @@
 # The Pandemic Trilemma
 
-Replication package for **"The Pandemic Trilemma"** (Pesenti, University of Basel).
+Replication package for **"The Pandemic Trilemma"** (Aulis Pesenti, University of Basel).
 
 A deadly virus confronts governments with a trilemma between excess mortality,
 output stabilization, and fiscal sustainability. This paper constructs a
